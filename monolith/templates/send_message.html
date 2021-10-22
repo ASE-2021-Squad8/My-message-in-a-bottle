@@ -4,7 +4,7 @@
 		<label for "recipients">Choose a recipient:</label>
 		<select name="recipients">
 			{% for user in users: %}
-				{% if not current_user.email == user.email %}
+				{% if current_user.email != user.email %}
 				<option>{{user.email}}, {{user.firstname}} {{user.lastname}}</option>
 				{% endif %}
 			{% endfor %}
