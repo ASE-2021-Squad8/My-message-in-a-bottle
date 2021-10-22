@@ -1,0 +1,13 @@
+<html>
+	<body>
+		<h1>Send a Message</h1>
+		<label for "recipients">Choose a recipient:</label>
+		<select name="recipients">
+			{% for user in users: %}
+				{% if not current_user.email == user.email %}
+				<option>{{user.email}}</option>
+				{% endif %}
+			{% endfor %}
+		</select>
+	</body>
+</html>
