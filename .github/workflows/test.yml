@@ -1,0 +1,27 @@
+name: "Application tests"
+on:
+  push:
+    branches:
+      - master
+  
+  pull_request:
+    branches:
+      - master
+
+  workflow_dispatch:
+
+jobs:
+  test:
+    name: "Run tests"
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v2
+      - name: "Install dependencies"
+        run: |
+          pip install -r requirements.txt
+          pip install flask-cli pytest pytest-cov
+      - name: "Run tests"
+        run: |
+          export FLASK_ENV=development
+          export FLASK_APP=monolith/app.py
+          pytest -v --no-cov
