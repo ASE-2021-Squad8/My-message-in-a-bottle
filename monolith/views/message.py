@@ -5,8 +5,11 @@ from monolith.database import User, db
 message = Blueprint('message', __name__)
 
 
+def get_recipients():
+	return db.session.query(User)
+
+
 @message.route('/sendmsg')
 def _send():
-    # Only displaying recipients list for now
-    _users = db.session.query(User)
+    _users = get_recipients()
     return render_template("send_message.html", users=_users)
