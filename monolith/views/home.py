@@ -16,3 +16,7 @@ def index():
         form = MessageForm()
         
     return render_template("index.html", welcome=welcome, form=form)
+
+@home.route('/settings')
+def settings():
+	return render_template("settings.html")
