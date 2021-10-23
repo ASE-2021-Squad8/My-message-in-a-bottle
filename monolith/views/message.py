@@ -5,7 +5,7 @@ from monolith.database import User, db
 message = Blueprint('message', __name__)
 
 
-@message.route('/send_message')
+@message.route('/sendmsg')
 def _send():
     # Only displaying recipients list for now
     _users = db.session.query(User)
