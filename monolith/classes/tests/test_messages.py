@@ -1,13 +1,11 @@
 import json
 import unittest
 
-from monolith import app
+from monolith.app import create_test_app
 
 class TestApp(unittest.TestCase):
     def setUp(self):
-        app.config['TESTING'] = True
-        app.config['WTF_CSRF_ENABLED'] = False
-        self.app = app
+        self.app = create_test_app()
         self.client = self.app.test_client()
         self._ctx = self.app.test_request_context()
         self._ctx.push()
