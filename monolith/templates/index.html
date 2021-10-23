@@ -3,6 +3,23 @@
 {% if current_user.is_authenticated %}
   Hi {{ current_user.firstname }}! <a href="/logout">Logout</a>
     <h2>{{ welcome }}</h2>
+    <form method="POST">
+      {{ form.hidden_tag() }}
+      <dl>
+       {% for field in form.display %}
+       <dt>{{ form[field].label }}</dt>
+       <dd>{{ form[field]() }}</dd>
+         {% if form[field].errors %}
+            {% for e in form[field].errors %}
+             <p class="help-block">{{ e }}</p>
+            {% endfor %}
+         {% endif %}
+       {% endfor %}
+      </dl>
+      <p>
+      <button type="submit" formaction="">Send message</button>
+      <button type="submit" formaction="/api/message/draft">Save draft</button>
+    </form>
 
 {% else %}
   Hi Anonymous, <a href="/login">Log in</a>
