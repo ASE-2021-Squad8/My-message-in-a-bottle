@@ -13,9 +13,15 @@ def login():
         email, password = form.data['email'], form.data['password']
         q = db.session.query(User).filter(User.email == email)
         user = q.first()
-        if user is not None and user.authenticate(password):
-            login_user(user)
-            return redirect('/')
+        if user is not None:
+            if user.authenticate(password):
+                login_user(user)
+                return redirect('/')
+            else:
+                form.password.errors.append("Invalid password")
+        else:
+            form.email.errors.append("Unknown email address")
+
     return render_template('login.html', form=form)
 
 
