@@ -3,24 +3,27 @@ from flask import Blueprint, redirect, render_template, request
 from monolith.database import User, db
 from monolith.forms import UserForm
 from monolith.auth import check_authenticated, current_user
-users = Blueprint('users', __name__)
+
+users = Blueprint("users", __name__)
 
 
-@users.route('/users')
+@users.route("/users")
 def _users():
     _users = db.session.query(User)
     return render_template("users.html", users=_users)
 
-@users.route('/account_data', methods=['GET'])
+
+@users.route("/account_data", methods=["GET"])
 def _user():
     check_authenticated()
     return render_template("account_data.html", user=current_user)
 
-@users.route('/create_user', methods=['POST', 'GET'])
+
+@users.route("/create_user", methods=["POST", "GET"])
 def create_user():
     form = UserForm()
 
-    if request.method == 'POST':
+    if request.method == "POST":
         if form.validate_on_submit():
             new_user = User()
             form.populate_obj(new_user)
@@ -32,10 +35,10 @@ def create_user():
             new_user.set_password(form.password.data)
             db.session.add(new_user)
             db.session.commit()
-            return redirect('/users')
+            return redirect("/users")
         else:
-            return render_template('create_user.html', form=form)
-    elif request.method == 'GET':
-        return render_template('create_user.html', form=form)
+            return render_template("create_user.html", form=form)
+    elif request.method == "GET":
+        return render_template("create_user.html", form=form)
     else:
-        raise RuntimeError('This should not happen!')
+        raise RuntimeError("This should not happen!")

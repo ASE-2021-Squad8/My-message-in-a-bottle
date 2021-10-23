@@ -4,21 +4,22 @@ from wtforms.validators import DataRequired
 from wtforms import validators
 from wtforms.fields.html5 import EmailField, DateField
 
+
 class LoginForm(FlaskForm):
-    email = f.StringField('email', validators=[DataRequired()])
-    password = f.PasswordField('password', validators=[DataRequired()])
-    display = ['email', 'password']
+    email = f.StringField("email", validators=[DataRequired()])
+    password = f.PasswordField("password", validators=[DataRequired()])
+    display = ["email", "password"]
 
 
 class UserForm(FlaskForm):
-    email = EmailField('email', validators=[DataRequired()])
-    firstname = f.StringField('firstname', validators=[DataRequired()])
-    lastname = f.StringField('lastname', validators=[DataRequired()])
-    password = f.PasswordField('password', validators=[DataRequired()])
-    dateofbirth = DateField('dateofbirth', validators=[DataRequired()])
-    display = ['email', 'firstname', 'lastname', 'password', 'dateofbirth']
+    email = EmailField("email", validators=[DataRequired()])
+    firstname = f.StringField("firstname", validators=[DataRequired()])
+    lastname = f.StringField("lastname", validators=[DataRequired()])
+    password = f.PasswordField("password", validators=[DataRequired()])
+    dateofbirth = DateField("dateofbirth", validators=[DataRequired()])
+    display = ["email", "firstname", "lastname", "password", "dateofbirth"]
+
 
 class MessageForm(FlaskForm):
-    text = f.TextAreaField('text', validators=[DataRequired()])
-    display = ['text']
-    
+    text = f.TextAreaField("text", validators=[DataRequired()])
+    display = ["text"]

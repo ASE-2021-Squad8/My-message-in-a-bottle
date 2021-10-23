@@ -9,7 +9,7 @@ login_manager = LoginManager()
 
 
 def check_authenticated():
-    if current_user is None or not hasattr(current_user, 'id'):
+    if current_user is None or not hasattr(current_user, "id"):
         abort(401, "Unauthenticated API usage is not allowed.")
 
 
@@ -20,6 +20,7 @@ def admin_required(func):
         if not admin:
             return login_manager.unauthorized()
         return func(*args, **kw)
+
     return _admin_required
 
 
