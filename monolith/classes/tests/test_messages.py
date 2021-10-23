@@ -49,3 +49,7 @@ class TestApp(unittest.TestCase):
             data = reply.get_json()
             assert reply.status_code == 200
             assert int(data['message_id']) == 1
+
+            reply = self.client.delete('/api/message/draft', data=dict(message_id=1))
+            data = reply.get_json()
+            assert reply.status_code == 404
