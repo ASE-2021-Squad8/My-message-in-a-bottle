@@ -37,4 +37,4 @@ def get_user_drafts():
     return _get_result(jsonify(drafts),"/")
 
 def _get_result(json_object, page):
-    return json_object if current_app.config["TESTING"] else redirect(page)
+    return json_object if app.config["TESTING"] else redirect(page)
