@@ -19,7 +19,7 @@ def save_draft_message():
         message.sender = getattr(current_user, 'id')
         monolith.messaging.save_draft(message)
 
-        return _get_result(app.jsonify({"message_id": message.message_id}),"/")
+        return _get_result(jsonify({"message_id": message.message_id}),"/")
     elif request.method == "DELETE":
         to_delete = request.form["message_id"]
         try:
