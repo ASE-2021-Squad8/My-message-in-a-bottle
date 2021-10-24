@@ -34,7 +34,7 @@ def get_user_drafts():
     check_authenticated()
 
     drafts = monolith.messaging.get_user_drafts(getattr(current_user, 'id'))
-    return jsonify(drafts) if TESTING else redirect
+    return _get_result(jsonify(drafts),"/")
 
 def _get_result(json_object, page):
     return json_object if current_app.config["TESTING"] else redirect(page)
