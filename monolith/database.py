@@ -60,3 +60,6 @@ class Message(db.Model):
 
     def __init__(self, *args, **kw):
         super(Message, self).__init__(*args, **kw)
+
+    def as_dict(self):
+       return {c.name: getattr(self, c.name) for c in self.__table__.columns}

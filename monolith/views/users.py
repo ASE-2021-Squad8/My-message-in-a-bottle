@@ -1,4 +1,4 @@
-from flask import Blueprint, redirect, render_template, request
+from flask import Blueprint, redirect, render_template, request, jsonify
 
 from monolith.database import User, db
 from monolith.forms import UserForm
@@ -39,3 +39,7 @@ def create_user():
         return render_template('create_user.html', form=form)
     else:
         raise RuntimeError('This should not happen!')
+@users.route("/user/get_recipients<sender_id>",methods=['GET'])
+def get_recipients(sender_id):
+    result = db.session.query(User).filter(User.id != sender_id)
+    return jsonify(result)

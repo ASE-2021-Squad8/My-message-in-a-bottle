@@ -3,6 +3,9 @@
 {% if current_user.is_authenticated %}
   Hi {{ current_user.firstname }}! <a href="/logout">Logout</a>
     <h2>{{ welcome }}</h2>
+    <div>
+      <h1>{{message}}</h1>
+    </div>
     <form method="POST">
       {{ form.hidden_tag() }}
       <dl>
@@ -17,7 +20,9 @@
        {% endfor %}
       </dl>
       <p>
-      <button type="submit" formaction="">Send message</button>
+      <label for="delivery_date">Choose a time for delivering message </label>
+      <input type="datetime-local" id="delivery_date" name="delivery_date"/>
+      <button type="submit" formaction="/api/message/send_message">Send message</button>
       <button type="submit" formaction="/api/message/draft">Save draft</button>
     </form>
 

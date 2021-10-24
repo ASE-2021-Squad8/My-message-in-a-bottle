@@ -1,5 +1,7 @@
+from sqlalchemy.sql.selectable import Values
 import wtforms as f
 from flask_wtf import FlaskForm
+from wtforms.fields.simple import HiddenField
 from wtforms.validators import DataRequired
 
 
@@ -19,5 +21,8 @@ class UserForm(FlaskForm):
 
 class MessageForm(FlaskForm):
     text = f.TextAreaField('text', validators=[DataRequired()])
-    display = ['text']
+    delivery_date = f.DateTimeField('delivery_date')
+    recipient = f.SelectField("recipient")
+    a = f.SelectField()
+    display = ['text','recipient']
     
