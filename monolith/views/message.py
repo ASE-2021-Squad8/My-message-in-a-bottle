@@ -1,12 +1,10 @@
-from flask import Blueprint, request, abort, jsonify
+from flask import Blueprint, request, abort, jsonify, current_app as app
 from werkzeug.utils import redirect
-from flask import current_app as app
 from monolith.auth import current_user, check_authenticated
 from monolith.database import Message
 import monolith.messaging
 
 msg = Blueprint('message', __name__)
-test_mode = app.config['TESTING']
 
 @msg.route("/api/message/draft", methods=["POST", "DELETE"])
 def save_draft_message():
@@ -21,12 +19,12 @@ def save_draft_message():
         message.sender = getattr(current_user, 'id')
         monolith.messaging.save_draft(message)
 
-        return app.jsonify({"message_id": message.message_id}) if test_mode else  redirect("/")
+        return _get_result(app.jsonify({"message_id": message.message_id}),"/")
     elif request.method == "DELETE":
         to_delete = request.form["message_id"]
         try:
             monolith.messaging.delete_user_draft(getattr(current_user, 'id'), to_delete)
-            return jsonify({"message_id": to_delete}) if test_mode else redirect("/")
+            return _get_result(jsonify({"message_id": to_delete}),"/")
         except:
             abort(404, "Draft not found")
                     
@@ -36,4 +34,7 @@ def get_user_drafts():
     check_authenticated()
 
     drafts = monolith.messaging.get_user_drafts(getattr(current_user, 'id'))
-    return jsonify(drafts) if test_mode else redirect
+    return jsonify(drafts) if TESTING else redirect
+
+def _get_result(json_object, page):
+    return json_object if current_app.config["TESTING"] else redirect(page)

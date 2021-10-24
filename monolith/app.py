@@ -7,7 +7,7 @@ from monolith.database import User, db
 from monolith.views import blueprints
 import tempfile
 import os
-
+TESTING = False
 def create_test_app():
     return create_app(True)
 
@@ -33,6 +33,7 @@ def create_app(test_mode=False):
 
     # create a first admin user
     with app.app_context():
+        TESTING = test_mode
         q = db.session.query(User).filter(User.email == 'example@example.com')
         user = q.first()
         if user is None:
