@@ -1,4 +1,7 @@
+
 from flask import Blueprint, redirect, render_template, request, jsonify
+from flask_login import logout_user
+
 
 from monolith.database import User, db
 from monolith.forms import UserForm
@@ -45,6 +48,7 @@ def create_user():
         raise RuntimeError("This should not happen!")
 
 
+
 @users.route("/user/get_recipients", methods=["GET"])
 def get_recipients():
     result = monolith.user_query.get_recipients(getattr(current_user, "id"))
@@ -52,3 +56,14 @@ def get_recipients():
     for usr in result:
         l.append(usr.as_dict())
     return jsonify(l)
+
+@users.route("/unregister")
+def unregister():
+    check_authenticated()
+    userid = getattr(current_user, "id")
+    logout_user()
+    user = User.query.filter(User.id == userid).first()
+    user.is_active = False
+    db.session.commit()
+    return redirect("/")
+

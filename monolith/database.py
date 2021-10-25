@@ -39,8 +39,12 @@ class User(db.Model):
     def get_id(self):
         return self.id
 
+
     def as_dict(self):
         return {c.name: getattr(self, c.name) for c in self.__table__.columns}
+
+    def get_isactive(self):
+        return self.is_active
 
 
 @dataclass
@@ -57,6 +61,7 @@ class Message(db.Model):
 
     message_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     text = db.Column(db.String(4096))
+
     sender = db.Column(db.Integer, ForeignKey(User.id))
     recipient = db.Column(db.Integer, ForeignKey(User.id))
     is_draft = db.Column(db.Boolean, default=True)
