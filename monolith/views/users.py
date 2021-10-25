@@ -47,7 +47,7 @@ def create_user():
 
 @users.route("/user/get_recipients", methods=["GET"])
 def get_recipients():
-    result = monolith.user_query.get_users(getattr(current_user, "id"))
+    result = monolith.user_query.get_recipients(getattr(current_user, "id"))
     l = []
     for usr in result:
         l.append(usr.as_dict())
