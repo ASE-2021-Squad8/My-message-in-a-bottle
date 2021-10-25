@@ -18,6 +18,11 @@ def index():
     return render_template("index.html", welcome=welcome, form=form)
 
 
+@home.route('/error_page')
+def to_error_page():
+    return render_template("error_page.html",message="Fatal error")
+
+
 @home.route("/settings")
 def settings():
     return render_template("settings.html")
