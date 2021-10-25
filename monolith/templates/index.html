@@ -1,3 +1,32 @@
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script type="application/javascript">
+  var loaded = false;
+ function get_recipient(){ 
+   if(loaded)
+      return;
+    $.ajax({
+      url : "/user/get_recipients",
+      content : "json",
+      success : function(data,status){
+        console.log("status " + status);
+        items = data;
+        $.each(items, function (i, item) {
+          $('#recipient').append($('<option>', { 
+              value: item.id,
+              text : item.email 
+          }));
+        });
+        loaded = true;
+      },
+       error : function(a,b,c){
+         console.log(a + " " + b + " " +c )
+       }
+    });
+  }
+  $(document).ready(function(){
+    get_recipient();
+  });
+</script>
 <h1>My Message in a Bottle -- Primer</h1>
 
 {% if current_user.is_authenticated %}
