@@ -48,8 +48,9 @@ def create_user():
 @users.route("/unregister")
 def unregister():
     check_authenticated()
-    userid = current_user.id
+    userid = getattr(current_user, "id")
     logout_user()
-    User.query.filter(User.id == userid).delete()
+    user = User.query.filter(User.id == userid).first()
+    user.is_active = False
     db.session.commit()
     return redirect("/")

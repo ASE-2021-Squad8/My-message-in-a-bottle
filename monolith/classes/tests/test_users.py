@@ -2,6 +2,7 @@ import unittest
 
 from monolith.app import create_test_app
 from monolith.database import User, db
+from monolith.auth import current_user
 
 
 class TestApp(unittest.TestCase):
@@ -15,7 +16,8 @@ class TestApp(unittest.TestCase):
         reply = self.client.get("/unregister")
         assert reply.status_code == 401
 
-    def test_create_dummy_user(self):
+    def test_unregister_dummy_user(self):
+
         reply = self.client.post(
             "/create_user",
             data=dict(
@@ -29,7 +31,6 @@ class TestApp(unittest.TestCase):
         )
         assert reply.status_code == 200
 
-    def test_unregister_dummy_user(self):
         reply = self.client.post(
             "/login",
             data=dict(
@@ -39,9 +40,10 @@ class TestApp(unittest.TestCase):
             follow_redirects=True,
         )
         assert reply.status_code == 200
+
         reply = self.client.get("/unregister", follow_redirects=True)
         assert reply.status_code == 200
 
-    def test_check_unregistered_in_database(self):
-        query = db.session.query(User).filter(User.email == "test@test.com")
-        assert query.first() == None
+        # Check the user in the db has is_active=False
+        user = User.query.filter(User.email == "test@test.com").first()
+        assert not user.get_isactive()

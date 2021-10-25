@@ -7,7 +7,7 @@ db = SQLAlchemy()
 
 class User(db.Model):
 
-    __tablename__ = 'user'
+    __tablename__ = "user"
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     email = db.Column(db.Unicode(128), nullable=False)
@@ -38,6 +38,10 @@ class User(db.Model):
     def get_id(self):
         return self.id
 
+    def get_isactive(self):
+        return self.is_active
+
+
 @dataclass
 class Message(db.Model):
     message_id: int
@@ -48,12 +52,12 @@ class Message(db.Model):
     is_delivered: bool
     is_read: bool
 
-    __tablename__ = 'message'
+    __tablename__ = "message"
 
     message_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     text = db.Column(db.String(4096))
-    sender = db.Column(db.Integer) # user id
-    recipient = db.Column(db.Integer) # user id
+    sender = db.Column(db.Integer)  # user id
+    recipient = db.Column(db.Integer)  # user id
     is_draft = db.Column(db.Boolean, default=True)
     is_delivered = db.Column(db.Boolean, default=False)
     is_read = db.Column(db.Boolean, default=False)
