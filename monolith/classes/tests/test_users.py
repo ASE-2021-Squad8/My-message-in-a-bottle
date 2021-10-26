@@ -87,7 +87,7 @@ class TestApp(unittest.TestCase):
         # Check the user in the db has been banned (is_active=False)
         user = User.query.filter(User.email == "test_ban@test.com").first()
         assert not user.get_isactive()
-        
+
     def test_get_recipiens(self):
         reply = self.client.post(
             "/create_user",
@@ -101,7 +101,7 @@ class TestApp(unittest.TestCase):
             follow_redirects=True,
         )
         assert reply.status_code == 200
- 
+
         reply = self.client.post(
             "/create_user",
             data=dict(
@@ -114,7 +114,7 @@ class TestApp(unittest.TestCase):
             follow_redirects=True,
         )
         assert reply.status_code == 200
- 
+
         reply = self.client.post(
             "/login",
             data=dict(
@@ -124,13 +124,13 @@ class TestApp(unittest.TestCase):
             follow_redirects=True,
         )
         assert reply.status_code == 200
- 
+
         reply = self.client.get("/user/get_recipients")
         body = reply.get_json()
         # expect all other users except test
         assert body[0] == {"email": "example@example.com", "id": 1}
-        assert body[1] == {"email": "test_1@test.com", "id": 3} 
-        
+        assert body[1] == {"email": "test_1@test.com", "id": 3}
+
     def test_not_authenticated_update_data(self):
         reply = self.client.get("/update_data")
         assert reply.status_code == 401
@@ -192,7 +192,7 @@ class TestApp(unittest.TestCase):
             follow_redirects=True,
         )
         assert reply.status_code == 200
- 
+
         reply = self.client.post(
             "/login",
             data=dict(
