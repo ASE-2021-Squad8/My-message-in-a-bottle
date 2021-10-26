@@ -14,7 +14,6 @@ def login():
         email, password = form.data["email"], form.data["password"]
         q = db.session.query(User).filter(User.email == email)
         user = q.first()
-        print(user.is_active)
         if not user.is_active:
             # If the user is not active, check if it has been banned or the account is deleted
             if user.reports >= 3:

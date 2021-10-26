@@ -71,7 +71,6 @@ def unregister():
 def report():
     check_authenticated()
     if request.method == "GET":
-        print("GET")
         return render_template("report_user.html")
     else:
         mail = str(request.form["useremail"])
