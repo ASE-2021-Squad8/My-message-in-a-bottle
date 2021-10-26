@@ -36,7 +36,6 @@ def get_all_messages(user_id):
         setattr(msg, "is_read", True)
         # retrieve the name of senxder
         sender = db.session.query(User).filter(User.id == msg.get_sender()).first()
-        print(sender)
         json_msg = json.dumps(
             {
                 "sender_id": sender.get_id(),
@@ -44,6 +43,7 @@ def get_all_messages(user_id):
                 "lastname": sender.get_lastname(),
                 "id_message": msg.message_id,
                 "text": msg.text,
+                "email": sender.email,
             }
         )
 

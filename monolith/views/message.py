@@ -47,14 +47,14 @@ def save_draft_message():
         message.is_draft = True
         monolith.messaging.save_message(message)
 
-        return _get_result(jsonify({"message_id": message.message_id}), "/")
+        return _get_result(jsonify({"message_id": message.message_id}), "/send_message")
     elif request.method == "DELETE":
         to_delete = request.form["message_id"]
         try:
             monolith.messaging.delete_user_message(
                 getattr(current_user, "id"), to_delete, True
             )
-            return _get_result(jsonify({"message_id": to_delete}), "/")
+            return _get_result(jsonify({"message_id": to_delete}), "/send_message")
         except:
             _get_result(None, ERROR_PAGE, True, 404, "Draft not found")
 
@@ -78,10 +78,12 @@ def send_message():
     )
     # check parameters
     if delivery_date is None or delivery_date < now:
-        return _get_result(None, ERROR_PAGE, True, 400, "Delivery date in the past")
+        return _get_result(
+            None, "/send_message", True, 400, "Delivery date in the past"
+        )
     if _not_valid_string(request.form["text"]):
         return _get_result(
-            None, ERROR_PAGE, True, 400, "Message to send cannot be empty"
+            None, "/send_message", True, 400, "Message to send cannot be empty"
         )
     # record to insert
     msg = Message()
@@ -101,7 +103,7 @@ def send_message():
     except put_message_in_queque.OperationalError as e:
         logger.exception("Send message task raised: %r", e)
 
-    return _get_result(jsonify({"message sent": True}), "/")
+    return _get_result(jsonify({"message sent": True}), "/send_message")
 
 
 # json object in test mode otherwise page pinted from page
@@ -110,7 +112,9 @@ def _get_result(json_object, page, error=False, status=200, error_message=""):
     if error and testing:
         abort(status, error_message)
     elif error:
-        return render_template(page, message=error_message, form=MessageForm())
+        return render_template(
+            page + ".html", message=error_message, form=MessageForm()
+        )
 
     return json_object if testing else redirect(page)
 

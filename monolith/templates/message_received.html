@@ -13,6 +13,7 @@
 <table class="table table-striped">
     <tr  class="bg-info">
         <th>Sender</th>
+        <th>E-mail</th>
         <th>Text</th>
     </tr>
 
@@ -28,12 +29,9 @@
 
 <script>
 
-    $.get('http://127.0.0.1:5000//api/message/all',function(data){
+    $.get('http://127.0.0.1:5000/api/message/all',function(data){
     buildTable(data)
     });
-
-        
-
 
 	function buildTable(data){
 
@@ -45,6 +43,7 @@
         
 			var row = `<tr>
 							<td>${msg.firstname + " " + msg.lastname}</td>
+                            <td>${msg.email}</tb>
 							<td>${msg.text}</td>
 					  </tr>`
 			table.innerHTML += row
