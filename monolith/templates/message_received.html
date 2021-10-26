@@ -28,13 +28,10 @@
 
 <script>
 
-    $.get('http://127.0.0.1:5000//api/message/all',function(data){
+    $.get('http://127.0.0.1:5000/api/message/all',function(data){
     buildTable(data)
     });
-
-        
-
-
+    
 	function buildTable(data){
 
 		var table = document.getElementById('myTable')
