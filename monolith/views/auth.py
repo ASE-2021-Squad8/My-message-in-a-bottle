@@ -14,13 +14,31 @@ def login():
         email, password = form.data["email"], form.data["password"]
         q = db.session.query(User).filter(User.email == email)
         user = q.first()
-        if user is not None and user.authenticate(password):
-            login_user(user)
-            return redirect("/")
+        if user is not None:
+            if user.authenticate(password):
+                if user.is_active:
+                    login_user(user)
+                    return redirect("/")
+                else:
+                    # If the user is not active, check if it has been banned or the account is deleted
+                    errorstring = ""
+                    if user.reports >= 3:
+                        errorstring = (
+                            "You have been banned and you account has been deleted."
+                        )
+                    else:
+                        errorstring = "You unregistered from the service."
+                    return render_template(
+                        "login.html",
+                        form=form,
+                        error=errorstring
+                        + " All your messages will be delivered anyway.",
+                    )
+            else:
+                form.password.errors.append("Invalid password")
         else:
-            return render_template(
-                "login.html", form=form, error_login="Password or mail wrong!"
-            )
+            form.email.errors.append("Unknown email address")
+
     return render_template("login.html", form=form)
 
 

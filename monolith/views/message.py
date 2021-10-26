@@ -26,6 +26,11 @@ ERROR_PAGE = "index.html"
 logger = get_logger(__name__)
 
 
+@msg.route("/send_message")
+def _send_message():
+    return render_template("send_message.html", form=MessageForm())
+
+
 @msg.route("/api/message/draft", methods=["POST", "DELETE"])
 def save_draft_message():
     check_authenticated()
@@ -112,3 +117,21 @@ def _get_result(json_object, page, error=False, status=200, error_message=""):
 
 def _not_valid_string(text):
     return text is None or text == "" or text.isspace()
+
+
+@msg.route("/api/message/all", methods=["GET"])
+def get_all_mesages():
+    check_authenticated()
+
+    try:
+        messages = monolith.messaging.get_all_messages(getattr(current_user, "id"))
+        return jsonify(messages)
+
+    except Exception:
+        print(Exception)
+        abort(404, "Message not found")
+
+
+@msg.route("/message_received")
+def message_receved():
+    return render_template("message_received.html")

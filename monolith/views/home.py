@@ -9,18 +9,16 @@ home = Blueprint("home", __name__)
 @home.route("/")
 def index():
     form = None
-    welcome = None
 
     if current_user is not None and hasattr(current_user, "id"):
-        welcome = "Logged In!"
         form = MessageForm()
 
-    return render_template("index.html", welcome=welcome, form=form)
+    return render_template("index.html", form=form)
 
 
-@home.route('/error_page')
+@home.route("/error_page")
 def to_error_page():
-    return render_template("error_page.html",message="Fatal error")
+    return render_template("error_page.html", message="Fatal error")
 
 
 @home.route("/settings")

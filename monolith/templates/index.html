@@ -1,64 +1,13 @@
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-<script type="application/javascript">
-  var loaded = false;
- function get_recipient(){ 
-   if(loaded)
-      return;
-    $.ajax({
-      url : "/user/get_recipients",
-      content : "json",
-      success : function(data,status){
-        console.log("status " + status);
-        items = data;
-        $.each(items, function (i, item) {
-          $('#recipient').append($('<option>', { 
-              value: item.id,
-              text : item.email 
-          }));
-        });
-        loaded = true;
-      },
-       error : function(a,b,c){
-         console.log(a + " " + b + " " +c )
-       }
-    });
-  }
-  $(document).ready(function(){
-    get_recipient();
-  });
-</script>
 <h1>My Message in a Bottle -- Primer</h1>
 
 {% if current_user.is_authenticated %}
-  Hi {{ current_user.firstname }}! <br>
+  <h4>Hi {{ current_user.firstname }}!</h4>
+  <a href="/send_message">Send a message</a><br>
+  <a href="/message_received">Received messages</a><br><br>
+  <a href="/settings">Settings</a><br>
   <a href="/logout">Logout</a>
-  <a href="/settings">Settings</a>
     <h2>{{ welcome }}</h2>
-    <div>
-      <h1>{{message}}</h1>
-    </div>
-    <a type = "button" type="submit" href="/account_data">Account</a>
-    <form method="POST">
-      {{ form.hidden_tag() }}
-      <dl>
-       {% for field in form.display %}
-       <dt>{{ form[field].label }}</dt>
-       <dd>{{ form[field]() }}</dd>
-         {% if form[field].errors %}
-            {% for e in form[field].errors %}
-             <p class="help-block">{{ e }}</p>
-            {% endfor %}
-         {% endif %}
-       {% endfor %}
-      </dl>
-      <p>
-      <label for="delivery_date">Choose a time for delivering message </label>
-      <input type="datetime-local" id="delivery_date" name="delivery_date"/>
-      <button type="submit" formaction="/api/message/send_message">Send message</button>
-      <button type="submit" formaction="/api/message/draft">Save draft</button>
-     
-     </form>
-     
+    <h1>{{message}}</h1>
 {% else %}
   Hi Anonymous, <a href="/login">Log in</a> or <a href="/create_user">Register</a>
 {% endif %}

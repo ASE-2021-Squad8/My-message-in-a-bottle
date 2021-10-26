@@ -18,15 +18,14 @@ class TestApp(unittest.TestCase):
         assert reply.status_code == 401
 
     def test_unregister_dummy_user(self):
-
         reply = self.client.post(
             "/create_user",
             data=dict(
-                email="test@test.com",
+                email="test_unregister@test.com",
                 firstname="test",
                 lastname="test",
                 password="test",
-                dateofbirth="1/1/1111",
+                dateofbirth="1111-1-1",
             ),
             follow_redirects=True,
         )
@@ -35,7 +34,7 @@ class TestApp(unittest.TestCase):
         reply = self.client.post(
             "/login",
             data=dict(
-                email="test@test.com",
+                email="test_unregister@test.com",
                 password="test",
             ),
             follow_redirects=True,
@@ -46,9 +45,92 @@ class TestApp(unittest.TestCase):
         assert reply.status_code == 200
 
         # Check the user in the db has is_active=False
-        user = User.query.filter(User.email == "test@test.com").first()
+        user = User.query.filter(User.email == "test_unregister@test.com").first()
         assert not user.get_isactive()
 
+    def test_report_ban_dummy_user(self):
+        reply = self.client.post(
+            "/create_user",
+            data=dict(
+                email="test_ban@test.com",
+                firstname="test",
+                lastname="test",
+                password="test",
+                dateofbirth="1111-1-1",
+            ),
+            follow_redirects=True,
+        )
+
+        assert reply.status_code == 200
+        reply = self.client.post(
+            "/login",
+            data=dict(
+                email="example@example.com",
+                password="admin",
+            ),
+            follow_redirects=True,
+        )
+        assert reply.status_code == 200
+
+        for i in range(1, 4):
+            reply = self.client.post(
+                "/report_user",
+                data=dict(
+                    useremail="test_ban@test.com",
+                ),
+            )
+            assert reply.status_code == 200
+            # Check the user in the db has reports = i
+            user = User.query.filter(User.email == "test_ban@test.com").first()
+            assert user.reports == i
+
+        # Check the user in the db has been banned (is_active=False)
+        user = User.query.filter(User.email == "test_ban@test.com").first()
+        assert not user.get_isactive()
+        
+    def test_get_recipiens(self):
+        reply = self.client.post(
+            "/create_user",
+            data=dict(
+                email="test_receiver@test.com",
+                firstname="test",
+                lastname="test",
+                password="test",
+                dateofbirth="1111-1-1",
+            ),
+            follow_redirects=True,
+        )
+        assert reply.status_code == 200
+ 
+        reply = self.client.post(
+            "/create_user",
+            data=dict(
+                email="test_1@test.com",
+                firstname="test",
+                lastname="test",
+                password="test",
+                dateofbirth="1111-1-1",
+            ),
+            follow_redirects=True,
+        )
+        assert reply.status_code == 200
+ 
+        reply = self.client.post(
+            "/login",
+            data=dict(
+                email="test_receiver@test.com",
+                password="test",
+            ),
+            follow_redirects=True,
+        )
+        assert reply.status_code == 200
+ 
+        reply = self.client.get("/user/get_recipients")
+        body = reply.get_json()
+        # expect all other users except test
+        assert body[0] == {"email": "example@example.com", "id": 1}
+        assert body[1] == {"email": "test_1@test.com", "id": 3} 
+        
     def test_not_authenticated_update_data(self):
         reply = self.client.get("/update_data")
         assert reply.status_code == 401
@@ -61,7 +143,7 @@ class TestApp(unittest.TestCase):
                 firstname="test",
                 lastname="test",
                 password="test",
-                dateofbirth="1/1/1111",
+                dateofbirth="1111-1-1",
             ),
             follow_redirects=True,
         )
@@ -81,7 +163,7 @@ class TestApp(unittest.TestCase):
             data=dict(
                 textfirstname="test_new",
                 textlastname="test_new",
-                textbirth="2021-02-02",
+                textbirth="2222-2-2",
                 textemail="test_new@test.com",
             ),
             follow_redirects=True,
@@ -101,16 +183,16 @@ class TestApp(unittest.TestCase):
         reply = self.client.post(
             "/create_user",
             data=dict(
-                email="pass_update@test.com",
+                email="test_1@test.com",
                 firstname="test",
                 lastname="test",
                 password="test",
-                dateofbirth="1/1/1111",
+                dateofbirth="1111-1-1",
             ),
             follow_redirects=True,
         )
         assert reply.status_code == 200
-
+ 
         reply = self.client.post(
             "/login",
             data=dict(

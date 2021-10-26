@@ -41,7 +41,7 @@ def create_user():
             new_user.set_password(form.password.data)
             db.session.add(new_user)
             db.session.commit()
-            return redirect("/users")
+            return redirect("/login")
         else:
             return render_template("create_user.html", form=form)
     elif request.method == "GET":
@@ -54,8 +54,18 @@ def create_user():
 def get_recipients():
     result = monolith.user_query.get_recipients(getattr(current_user, "id"))
     l = []
+    # delete unwanted data
     for usr in result:
-        l.append(usr.as_dict())
+        d = usr.as_dict()
+        d.pop("password")
+        d.pop("dateofbirth")
+        d.pop("is_active")
+        d.pop("is_admin")
+        d.pop("firstname")
+        d.pop("lastname")
+        d.pop("reports")
+        l.append(d)
+
     return jsonify(l)
 
 
@@ -84,8 +94,7 @@ def change_data_user():
         data = request.form["textbirth"]
         date_as_datetime = datetime.datetime.strptime(data, "%Y-%m-%d")
         user.dateofbirth = date_as_datetime
-        # update_password = request.form['textpass']
-
+        
         if (
             user.firstname == ""
             or user.lastname == ""
@@ -141,3 +150,39 @@ def change_pass_user():
         return render_template("reset_password.html", form=form)
     else:
         raise RuntimeError("This should not happen!")
+
+        
+@users.route("/report_user", methods=["GET", "POST"])
+def report():
+    check_authenticated()
+    if request.method == "GET":
+        return render_template("report_user.html")
+    else:
+        mail = str(request.form["useremail"])
+        if mail is not None and not mail.isspace():
+            user = User.query.filter(User.email == mail).first()
+            if user is None:
+                return render_template(
+                    "report_user.html",
+                    error=mail + " does not exist.",
+                    reported="",
+                )
+            user.reports += 1
+            banned = ""
+            # If the user has 3 or more reports ban the account deactivating it
+            if user.reports >= 3:
+                user.is_active = False
+                banned = " and banned"
+            db.session.commit()
+            return render_template(
+                "report_user.html",
+                error="",
+                reported=mail + " has been reported" + banned + ".",
+            )
+        else:
+            return render_template(
+                "report_user.html",
+                error="You have to specify an email to report a user.",
+                reported="",
+            )
+

@@ -16,6 +16,7 @@ class User(db.Model):
     lastname = db.Column(db.Unicode(128))
     password = db.Column(db.Unicode(128))
     dateofbirth = db.Column(db.DateTime)
+    reports = db.Column(db.Integer, default=0)
     is_active = db.Column(db.Boolean, default=True)
     is_admin = db.Column(db.Boolean, default=False)
     is_anonymous = False
@@ -39,12 +40,17 @@ class User(db.Model):
     def get_id(self):
         return self.id
 
-
     def as_dict(self):
         return {c.name: getattr(self, c.name) for c in self.__table__.columns}
 
     def get_isactive(self):
         return self.is_active
+
+    def get_firstname(self):
+        return self.firstname
+
+    def get_lastname(self):
+        return self.lastname
 
 
 @dataclass
@@ -73,3 +79,12 @@ class Message(db.Model):
 
     def as_dict(self):
         return {c.name: getattr(self, c.name) for c in self.__table__.columns}
+
+    def get_sender(self):
+        return self.sender
+
+    def get_id(self):
+        return self.message_id
+
+    def get_text(self):
+        return self.text
