@@ -20,7 +20,9 @@ def _users():
 @users.route("/account_data", methods=["GET"])
 def _user():
     check_authenticated()
-    return render_template("account_data.html", user=current_user)
+    data = current_user.dateofbirth
+    date_of_birth = data.strftime("%a, %d %B, %Y")
+    return render_template("account_data.html", user=current_user, date = date_of_birth)
 
 
 @users.route("/create_user", methods=["POST", "GET"])
