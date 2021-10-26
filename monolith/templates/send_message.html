@@ -1,9 +1,6 @@
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 <script type="application/javascript">
-	var loaded = false;
 	function get_recipient() {
-		if (loaded)
-			return;
 		$.ajax({
 			url: "/user/get_recipients",
 			content: "json",
