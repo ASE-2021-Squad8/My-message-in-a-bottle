@@ -25,7 +25,7 @@ class TestApp(unittest.TestCase):
                 firstname="test",
                 lastname="test",
                 password="test",
-                dateofbirth="1/1/1111",
+                dateofbirth="1111-1-1",
             ),
             follow_redirects=True,
         )
