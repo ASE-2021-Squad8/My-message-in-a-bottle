@@ -173,7 +173,7 @@ class TestApp(unittest.TestCase):
         assert user is not None
         assert user.firstname == "test_new"
         assert user.lastname == "test_new"
-        assert user.dateofbirth == datetime.datetime(2021, 2, 2)
+        assert user.dateofbirth == datetime.datetime(2222, 2, 2)
 
     def test_not_authenticated_update_password(self):
         reply = self.client.get("/reset_password")
@@ -183,7 +183,7 @@ class TestApp(unittest.TestCase):
         reply = self.client.post(
             "/create_user",
             data=dict(
-                email="test_1@test.com",
+                email="pass_update@test.com",
                 firstname="test",
                 lastname="test",
                 password="test",
