@@ -1,4 +1,3 @@
-
 from flask import Blueprint, redirect, render_template, request, jsonify
 from flask_login import logout_user
 
@@ -48,7 +47,6 @@ def create_user():
         raise RuntimeError("This should not happen!")
 
 
-
 @users.route("/user/get_recipients", methods=["GET"])
 def get_recipients():
     result = monolith.user_query.get_recipients(getattr(current_user, "id"))
@@ -56,6 +54,7 @@ def get_recipients():
     for usr in result:
         l.append(usr.as_dict())
     return jsonify(l)
+
 
 @users.route("/unregister")
 def unregister():
@@ -67,3 +66,38 @@ def unregister():
     db.session.commit()
     return redirect("/")
 
+
+@users.route("/report_user", methods=["GET", "POST"])
+def report():
+    check_authenticated()
+    if request.method == "GET":
+        print("GET")
+        return render_template("report_user.html")
+    else:
+        mail = str(request.form["useremail"])
+        if mail is not None and not mail.isspace():
+            user = User.query.filter(User.email == mail).first()
+            if user is None:
+                return render_template(
+                    "report_user.html",
+                    error=mail + " does not exist.",
+                    reported="",
+                )
+            user.reports += 1
+            banned = ""
+            # If the user has 3 or more reports ban the account deactivating it
+            if user.reports >= 3:
+                user.is_active = False
+                banned = " and banned"
+            db.session.commit()
+            return render_template(
+                "report_user.html",
+                error="",
+                reported=mail + " has been reported" + banned + ".",
+            )
+        else:
+            return render_template(
+                "report_user.html",
+                error="You have to specify an email to report a user.",
+                reported="",
+            )

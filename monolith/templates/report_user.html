@@ -1,0 +1,16 @@
+<h1>Report a user</h1>
+
+<h4>Insert the email of the user you want to report</h4>
+
+<form method="POST">
+	<label for="useremail">Email:</label>
+	<input type="text" id="useremail" name="useremail"><br><br>
+	<button type="submit" formaction="/report_user">Submit</button>
+</form>
+
+{% if error != "" %}
+	<p style="color:red;">{{error}}</p>
+{% endif %}
+{% if reported != "" %}
+	{{ reported }}
+{% endif %}
