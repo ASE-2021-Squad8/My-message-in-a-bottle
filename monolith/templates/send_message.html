@@ -1,0 +1,53 @@
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script type="application/javascript">
+	var loaded = false;
+	function get_recipient() {
+		if (loaded)
+			return;
+		$.ajax({
+			url: "/user/get_recipients",
+			content: "json",
+			success: function (data, status) {
+				console.log("status " + status);
+				items = data;
+				$.each(items, function (i, item) {
+					$('#recipient').append($('<option>', {
+						value: item.id,
+						text: item.email
+					}));
+				});
+				loaded = true;
+			},
+			error: function (a, b, c) {
+				console.log(a + " " + b + " " + c)
+			}
+		});
+	}
+	$(document).ready(function () {
+		get_recipient();
+	});
+</script>
+
+<h1>Send a message</h1>
+<a href="/">Home</a><br>
+<a href="/users">Users</a>
+- get all the possible recipients, including you<br><br>
+<form method="POST">
+	{{ form.hidden_tag() }}
+	<dl>
+		{% for field in form.display %}
+			<dt>{{ form[field].label }}</dt>
+			<dd>{{ form[field]() }}</dd><br>
+			{% if form[field].errors %}
+				{% for e in form[field].errors %}
+				<p class="help-block">{{ e }}</p><br>
+				{% endfor %}
+			{% endif %}
+		{% endfor %}
+	</dl>
+	<p>
+		<label for="delivery_date">choose a time for delivering message </label>
+		<input type="datetime-local" id="delivery_date" name="delivery_date" />
+		<button type="submit" formaction="/api/message/send_message">Send message</button>
+		<button type="submit" formaction="/api/message/draft">Save draft</button>
+</form>

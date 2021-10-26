@@ -24,4 +24,4 @@ class MessageForm(FlaskForm):
     text = f.TextAreaField("text", validators=[DataRequired()])
     delivery_date = f.DateTimeField("delivery_date")
     recipient = f.SelectField("recipient", id="recipient")
-    display = ["text", "recipient"]
+    display = ["recipient", "text"]

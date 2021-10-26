@@ -26,6 +26,11 @@ ERROR_PAGE = "index.html"
 logger = get_logger(__name__)
 
 
+@msg.route("/send_message")
+def _send_message():
+    return render_template("send_message.html", form=MessageForm())
+
+
 @msg.route("/api/message/draft", methods=["POST", "DELETE"])
 def save_draft_message():
     check_authenticated()

@@ -38,7 +38,7 @@ def create_user():
             new_user.set_password(form.password.data)
             db.session.add(new_user)
             db.session.commit()
-            return redirect("/users")
+            return redirect("/login")
         else:
             return render_template("create_user.html", form=form)
     elif request.method == "GET":
