@@ -1,0 +1,56 @@
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+
+<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+
+<style>
+    th{ 
+        color:#fff;
+            }
+</style>
+
+
+<table class="table table-striped">
+    <tr  class="bg-info">
+        <th>Sender</th>
+        <th>Text</th>
+    </tr>
+
+    <tbody id="myTable">
+
+        <h1>
+            Message Received
+        </h1>
+        <a href="/">Home</a>
+        
+    </tbody>
+</table>
+
+<script>
+
+    $.get('http://127.0.0.1:5000//api/message/all',function(data){
+    buildTable(data)
+    });
+
+        
+
+
+	function buildTable(data){
+
+		var table = document.getElementById('myTable')
+
+		for (var i = 0; i < data.length; i++){
+           msg=JSON.parse(data[i])
+           console.log(msg)
+        
+			var row = `<tr>
+							<td>${msg.firstname + " " + msg.lastname}</td>
+							<td>${msg.text}</td>
+					  </tr>`
+			table.innerHTML += row
+
+
+		}
+	}
+
+</script>

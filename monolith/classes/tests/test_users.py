@@ -24,7 +24,7 @@ class TestApp(unittest.TestCase):
                 firstname="test",
                 lastname="test",
                 password="test",
-                dateofbirth="1/1/1111",
+                dateofbirth="1111-1-1",
             ),
             follow_redirects=True,
         )
@@ -55,7 +55,7 @@ class TestApp(unittest.TestCase):
                 firstname="test",
                 lastname="test",
                 password="test",
-                dateofbirth="1/1/1111",
+                dateofbirth="1111-1-1",
             ),
             follow_redirects=True,
         )
@@ -86,3 +86,46 @@ class TestApp(unittest.TestCase):
         # Check the user in the db has been banned (is_active=False)
         user = User.query.filter(User.email == "test_ban@test.com").first()
         assert not user.get_isactive()
+
+    def test_get_receivers(self):
+        reply = self.client.post(
+            "/create_user",
+            data=dict(
+                email="test_receiver@test.com",
+                firstname="test",
+                lastname="test",
+                password="test",
+                dateofbirth="1111-1-1",
+            ),
+            follow_redirects=True,
+        )
+        assert reply.status_code == 200
+
+        reply = self.client.post(
+            "/create_user",
+            data=dict(
+                email="test_1@test.com",
+                firstname="test",
+                lastname="test",
+                password="test",
+                dateofbirth="1111-1-1",
+            ),
+            follow_redirects=True,
+        )
+        assert reply.status_code == 200
+
+        reply = self.client.post(
+            "/login",
+            data=dict(
+                email="test_receiver@test.com",
+                password="test",
+            ),
+            follow_redirects=True,
+        )
+        assert reply.status_code == 200
+
+        reply = self.client.get("/user/get_recipients")
+        body = reply.get_json()
+        # expect all other users except test
+        assert body[0] == {"email": "example@example.com", "id": 1}
+        assert body[1] == {"email": "test_1@test.com", "id": 3}

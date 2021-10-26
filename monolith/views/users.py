@@ -51,8 +51,18 @@ def create_user():
 def get_recipients():
     result = monolith.user_query.get_recipients(getattr(current_user, "id"))
     l = []
+    # delete unwanted data
     for usr in result:
-        l.append(usr.as_dict())
+        d = usr.as_dict()
+        d.pop("password")
+        d.pop("dateofbirth")
+        d.pop("is_active")
+        d.pop("is_admin")
+        d.pop("firstname")
+        d.pop("lastname")
+        d.pop("reports")
+        l.append(d)
+
     return jsonify(l)
 
 
