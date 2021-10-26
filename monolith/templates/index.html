@@ -37,6 +37,7 @@
     <div>
       <h1>{{message}}</h1>
     </div>
+    <button type="submit" formaction="/account_data">Account</button>
     <form method="POST">
       {{ form.hidden_tag() }}
       <dl>
@@ -55,8 +56,9 @@
       <input type="datetime-local" id="delivery_date" name="delivery_date"/>
       <button type="submit" formaction="/api/message/send_message">Send message</button>
       <button type="submit" formaction="/api/message/draft">Save draft</button>
-    </form>
-
+     
+     </form>
+     
 {% else %}
   Hi Anonymous, <a href="/login">Log in</a> or <a href="/create_user">Register</a>
 {% endif %}
