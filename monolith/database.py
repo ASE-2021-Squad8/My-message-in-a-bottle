@@ -46,6 +46,14 @@ class User(db.Model):
     def get_isactive(self):
         return self.is_active
 
+    def get_firstname(self):
+        return self.firstname
+
+    def get_lastname(self):
+        return self.lastname
+
+    
+
 
 @dataclass
 class Message(db.Model):
@@ -73,3 +81,16 @@ class Message(db.Model):
 
     def as_dict(self):
         return {c.name: getattr(self, c.name) for c in self.__table__.columns}
+
+
+    def get_sender(self):
+        return self.sender
+
+
+    def get_id(self):
+        return self.message_id
+
+
+    def get_text(self):
+        return self.text
+
