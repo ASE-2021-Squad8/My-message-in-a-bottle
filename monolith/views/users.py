@@ -60,6 +60,7 @@ def get_recipients():
         d.pop("is_admin")
         d.pop("firstname")
         d.pop("lastname")
+        d.pop("reports")
         l.append(d)
 
     return jsonify(l)
@@ -74,3 +75,38 @@ def unregister():
     user.is_active = False
     db.session.commit()
     return redirect("/")
+
+
+@users.route("/report_user", methods=["GET", "POST"])
+def report():
+    check_authenticated()
+    if request.method == "GET":
+        return render_template("report_user.html")
+    else:
+        mail = str(request.form["useremail"])
+        if mail is not None and not mail.isspace():
+            user = User.query.filter(User.email == mail).first()
+            if user is None:
+                return render_template(
+                    "report_user.html",
+                    error=mail + " does not exist.",
+                    reported="",
+                )
+            user.reports += 1
+            banned = ""
+            # If the user has 3 or more reports ban the account deactivating it
+            if user.reports >= 3:
+                user.is_active = False
+                banned = " and banned"
+            db.session.commit()
+            return render_template(
+                "report_user.html",
+                error="",
+                reported=mail + " has been reported" + banned + ".",
+            )
+        else:
+            return render_template(
+                "report_user.html",
+                error="You have to specify an email to report a user.",
+                reported="",
+            )

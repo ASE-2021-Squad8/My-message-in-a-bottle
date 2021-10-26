@@ -26,28 +26,29 @@ def delete_user_message(user_id, message_id, is_draft=False):
 
 
 def get_all_messages(user_id):
-    
-    #Retrieve of all message for user_id
-    q=db.session.query(Message).filter(Message.recipient== user_id and Message.is_draft==False)
-    list=[]
+
+    # Retrieve of all message for user_id
+    q = db.session.query(Message).filter(
+        Message.recipient == user_id and Message.is_draft == False
+    )
+    list = []
     for msg in q:
-        setattr(msg,"is_read", True)
-        #retrieve the name of senxder
-        sender=db.session.query(User).filter(User.id==msg.get_sender()).first()
+        setattr(msg, "is_read", True)
+        # retrieve the name of senxder
+        sender = db.session.query(User).filter(User.id == msg.get_sender()).first()
         print(sender)
-        json_msg=json.dumps (
+        json_msg = json.dumps(
             {
-                'sender_id': sender.get_id(), 
-                'firstname': sender.get_firstname(), 
-                "lastname" : sender.get_lastname(), 
-                "id_message" : msg.message_id, 
-                "text" : msg.text
+                "sender_id": sender.get_id(),
+                "firstname": sender.get_firstname(),
+                "lastname": sender.get_lastname(),
+                "id_message": msg.message_id,
+                "text": msg.text,
             }
-                        )
+        )
 
         list.append(json_msg)
-    
+
     db.session.commit()
-     
 
     return list

@@ -119,7 +119,7 @@ def get_all_mesages():
     check_authenticated()
 
     try:
-        messages=monolith.messaging.get_all_messages(getattr(current_user,'id'))
+        messages = monolith.messaging.get_all_messages(getattr(current_user, "id"))
         return jsonify(messages)
 
     except Exception:
