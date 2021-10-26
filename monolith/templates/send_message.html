@@ -31,7 +31,7 @@
 <h1>Send a message</h1>
 <a href="/">Home</a><br>
 <a href="/users">Users</a>
-- get all the possible recipients, including you<br><br>
+- get all the users registered to the service.<br><br>
 <form method="POST">
 	{{ form.hidden_tag() }}
 	<dl>
@@ -40,14 +40,13 @@
 			<dd>{{ form[field]() }}</dd><br>
 			{% if form[field].errors %}
 				{% for e in form[field].errors %}
-				<p class="help-block">{{ e }}</p><br>
+				<p class="help-block">{{ e }}</p>
 				{% endfor %}
 			{% endif %}
 		{% endfor %}
 	</dl>
-	<p>
-		<label for="delivery_date">choose a time for delivering message </label>
-		<input type="datetime-local" id="delivery_date" name="delivery_date" />
-		<button type="submit" formaction="/api/message/send_message">Send message</button>
-		<button type="submit" formaction="/api/message/draft">Save draft</button>
+	<label for="delivery_date">Choose a time for delivering message </label>
+	<input type="datetime-local" id="delivery_date" name="delivery_date" />
+	<button type="submit" formaction="/api/message/send_message">Send message</button>
+	<button type="submit" formaction="/api/message/draft">Save draft</button>
 </form>
