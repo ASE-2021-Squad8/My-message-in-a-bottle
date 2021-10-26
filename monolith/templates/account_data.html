@@ -1,9 +1,66 @@
-<html>
-  <body>
-    <h1>Account Data</h1>
-        Name: {{user.firstname}} {{user.lastname}}<br>
-        Email: {{user.email}}<br> 
-        Date of birth: {{user.dateofbirth}}<br><br>
-  <a href="/settings">Back to settings</a>
-  </body>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Abril+Fatface&display=swap" rel="stylesheet">
+
+    <meta charset="UTF-8">
+    <title>Message in a bottle-Account-Data</title>
+    <link href= "{{url_for('static', filename='bootstrap/css/bootstrap.min.css')}}" rel="stylesheet">
+</head>
+
+  <style>
+    body  {
+      background-image: url("{{url_for('static', filename='account_datas.jpg')}}");
+      background-size: cover;
+      color:black;
+
+    
+    }
+    
+    h1{
+      font-family: 'Abril Fatface', cursive;
+    }
+
+    .container-md{
+      top: 40%;
+      background-color: #F2F2F2;
+      border-radius: 3%;
+      width: 400px;
+      height: 250px;
+      
+     
+    }
+
+
+  
+  </style>
+  
+   
+  <a href="/" type="button" style="  position: relative; left: 20px; top: 15px" class="btn btn-light btn-lg">Home</a>
+  
+
+  
+  <div class="container-md">
+    <div class = "text-center">
+   
+        <body>
+          <br>
+            <h1>{{user.firstname}} {{user.lastname}}</h1>
+              <dl>
+               <dd>User mail: <b>{{ user.email }}</b></dd>
+               <dd>Date of birth: <b>{{ date }}</b></dd>
+              </dl>
+              <a href="/update_data" class="btn btn-outline-success" tabindex="-1" role="button" aria-disabled="true">Edit profile</a>
+            </body>
+            <a href="/reset_password" class="btn btn-outline-danger" tabindex="-1" role="button" aria-disabled="true">Change password</a>
+
+          </div>
+    </div>
+
 </html>
+
+
+

@@ -1,23 +1,68 @@
-<html>
- <body>
-  <form action="" method="POST">
-    {{ form.hidden_tag() }}
-    <dl>
-     {% for field in form.display %}
-     <dt>{{ form[field].label }}</dt>
-     <dd>{{ form[field]() }}</dd>
-       {% if form[field].errors %}
-          {% for e in form[field].errors %}
-           <p class="help-block">{{ e }}</p>
-          {% endfor %}
-       {% endif %}
-     {% endfor %}
-    </dl>
-    <p>
-    <input type=submit value="Login">
-  </form>
-  {% if error != "" %}
-  	<p style="color:red;">{{error}}</p>
-  {% endif %}
- </body>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!--<link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Pacifico&display=swap" rel="stylesheet">
+font-family: 'Pacifico', cursive;    
+-->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Abril+Fatface&display=swap" rel="stylesheet">
+
+    <meta charset="UTF-8">
+    <title>Message in a bottle-Login</title>
+    <link href= "{{url_for('static', filename='bootstrap/css/bootstrap.min.css')}}" rel="stylesheet">
+</head>
+<body>
+  <style>
+    .container-md{
+      background-color: white;
+      border-radius: 23%;
+      width: 320px;
+      height: 290px;
+      }
+  </style>
+  <div class="container-md">
+    <div class = "text-center">
+    <style>
+        body  {
+          background-image: url("{{url_for('static', filename='immagine2.jpg')}}");
+          background-repeat: no-repeat;
+          background-attachment: fixed;  
+          background-size: cover;
+          padding-top: 10%;
+          color: black;
+        }
+        
+        h1{
+            font-family: 'Abril Fatface', cursive;
+        }
+    
+    </style>
+        
+        <body>
+          <br>
+            <form action="" method="POST">
+            <h1>Please sign in</h1>
+              {{ form.hidden_tag() }}
+              <dl>
+               {% for field in form.display %}
+               <dt>{{ form[field].label }}</dt>
+               <dd>{{ form[field]() }}</dd>
+                 {% if form[field].errors %}
+                    {% for e in form[field].errors %}
+                     <p class="help-block">{{ e }}</p>
+                    {% endfor %}
+                 {% endif %}
+               {% endfor %}
+              </dl>
+              <p>
+              <input type=submit value="Publish" class="btn btn-dark">
+              <br>
+              <h7 style="color: red;"> {{ error }}</h7>
+            </form>
+           </body>
+        </div>
+    </div>
 </html>

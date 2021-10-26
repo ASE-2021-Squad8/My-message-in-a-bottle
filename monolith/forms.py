@@ -25,3 +25,11 @@ class MessageForm(FlaskForm):
     delivery_date = f.DateTimeField("delivery_date")
     recipient = f.SelectField("Recipient", id="recipient")
     display = ["recipient", "text"]
+
+    
+class ChangePassForm(FlaskForm):
+    currentpassword = f.PasswordField('password', validators=[DataRequired()])
+    newpassword = f.PasswordField('password', validators=[DataRequired()])
+    confirmpassword = f.PasswordField('password', validators=[DataRequired()])
+    display =['currentpassword', 'newpassword', 'confirmpassword']
+
