@@ -1,4 +1,3 @@
-
 from flask import Blueprint, redirect, render_template, request, jsonify
 from flask_login import logout_user
 
@@ -48,14 +47,23 @@ def create_user():
         raise RuntimeError("This should not happen!")
 
 
-
 @users.route("/user/get_recipients", methods=["GET"])
 def get_recipients():
     result = monolith.user_query.get_recipients(getattr(current_user, "id"))
     l = []
+    # delete unwanted data
     for usr in result:
-        l.append(usr.as_dict())
+        d = usr.as_dict()
+        d.pop("password")
+        d.pop("dateofbirth")
+        d.pop("is_active")
+        d.pop("is_admin")
+        d.pop("firstname")
+        d.pop("lastname")
+        l.append(d)
+
     return jsonify(l)
+
 
 @users.route("/unregister")
 def unregister():
@@ -66,4 +74,3 @@ def unregister():
     user.is_active = False
     db.session.commit()
     return redirect("/")
-
