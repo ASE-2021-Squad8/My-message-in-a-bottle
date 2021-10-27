@@ -44,6 +44,8 @@ def save_draft_message():
         message = Message()
         message.text = text
         message.sender = getattr(current_user, "id")
+        if request.form["recipient"] is not None:
+            message.recipient = request.form["recipient"]
         message.is_draft = True
         monolith.messaging.save_message(message)
 
@@ -54,7 +56,7 @@ def save_draft_message():
             monolith.messaging.delete_user_message(
                 getattr(current_user, "id"), to_delete, True
             )
-            return _get_result(jsonify({"message_id": to_delete}), "/send_message")
+            return jsonify({"message_id": to_delete})
         except:
             _get_result(None, ERROR_PAGE, True, 404, "Draft not found")
 
@@ -65,7 +67,16 @@ def _manage_drafts():
 
     return render_template("manage_drafts.html", user=getattr(current_user, "id"))
 
-@msg.route("/api/message/user_drafts", methods=["GET"])
+
+@msg.route("/api/message/draft/<id>", methods=["GET"])
+def get_user_draft(id):
+    check_authenticated()
+
+    draft = monolith.messaging.get_user_draft(getattr(current_user, "id"), id)
+    return jsonify(draft)
+
+
+@msg.route("/api/message/draft/all", methods=["GET"])
 def get_user_drafts():
     check_authenticated()
 
