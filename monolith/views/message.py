@@ -31,7 +31,7 @@ def _send_message():
     return render_template("send_message.html", form=MessageForm())
 
 
-@msg.route("/api/message/draft", methods=["POST", "DELETE"])
+@msg.route("/api/message/draft", methods=["POST"])
 def save_draft_message():
     check_authenticated()
     if request.method == "POST":
@@ -42,36 +42,36 @@ def save_draft_message():
             )
 
         message = None
-        if request.form["draft_id"] is None:
-            message = Message()
-        else:
+        if "draft_id" in request.form and request.form["draft_id"] is not None:
             message = monolith.messaging.get_user_draft(getattr(current_user, "id"), id)
+        else:
+            message = Message()
 
         message.text = text
         message.sender = getattr(current_user, "id")
-        if request.form["recipient"] is not None:
+        if "recipient" in request.form and request.form["recipient"] is not None:
             message.recipient = request.form["recipient"]
         message.is_draft = True
         monolith.messaging.save_message(message)
 
         return _get_result(jsonify({"message_id": message.message_id}), "/send_message")
-    elif request.method == "DELETE":
-        to_delete = request.json["message_id"]
-        try:
-            monolith.messaging.delete_user_message(
-                getattr(current_user, "id"), to_delete, True
-            )
-            return jsonify({"message_id": to_delete})
-        except:
-            _get_result(None, ERROR_PAGE, True, 404, "Draft not found")
 
 
-@msg.route("/api/message/draft/<id>", methods=["GET"])
+@msg.route("/api/message/draft/<id>", methods=["GET", "DELETE"])
 def get_user_draft(id):
     check_authenticated()
 
-    draft = monolith.messaging.get_user_draft(getattr(current_user, "id"), id)
-    return jsonify(draft)
+    if request.method == "GET":
+        draft = monolith.messaging.get_user_draft(getattr(current_user, "id"), id)
+        return jsonify(draft)
+    elif request.method == "DELETE":
+        try:
+            monolith.messaging.delete_user_message(
+                getattr(current_user, "id"), id, True
+            )
+            return jsonify({"message_id": id})
+        except:
+            _get_result(None, ERROR_PAGE, True, 404, "Draft not found")
 
 
 @msg.route("/api/message/draft/all", methods=["GET"])

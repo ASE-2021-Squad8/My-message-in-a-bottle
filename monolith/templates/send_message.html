@@ -64,10 +64,8 @@
 
     function deleteDraft(draft_id) {
         $.ajax({
-            url: 'http://127.0.0.1:5000/api/message/draft',
+            url: 'http://127.0.0.1:5000/api/message/draft/' + draft_id,
             type: 'DELETE',
-            contentType:'application/json',
-            data: '{"message_id": ' + draft_id +'}',
             success: function() {
                 alert("Draft deleted")
                 location.reload(true)
