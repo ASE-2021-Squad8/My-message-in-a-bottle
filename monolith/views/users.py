@@ -64,6 +64,7 @@ def get_recipients():
         d.pop("firstname")
         d.pop("lastname")
         d.pop("reports")
+        d.pop("content_filter")
         l.append(d)
 
     return jsonify(l)
@@ -94,7 +95,7 @@ def change_data_user():
         data = request.form["textbirth"]
         date_as_datetime = datetime.datetime.strptime(data, "%Y-%m-%d")
         user.dateofbirth = date_as_datetime
-        
+
         if (
             user.firstname == ""
             or user.lastname == ""
@@ -151,7 +152,7 @@ def change_pass_user():
     else:
         raise RuntimeError("This should not happen!")
 
-        
+
 @users.route("/report_user", methods=["GET", "POST"])
 def report():
     check_authenticated()
@@ -185,4 +186,3 @@ def report():
                 error="You have to specify an email to report a user.",
                 reported="",
             )
-
