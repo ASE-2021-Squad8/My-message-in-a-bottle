@@ -1,4 +1,4 @@
-from flask import Blueprint, redirect, render_template, request, jsonify
+from flask import Blueprint, redirect, render_template, request, jsonify, abort
 from flask_login import logout_user
 
 
@@ -186,3 +186,22 @@ def report():
                 error="You have to specify an email to report a user.",
                 reported="",
             )
+
+
+@users.route("/api/user/<id>", methods=["GET"])
+def get_email(id):
+    check_authenticated()
+
+    q = db.session.query(User).filter(User.id == id)
+    user = q.first()
+
+    if user is not None:
+        return jsonify(
+            {
+                "email": getattr(user, "email"),
+                "firstname": getattr(user, "firstname"),
+                "lastname": getattr(user, "lastname"),
+            }
+        )
+    else:
+        abort(404, "User not found")
