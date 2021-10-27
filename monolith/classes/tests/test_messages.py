@@ -32,7 +32,7 @@ class TestApp(unittest.TestCase):
                 password="admin"
             ), follow_redirects=True)
 
-            reply = self.client.get('/api/message/user_drafts')
+            reply = self.client.get('/api/message/draft/all')
             assert reply.status_code == 200
 
             reply = self.client.post('/api/message/draft', data=dict(text="Lorem ipsum dolor..."))
