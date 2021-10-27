@@ -41,7 +41,12 @@ def save_draft_message():
                 None, ERROR_PAGE, True, 400, "Message to draft cannot be empty"
             )
 
-        message = Message()
+        message = None
+        if request.form["draft_id"] is None:
+            message = Message()
+        else:
+            message = monolith.messaging.get_user_draft(getattr(current_user, "id"), id)
+
         message.text = text
         message.sender = getattr(current_user, "id")
         if request.form["recipient"] is not None:
@@ -61,13 +66,6 @@ def save_draft_message():
             _get_result(None, ERROR_PAGE, True, 404, "Draft not found")
 
 
-@msg.route("/manage_drafts")
-def _manage_drafts():
-    check_authenticated()
-
-    return render_template("manage_drafts.html", user=getattr(current_user, "id"))
-
-
 @msg.route("/api/message/draft/<id>", methods=["GET"])
 def get_user_draft(id):
     check_authenticated()
@@ -82,6 +80,13 @@ def get_user_drafts():
 
     drafts = monolith.messaging.get_user_drafts(getattr(current_user, "id"))
     return jsonify(drafts)
+
+
+@msg.route("/manage_drafts")
+def _manage_drafts():
+    check_authenticated()
+
+    return render_template("manage_drafts.html", user=getattr(current_user, "id"))
 
 
 @msg.route("/api/message/send_message", methods=["POST"])
@@ -102,14 +107,22 @@ def send_message():
         return _get_result(
             None, "/send_message", True, 400, "Message to send cannot be empty"
         )
-    # record to insert
-    msg = Message()
-    msg.text = request.form["text"]
-    msg.is_draft = False
-    msg.is_delivered = True
-    msg.is_read = False
+    msg = None
+    if request.form["draft_id"] is None:
+        # record to insert
+        msg = Message()
+        msg.text = request.form["text"]
+        msg.is_draft = False
+        msg.is_delivered = True
+        msg.is_read = False
+    else:
+        msg = monolith.messaging.unmark_draft(
+            getattr(current_user, "id"), int(request.form["draft_id"])
+        )
+
     msg.sender = int(getattr(current_user, "id"))
     msg.recipient = int(request.form["recipient"])
+
     # when it will be delivered
     delay = (delivery_date - now).total_seconds()
     try:
@@ -117,6 +130,7 @@ def send_message():
             args=[json.dumps(msg.as_dict())],
             countdown=delay,
         )
+        monolith.messaging.delete_user_message
     except put_message_in_queque.OperationalError as e:
         logger.exception("Send message task raised: %r", e)
 
