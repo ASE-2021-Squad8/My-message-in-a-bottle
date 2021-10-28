@@ -1,6 +1,8 @@
-
 # Created by https://www.toptal.com/developers/gitignore/api/python,macos,flask,visualstudiocode,jupyternotebooks,linux,pycharm+all,virtualenv
 # Edit at https://www.toptal.com/developers/gitignore?templates=python,macos,flask,visualstudiocode,jupyternotebooks,linux,pycharm+all,virtualenv
+
+# Password file to send email notification
+password.txt
 
 ### Flask ###
 instance/*
