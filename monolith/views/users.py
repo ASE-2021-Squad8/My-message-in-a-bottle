@@ -3,7 +3,7 @@ from flask_login import logout_user
 
 
 from monolith.database import User, db
-from monolith.forms import UserForm, ChangePassForm
+from monolith.forms import BlackListForm, UserForm, ChangePassForm
 from monolith.auth import check_authenticated, current_user
 import monolith.user_query
 import datetime
@@ -186,3 +186,31 @@ def report():
                 error="You have to specify an email to report a user.",
                 reported="",
             )
+
+
+@users.route("/black_list/managment", methods=["POST", "GET", "DELETE"])
+def display_black_list():
+
+    owner_id = getattr(current_user, "id")
+    if request.method == "POST":
+        members_id = request.form["users"]
+        monolith.user_query.add_users_to_black_list(owner_id, members_id)
+
+    if request.method == "DELETE":
+        members_id = 1  # TODO: ajax call
+        monolith.user_query.delete_users_black_list(owner_id, members_id)
+
+    # via get it resturn jut the page
+    return _prepare_black_list(owner_id)
+
+
+def _prepare_black_list(owner_id):
+    f = BlackListForm()
+
+    result = monolith.user_query.get_black_list(owner_id)
+    black_list = [usr[1] for usr in result]
+    f.users.choices = monolith.user_query.get_choices(owner_id)
+    f.black_users.choices = result
+    return render_template(
+        "black_list.html", form=f, black_list=black_list, size=len(black_list)
+    )

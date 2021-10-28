@@ -24,3 +24,8 @@ def to_error_page():
 @home.route("/settings")
 def settings():
     return render_template("settings.html")
+
+
+@home.route("/black_list")
+def black_list():
+    return render_template("black_list.html")

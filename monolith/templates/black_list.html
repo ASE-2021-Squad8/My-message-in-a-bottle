@@ -1,0 +1,43 @@
+<html>
+    <head>
+        <script type="application/javascript">
+            function submit(method){
+                document.forms[0].method = method;
+                document.forms[0].submit()
+            }
+        </script>
+    </head>
+        <body>
+            <div>
+                <p>
+                    <ul>
+                        {%if size == 0 -%}
+                            <p style="color: red;">No users in your black black_list</p> 
+                        {%else -%}
+                            <p>
+                                <b>Users in your black list </b>
+                            </p>
+                            {%for black_usr in black_list%}
+                            <li> {{black_usr}} </li>
+                            {%endfor%}
+                        {%endif -%}
+                    </ul>
+                </p>
+            </div>
+            <form action="/black_list/managment" method="post">
+                <select multiple name="users" required>
+                    {% for i in form.users %}
+                        {{i}}
+                    {%endfor%}
+                </select>
+                <br>
+                <br>
+                <input type="submit" name="submit_value" value="Add users"/>
+            </form>
+            <!--TODO delete in ajax-->
+            <p>Hold down the Ctrl or Command (Mac) button to select multiple options.</p>
+            <br>
+            <br>
+            <a href="/">Homepage</a>
+        </body>
+</html>

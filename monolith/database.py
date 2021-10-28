@@ -118,5 +118,5 @@ class Black_list(db.Model):
     member: int
     __tablename__ = "Black_list"
     # user can own only one black list
-    owner = db.Column(db.Integer, ForeignKey(User.id), primary_key=True, unique=True)
+    owner = db.Column(db.Integer, ForeignKey(User.id), primary_key=True)
     member = db.Column(db.Integer, ForeignKey(User.id), primary_key=True)
