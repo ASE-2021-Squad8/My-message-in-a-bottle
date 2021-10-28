@@ -108,7 +108,7 @@ def send_message():
             None, "/send_message", True, 400, "Message to send cannot be empty"
         )
     msg = None
-    if request.form["draft_id"] is None:
+    if request.form["draft_id"] is None or request.form["draft_id"]=="":
         # record to insert
         msg = Message()
         msg.text = request.form["text"]
@@ -170,3 +170,27 @@ def get_all_mesages():
 @msg.route("/message_received")
 def message_receved():
     return render_template("message_received.html")
+
+
+# reply
+@msg.route("/api/message/reply", methods=["POST"])
+def reply():
+    pass
+
+
+# forward
+@msg.route("/api/message/forward", methods=["POST"])
+def forward_msg():
+    pass
+
+
+# The message must be deleted only on the sender side
+@msg.route("/api/message/delete", methods=["POST"])
+def delete_msg():
+    pass
+
+
+# Once the message is opened, it must be marked as read
+@msg.route("/message/read_message")
+def read_msg():
+    pass

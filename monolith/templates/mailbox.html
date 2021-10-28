@@ -1,4 +1,58 @@
-<html>
-	<h1>Mailbox</h1>
-	<meta http-equiv="refresh" content="60">
-</html>
+<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+	integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+
+<h1>Mailbox</h1>
+<meta http-equiv="refresh" content="60">
+
+<a href="/" type="button">Home</a><br><br>
+
+<h3>Received messages</h3>
+<table class="table table-striped" name="table1">
+	<tr class="bg-info">
+		<th>Sender  </th>
+		<th>E-mail</th>
+		<th>Open message</th>
+		<th>Forward message</th>
+		<th>Delete message for me</th>
+	</tr>
+
+</table><br>
+
+
+<h3>Sent messages</h3>
+<table class="table table-striped">
+	<tr class="bg-info">
+		<th>Receiver</th>
+		<th>E-mail</th>
+		<th>Open message</th>
+		<th>Forward message</th>
+		<th>Delete message for me</th>
+	</tr>
+
+</table>
+
+<script>
+
+    $.get('http://127.0.0.1:5000/api/message/all',function(data){
+    buildTable(data)
+    });
+
+	function buildTable(data){
+
+		var table = document.getElementById('myTable')
+
+		for (var i = 0; i < data.length; i++){
+           msg=JSON.parse(data[i])
+           console.log(msg)
+        
+			var row = `<tr>
+							<td>${msg.firstname + " " + msg.lastname}</td>
+                            <td>${msg.email}</tb>
+							<td>${msg.text}</td>
+					  </tr>`
+			table.innerHTML += row
+
+		}
+	}
+
+</script>
