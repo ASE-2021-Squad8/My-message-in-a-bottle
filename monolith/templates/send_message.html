@@ -20,15 +20,93 @@
 			}
 		});
 	}
+	
 	$(document).ready(function () {
 		get_recipient();
+		$.get('http://127.0.0.1:5000/api/message/draft/all', buildTable)
 	});
+
+	function buildTable(data){
+		var table = document.getElementById('draftsTable')
+
+		if (data.length == 0) {
+			table.innerHTML = "No drafts!"
+			return
+		}
+
+        table.innerHTML = `<tr class="bg-info">
+            <th>Recipient</th>
+            <th>E-mail</th>
+            <th>Text</th>
+            <th>Actions</th>
+        </tr>`
+
+        for (var i = 0; i < data.length; i++) {
+            msg = data[i]
+
+            user = ""
+            $.ajax({
+                url: 'http://127.0.0.1:5000/api/user/' + msg.recipient,
+                type: 'GET',
+                async: false,
+                dataType: 'json',
+                success: function(response) { user = response }
+            })
+
+            console.log(user)
+            
+			var row = `<tr>
+							<td>${user.firstname + " " + user.lastname}</td>
+                            <td>${user.email}</td>
+							<td>${msg.text}</td>
+                            <td><input id="editdraft" type="button" value="Edit" onclick="editDraft(${msg.message_id})" />
+                                <input id="deldraft" type="button" value="Delete" onclick="deleteDraft(${msg.message_id})" /></td>
+					  </tr>`
+
+            table.innerHTML += row
+		}
+	}
+
+    function deleteDraft(draft_id) {
+        $.ajax({
+            url: 'http://127.0.0.1:5000/api/message/draft/' + draft_id,
+            type: 'DELETE',
+            success: function() {
+                alert("Draft deleted")
+                location.reload(true)
+            },
+        })
+    }
+
+	function editDraft(draft_id) {
+		$.ajax({
+                url: 'http://127.0.0.1:5000/api/message/draft/' + draft_id,
+                type: 'GET',
+                dataType: 'json',
+                success: function(response) {
+					console.log(response)
+					var text = document.getElementById('text')
+					var recipient = document.getElementById('recipient')
+					var draft_hidden_field = document.getElementById('draft_id')
+
+					text.value = response.text
+					recipient.value = response.recipient
+					draft_hidden_field.value = draft_id
+				}
+		})
+	}
 </script>
 
 <h1>Send a message</h1>
 <a href="/">Home</a><br>
-<a href="/users">Users</a>
-- get all the users registered to the service.<br><br>
+
+<table class="table table-striped">
+    <tbody id="draftsTable">
+        <h2>Drafted messages</h2>
+    </tbody>
+</table>
+
+<h2>Compose message</h2>
 <form method="POST">
 	{{ form.hidden_tag() }}
 	<dl>

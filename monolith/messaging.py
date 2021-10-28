@@ -13,13 +13,37 @@ def get_user_drafts(user_id):
     return q.all()
 
 
+def get_user_draft(user_id, draft_id):
+    q = db.session.query(Message).filter(
+        Message.sender == user_id and Message.is_draft and Message.id == draft_id
+    )
+    return q.first()
+
+
+def unmark_draft(user_id, draft_id):
+    message = (
+        db.session.query(Message)
+        .filter(
+            Message.sender == user_id and Message.is_draft and Message.id == draft_id
+        )
+        .first()
+    )
+    
+    if message is None:
+        raise KeyError("Draft does not exist!")
+    else:
+        message.is_draft = False
+        db.session.commit()
+        return message
+
+
 def delete_user_message(user_id, message_id, is_draft=False):
     q = db.session.query(Message).filter(
         Message.sender == user_id and Message.message_id == message_id
     )
     message = q.first()
-    if message is None or not (message.is_draft and is_draft):
-        raise ValueError
+    if message is None:
+        raise ValueError()
 
     db.session.delete(message)
     db.session.commit()
