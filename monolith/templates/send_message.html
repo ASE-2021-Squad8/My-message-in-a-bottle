@@ -29,6 +29,11 @@
 	function buildTable(data){
 		var table = document.getElementById('draftsTable')
 
+		if (data.length == 0) {
+			table.innerHTML = "No drafts!"
+			return
+		}
+
         table.innerHTML = `<tr class="bg-info">
             <th>Recipient</th>
             <th>E-mail</th>
