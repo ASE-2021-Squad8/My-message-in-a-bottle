@@ -27,6 +27,7 @@ def add_users_to_black_list(owner_id, members_id):
     entry.owner = owner_id
     try:
         for member_id in members_id:
+            print("adding " + str(member_id))
             entry.member = member_id
             db.session.add(entry)
 
@@ -63,17 +64,16 @@ def get_choices(owner_id):
 
 def delete_users_black_list(owner_id, members_id):
     _result = False
-    entry = Black_list()
-    entry.owner = owner_id
     try:
         for member_id in members_id:
-            entry.member = member_id
-            db.session.delete(entry)
+            db.session.query(Black_list).filter(Black_list.owner == owner_id).filter(
+                Black_list.member == member_id
+            ).delete()
 
         db.session.commit()
         _result = True
     except Exception as e:
         db.session.rollback()
-        print("Exception in delete_user_black_list ")
+        print("Exception in delete_user_black_list %r", e)
 
     return _result

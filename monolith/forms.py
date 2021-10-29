@@ -36,4 +36,6 @@ class ChangePassForm(FlaskForm):
 
 class BlackListForm(FlaskForm):
     users = f.SelectMultipleField("users", validators=[DataRequired()])
+    black_users = f.SelectMultipleField("users", validators=[DataRequired()])
+
     dispay = ["users"]

@@ -1,40 +1,79 @@
 <html>
     <head>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
         <script type="application/javascript">
-            function submit(method){
-                document.forms[0].method = method;
-                document.forms[0].submit()
+            function get_users_id(form,operation){ 
+                let name = operation === "add" ? "users" : "black_users";
+                let arr = $(form).serializeArray(); 
+                console.log(arr);
+                let ids = []; 
+                arr.forEach(item => {if(item["name"] === name ) ids.push(item["value"]);}) 
+                return ids;
+            }
+            function update_black_list(form,operation){
+                let body = JSON.stringify({op : operation, users : get_users_id(form,operation)});
+                console.log("Body " + body);
+                $.ajax({
+                    type : "POST",
+                    contentType : "application/json",
+                    dataType : "json",
+                    data : body,
+                    url : "/black_list/management",
+                    success : function(data,status){
+                        console.log("Response: ");
+                        console.log(data);
+                        $('#black_users').empty();
+                        data["black_users"].forEach(item =>{
+                            $('#black_users').append($('<option>', {
+                            value: item.id,
+                            text: item.email
+					        }));
+                        });
+                        $("#users").empty();
+                        data["users"].forEach(item =>{
+                            $('#users').append($('<option>', {
+                            value: item.id,
+                            text: item.email
+					        }));
+                        });
+                    },
+                    error : function(a,b,c){
+                        console.log(a + " " + b + " " + c);
+                    },
+                    cache : false
+                });
             }
         </script>
     </head>
         <body>
-            <div>
-                <p>
-                    <ul>
-                        {%if size == 0 -%}
-                            <p style="color: red;">No users in your black black_list</p> 
-                        {%else -%}
-                            <p>
-                                <b>Users in your black list </b>
-                            </p>
-                            {%for black_usr in black_list%}
-                            <li> {{black_usr}} </li>
-                            {%endfor%}
-                        {%endif -%}
-                    </ul>
-                </p>
             </div>
-            <form action="/black_list/managment" method="post">
-                <select multiple name="users" required>
+            <form action="/black_list/management" method="post">
+                {{ form.hidden_tag() }}
+                <label for="users">Users non-present in your black list</label>
+                <br>
+                <select multiple name="users" required id="users">
                     {% for i in form.users %}
                         {{i}}
                     {%endfor%}
                 </select>
                 <br>
                 <br>
-                <input type="submit" name="submit_value" value="Add users"/>
+                <button type="button" onclick="javascript : update_black_list(document.forms[0],'add')"> Add users</button>
             </form>
             <!--TODO delete in ajax-->
+            <form>
+                {{ form.hidden_tag() }}
+                <label for="users">Users present in your black list</label>
+                <br>
+                <select multiple name="black_users" required id="black_users">
+                    {% for i in form.black_users %}
+                        {{i}}
+                    {%endfor%}
+                </select>
+                <br>
+                <br>
+                <button type="button" onclick="javascript : update_black_list(document.forms[1],'delete')">Delete users</button>
+            </form>
             <p>Hold down the Ctrl or Command (Mac) button to select multiple options.</p>
             <br>
             <br>
