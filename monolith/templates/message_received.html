@@ -9,22 +9,18 @@
             }
 </style>
 
+<h1>
+	Message Received
+</h1>
+<a href="/">Home</a>
 
 <table class="table table-striped">
-    <tr  class="bg-info">
+    <tr class="bg-info">
         <th>Sender</th>
         <th>E-mail</th>
         <th>Text</th>
     </tr>
 
-    <tbody id="myTable">
-
-        <h1>
-            Message Received
-        </h1>
-        <a href="/">Home</a>
-        
-    </tbody>
 </table>
 
 <script>
@@ -47,7 +43,6 @@
 							<td>${msg.text}</td>
 					  </tr>`
 			table.innerHTML += row
-
 
 		}
 	}
