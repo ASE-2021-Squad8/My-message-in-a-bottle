@@ -2,8 +2,9 @@
 
 {% if current_user.is_authenticated %}
   <h4>Hi {{ current_user.firstname }}!</h4>
-  <a href="/send_message">Send a message</a><br>
-  <a href="/message_received">Received messages</a><br><br>
+  <a href="/send_message">Send or draft a message</a><br>
+  <a href="/message_received">Received messages</a><br>
+  <hr>
   <a href="/settings">Settings</a><br>
   <a href="/logout">Logout</a>
     <h2>{{ welcome }}</h2>

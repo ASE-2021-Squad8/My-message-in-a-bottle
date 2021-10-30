@@ -1,5 +1,6 @@
 import wtforms as f
 from flask_wtf import FlaskForm
+from wtforms.fields.simple import HiddenField
 from wtforms.validators import DataRequired
 from wtforms.fields.html5 import EmailField, DateField
 from monolith.database import User, db
@@ -24,6 +25,7 @@ class MessageForm(FlaskForm):
     text = f.TextAreaField("Message text", validators=[DataRequired()], id="text")
     delivery_date = f.DateTimeField("delivery_date")
     recipient = f.SelectField("Recipient", id="recipient", validators=[DataRequired()])
+    draft_id = HiddenField("Draft ID", id="draft_id")
     display = ["recipient", "text"]
 
 

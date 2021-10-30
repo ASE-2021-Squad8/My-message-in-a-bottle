@@ -6,7 +6,9 @@ from flask import (
     request,
     jsonify,
     make_response,
+    abort
 )
+
 from flask_login import logout_user
 
 
@@ -183,6 +185,7 @@ def report():
             )
 
 
+
 @users.route("/user/black_list", methods=["POST", "GET"])
 def display_black_list():
     check_authenticated()
@@ -222,3 +225,21 @@ def _prepare_json_response(owner_id, status):
     black_list = monolith.user_query.get_black_list(owner_id)
     body.update({"black_users": [{"id": i[0], "email": i[1]} for i in black_list]})
     return make_response(jsonify(body), status)
+
+@users.route("/api/user/<id>", methods=["GET"])
+def get_email(id):
+    check_authenticated()
+
+    q = db.session.query(User).filter(User.id == id)
+    user = q.first()
+
+    if user is not None:
+        return jsonify(
+            {
+                "email": getattr(user, "email"),
+                "firstname": getattr(user, "firstname"),
+                "lastname": getattr(user, "lastname"),
+            }
+        )
+    else:
+        abort(404, "User not found")

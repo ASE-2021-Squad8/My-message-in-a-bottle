@@ -31,7 +31,7 @@ def _send_message():
     return render_template("send_message.html", form=MessageForm())
 
 
-@msg.route("/api/message/draft", methods=["POST", "DELETE"])
+@msg.route("/api/message/draft", methods=["POST"])
 def save_draft_message():
     check_authenticated()
     if request.method == "POST":
@@ -41,30 +41,52 @@ def save_draft_message():
                 None, ERROR_PAGE, True, 400, "Message to draft cannot be empty"
             )
 
-        message = Message()
+        message = None
+        if "draft_id" in request.form and request.form["draft_id"] is not None:
+            message = monolith.messaging.get_user_draft(getattr(current_user, "id"), id)
+        else:
+            message = Message()
+
         message.text = text
         message.sender = getattr(current_user, "id")
+        if "recipient" in request.form and request.form["recipient"] is not None:
+            message.recipient = request.form["recipient"]
         message.is_draft = True
         monolith.messaging.save_message(message)
 
         return _get_result(jsonify({"message_id": message.message_id}), "/send_message")
+
+
+@msg.route("/api/message/draft/<id>", methods=["GET", "DELETE"])
+def get_user_draft(id):
+    check_authenticated()
+
+    if request.method == "GET":
+        draft = monolith.messaging.get_user_draft(getattr(current_user, "id"), id)
+        return jsonify(draft)
     elif request.method == "DELETE":
-        to_delete = request.form["message_id"]
         try:
             monolith.messaging.delete_user_message(
-                getattr(current_user, "id"), to_delete, True
+                getattr(current_user, "id"), id, True
             )
-            return _get_result(jsonify({"message_id": to_delete}), "/send_message")
+            return jsonify({"message_id": id})
         except:
             _get_result(None, ERROR_PAGE, True, 404, "Draft not found")
 
 
-@msg.route("/api/message/user_drafts", methods=["GET"])
+@msg.route("/api/message/draft/all", methods=["GET"])
 def get_user_drafts():
     check_authenticated()
 
     drafts = monolith.messaging.get_user_drafts(getattr(current_user, "id"))
-    return _get_result(jsonify(drafts), "/")
+    return jsonify(drafts)
+
+
+@msg.route("/manage_drafts")
+def _manage_drafts():
+    check_authenticated()
+
+    return render_template("manage_drafts.html", user=getattr(current_user, "id"))
 
 
 @msg.route("/api/message/send_message", methods=["POST"])
@@ -85,14 +107,22 @@ def send_message():
         return _get_result(
             None, "/send_message", True, 400, "Message to send cannot be empty"
         )
-    # record to insert
-    msg = Message()
-    msg.text = request.form["text"]
-    msg.is_draft = False
-    msg.is_delivered = True
-    msg.is_read = False
+    msg = None
+    if request.form["draft_id"] is None or request.form["draft_id"]=="":
+        # record to insert
+        msg = Message()
+        msg.text = request.form["text"]
+        msg.is_draft = False
+        msg.is_delivered = True
+        msg.is_read = False
+    else:
+        msg = monolith.messaging.unmark_draft(
+            getattr(current_user, "id"), int(request.form["draft_id"])
+        )
+
     msg.sender = int(getattr(current_user, "id"))
     msg.recipient = int(request.form["recipient"])
+
     # when it will be delivered
     delay = (delivery_date - now).total_seconds()
     try:
@@ -100,6 +130,7 @@ def send_message():
             args=[json.dumps(msg.as_dict())],
             countdown=delay,
         )
+        monolith.messaging.delete_user_message
     except put_message_in_queque.OperationalError as e:
         logger.exception("Send message task raised: %r", e)
 
@@ -139,3 +170,27 @@ def get_all_mesages():
 @msg.route("/message_received")
 def message_receved():
     return render_template("message_received.html")
+
+
+# reply
+@msg.route("/api/message/reply", methods=["POST"])
+def reply():
+    pass
+
+
+# forward
+@msg.route("/api/message/forward", methods=["POST"])
+def forward_msg():
+    pass
+
+
+# The message must be deleted only on the sender side
+@msg.route("/api/message/delete", methods=["POST"])
+def delete_msg():
+    pass
+
+
+# Once the message is opened, it must be marked as read
+@msg.route("/message/read_message")
+def read_msg():
+    pass
