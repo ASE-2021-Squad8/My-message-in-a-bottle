@@ -2,6 +2,7 @@ from dataclasses import dataclass
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.sql.schema import ForeignKey
 from werkzeug.security import check_password_hash, generate_password_hash
+from datetime import datetime
 
 db = SQLAlchemy()
 
@@ -62,6 +63,7 @@ class Message(db.Model):
     text: str
     sender: int
     recipient: int
+    delivery_date: datetime
     is_draft: bool
     is_delivered: bool
     is_read: bool
@@ -71,7 +73,7 @@ class Message(db.Model):
 
     message_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     text = db.Column(db.String(4096))
-
+    delivery_date = db.Column(db.DateTime)
     sender = db.Column(db.Integer, ForeignKey(User.id))
     recipient = db.Column(db.Integer, ForeignKey(User.id))
     is_draft = db.Column(db.Boolean, default=True)

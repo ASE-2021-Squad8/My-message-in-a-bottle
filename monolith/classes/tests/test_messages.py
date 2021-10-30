@@ -1,7 +1,11 @@
+from datetime import datetime, timedelta
 import unittest
+import pytest
 
 from flask import json, jsonify
 from monolith.app import create_test_app
+import time
+from monolith.database import Message
 
 
 class TestApp(unittest.TestCase):
@@ -57,3 +61,72 @@ class TestApp(unittest.TestCase):
             reply = self.client.delete("/api/message/draft/1")
             data = reply.get_json()
             assert reply.status_code == 404
+
+    """'
+    @pytest.mark.celery(result_backend="redis://")
+    def test_send_message(self):
+
+        reply = self.client.post(
+            "/create_user",
+            data=dict(
+                email="recipient@test.com",
+                firstname="recipient",
+                lastname="recipient",
+                password="recipient",
+                dateofbirth="1111-1-1",
+            ),
+            follow_redirects=True,
+        )
+
+        # assert reply.status_code == 0
+        reply = self.client.post(
+            "/login",
+            data=dict(email="example@example.com", password="admin"),
+            follow_redirects=True,
+        )
+        assert reply.status_code == 200
+        reply = self.client.get("/user/get_recipients")
+        assert reply.status_code == 200
+        data = reply.get_json()
+        print(data)
+        now = datetime.now()
+        delivery_date = now + timedelta(minutes=1)
+        reply = self.client.post(
+            "/send_message",
+            data=dict(
+                {
+                    "recipient": data[0]["id"],
+                    "text": "Let's do it !",
+                    "delivery_date": delivery_date,
+                }
+            ),
+            follow_redirects=True,
+        )
+
+        msg = (
+            Message.query.filter(
+                Message.recipient == int(data[0]["id"]), Message.sender == 1
+            )
+            .filter(Message.is_delivered == 1)
+            .first()
+        )
+
+        assert msg.text == "Let's do it !"
+        reply = self.client.get("/logout", follow_redirects=True)
+
+        assert reply.status_code == 200
+
+        reply = self.client.post(
+            "/login",
+            data=dict(email="example@example.com", password="admin"),
+            follow_redirects=True,
+        )
+        assert reply.status_code == 200
+        reply = self.client.post(
+            "/login",
+            data=dict(email="recipient@test.com", password="recipient"),
+            follow_redirects=True,
+        )
+
+        reply = self.client.get("/unregister", follow_redirects=True)
+"""
