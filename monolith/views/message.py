@@ -42,9 +42,8 @@ def save_draft_message():
             )
 
         message = None
-        print("draft_id" in request.form)
-        print(request.form["draft_id"] is not None)
-        if "draft_id" in request.form and request.form["draft_id"] is not "":
+
+        if "draft_id" in request.form and request.form["draft_id"] != "":
             id = request.form["draft_id"]
             message = monolith.messaging.get_user_draft(getattr(current_user, "id"), id)
         else:
@@ -163,7 +162,6 @@ def get_all_mesages():
 
     try:
         messages = monolith.messaging.get_all_messages(getattr(current_user, "id"))
-        print(messages)
         return jsonify(messages)
 
     except Exception:
