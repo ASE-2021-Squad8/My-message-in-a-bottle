@@ -42,8 +42,10 @@ def save_draft_message():
             )
 
         message = None
-        if "Draft_ID" in request.form and request.form["Draft ID"] is not None:
-            id = request.form["Draft ID"]
+        print("draft_id" in request.form)
+        print(request.form["draft_id"] is not None)
+        if "draft_id" in request.form and request.form["draft_id"] is not "":
+            id = request.form["draft_id"]
             message = monolith.messaging.get_user_draft(getattr(current_user, "id"), id)
         else:
             message = Message()
