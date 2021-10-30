@@ -1,9 +1,19 @@
-from flask import Blueprint, redirect, render_template, request, jsonify, abort
+from flask import (
+    Blueprint,
+    json,
+    redirect,
+    render_template,
+    request,
+    jsonify,
+    make_response,
+    abort
+)
+
 from flask_login import logout_user
 
 
 from monolith.database import User, db
-from monolith.forms import UserForm, ChangePassForm
+from monolith.forms import BlackListForm, UserForm, ChangePassForm
 from monolith.auth import check_authenticated, current_user
 import monolith.user_query
 import datetime
@@ -53,20 +63,7 @@ def create_user():
 @users.route("/user/get_recipients", methods=["GET"])
 def get_recipients():
     result = monolith.user_query.get_recipients(getattr(current_user, "id"))
-    l = []
-    # delete unwanted data
-    for usr in result:
-        d = usr.as_dict()
-        d.pop("password")
-        d.pop("dateofbirth")
-        d.pop("is_active")
-        d.pop("is_admin")
-        d.pop("firstname")
-        d.pop("lastname")
-        d.pop("reports")
-        d.pop("content_filter")
-        l.append(d)
-
+    l = [{"id": i.id, "email": i.email} for i in result]
     return jsonify(l)
 
 
@@ -187,6 +184,47 @@ def report():
                 reported="",
             )
 
+
+
+@users.route("/user/black_list", methods=["POST", "GET"])
+def display_black_list():
+    check_authenticated()
+    owner_id = getattr(current_user, "id")
+    if request.method == "POST":
+        result = False
+        json_data = json.loads(request.data)
+        members_id = json_data["users"]
+        # print(json_data)
+        if json_data["op"] == "delete":
+            result = monolith.user_query.delete_users_black_list(owner_id, members_id)
+        elif json_data["op"] == "add":
+            result = monolith.user_query.add_users_to_black_list(owner_id, members_id)
+
+        return _prepare_json_response(owner_id, 200 if result else 5000)
+
+    # via get it resturn jut the page
+    return _prepare_black_list(owner_id)
+
+
+def _prepare_black_list(owner_id):
+    f = BlackListForm()
+
+    result = monolith.user_query.get_black_list(owner_id)
+    black_list = [usr[1] for usr in result]
+    f.users.choices = monolith.user_query.get_choices(owner_id)
+    f.black_users.choices = result
+    return render_template(
+        "black_list.html", form=f, black_list=black_list, size=len(black_list)
+    )
+
+
+def _prepare_json_response(owner_id, status):
+    body = dict()
+    choices = monolith.user_query.get_choices(owner_id)
+    body.update({"users": [{"id": i[0], "email": i[1]} for i in choices]})
+    black_list = monolith.user_query.get_black_list(owner_id)
+    body.update({"black_users": [{"id": i[0], "email": i[1]} for i in black_list]})
+    return make_response(jsonify(body), status)
 
 @users.route("/api/user/<id>", methods=["GET"])
 def get_email(id):

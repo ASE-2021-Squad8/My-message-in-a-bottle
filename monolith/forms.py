@@ -2,8 +2,8 @@ import wtforms as f
 from flask_wtf import FlaskForm
 from wtforms.fields.simple import HiddenField
 from wtforms.validators import DataRequired
-from wtforms import validators
 from wtforms.fields.html5 import EmailField, DateField
+from monolith.database import User, db
 
 
 class LoginForm(FlaskForm):
@@ -28,10 +28,16 @@ class MessageForm(FlaskForm):
     draft_id = HiddenField("Draft ID", id="draft_id")
     display = ["recipient", "text"]
 
-    
-class ChangePassForm(FlaskForm):
-    currentpassword = f.PasswordField('password', validators=[DataRequired()])
-    newpassword = f.PasswordField('password', validators=[DataRequired()])
-    confirmpassword = f.PasswordField('password', validators=[DataRequired()])
-    display =['currentpassword', 'newpassword', 'confirmpassword']
 
+class ChangePassForm(FlaskForm):
+    currentpassword = f.PasswordField("password", validators=[DataRequired()])
+    newpassword = f.PasswordField("password", validators=[DataRequired()])
+    confirmpassword = f.PasswordField("password", validators=[DataRequired()])
+    display = ["currentpassword", "newpassword", "confirmpassword"]
+
+
+class BlackListForm(FlaskForm):
+    users = f.SelectMultipleField("users", validators=[DataRequired()])
+    black_users = f.SelectMultipleField("users", validators=[DataRequired()])
+
+    dispay = ["users"]
