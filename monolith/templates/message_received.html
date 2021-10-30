@@ -14,7 +14,7 @@
 </h1>
 <a href="/">Home</a>
 
-<table class="table table-striped">
+<table class="table table-striped" id="message_table">
     <tr class="bg-info">
         <th>Sender</th>
         <th>E-mail</th>
@@ -31,7 +31,7 @@
 
 	function buildTable(data){
 
-		var table = document.getElementById('myTable')
+		var table = document.getElementById('message_table')
 
 		for (var i = 0; i < data.length; i++){
            msg=JSON.parse(data[i])

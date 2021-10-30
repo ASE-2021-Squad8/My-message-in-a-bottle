@@ -14,8 +14,9 @@ def get_user_drafts(user_id):
 
 
 def get_user_draft(user_id, draft_id):
+    print(">>>>>>>>" + str(draft_id))
     q = db.session.query(Message).filter(
-        Message.sender == user_id, Message.is_draft, Message.id == draft_id
+        Message.sender == user_id, Message.is_draft, Message.message_id == draft_id
     )
     return q.first()
 

@@ -42,7 +42,8 @@ def save_draft_message():
             )
 
         message = None
-        if "draft_id" in request.form and request.form["draft_id"] is not None:
+        if "Draft_ID" in request.form and request.form["Draft ID"] is not None:
+            id = request.form["Draft ID"]
             message = monolith.messaging.get_user_draft(getattr(current_user, "id"), id)
         else:
             message = Message()
@@ -160,6 +161,7 @@ def get_all_mesages():
 
     try:
         messages = monolith.messaging.get_all_messages(getattr(current_user, "id"))
+        print(messages)
         return jsonify(messages)
 
     except Exception:
@@ -184,7 +186,8 @@ def forward_msg():
     pass
 
 
-# The message must be deleted only on the sender side
+# Il tasto di elimina deve apparire solo nella sezione dei messaggi ricevuti, è possibile eliminare
+#solo i messaggi che sono stati letti
 @msg.route("/api/message/delete", methods=["POST"])
 def delete_msg():
     pass
