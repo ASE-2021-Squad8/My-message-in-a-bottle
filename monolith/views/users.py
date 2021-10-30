@@ -61,20 +61,7 @@ def create_user():
 @users.route("/user/get_recipients", methods=["GET"])
 def get_recipients():
     result = monolith.user_query.get_recipients(getattr(current_user, "id"))
-    l = []
-    # delete unwanted data
-    for usr in result:
-        d = usr.as_dict()
-        d.pop("password")
-        d.pop("dateofbirth")
-        d.pop("is_active")
-        d.pop("is_admin")
-        d.pop("firstname")
-        d.pop("lastname")
-        d.pop("reports")
-        d.pop("content_filter")
-        l.append(d)
-
+    l = [{"id": i.id, "email": i.email} for i in result]
     return jsonify(l)
 
 
@@ -196,7 +183,7 @@ def report():
             )
 
 
-@users.route("/black_list", methods=["POST", "GET"])
+@users.route("/user/black_list", methods=["POST", "GET"])
 def display_black_list():
     check_authenticated()
     owner_id = getattr(current_user, "id")

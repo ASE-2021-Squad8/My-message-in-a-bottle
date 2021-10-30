@@ -2,7 +2,18 @@ from monolith.database import User, db, Black_list
 
 
 def get_recipients(sender_id):
-    result = db.session.query(User).filter(User.id != sender_id).filter(User.is_active)
+    result = (
+        db.session.query(User.id, User.email)
+        .filter(User.id != sender_id)
+        .filter(User.is_active)
+        .filter(
+            User.id.not_in(
+                db.session.query(Black_list.member).filter(
+                    Black_list.owner == sender_id
+                )
+            )
+        )
+    )
     return result
 
 

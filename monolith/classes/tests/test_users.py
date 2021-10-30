@@ -4,6 +4,7 @@ from monolith.app import create_test_app
 from monolith.database import User, db
 from monolith.auth import current_user
 import datetime
+import json
 
 
 class TestApp(unittest.TestCase):
@@ -128,6 +129,40 @@ class TestApp(unittest.TestCase):
         reply = self.client.get("/user/get_recipients")
         body = reply.get_json()
         # expect all other users except test
+        assert body[0] == {"email": "example@example.com", "id": 1}
+        assert body[1] == {"email": "test_1@test.com", "id": 3}
+
+        """
+        BLACK LIST TEST
+        """
+
+        # add user 3 into black list
+        reply = self.client.post(
+            "/user/black_list",
+            data=json.dumps({"op": "add", "users": [3]}),
+            content_type="application/json",
+        )
+
+        assert reply.status_code == 200
+
+        reply = self.client.get("/user/get_recipients")
+        body = reply.get_json()
+        assert reply.status_code == 200
+        # now expect only user 1
+        assert body[0] == {"email": "example@example.com", "id": 1}
+
+        # delete user 3 into black list
+        reply = self.client.post(
+            "/user/black_list",
+            data=json.dumps({"op": "delete", "users": [3]}),
+            content_type="application/json",
+        )
+
+        assert reply.status_code == 200
+
+        reply = self.client.get("/user/get_recipients")
+        body = reply.get_json()
+        # now excpec it among possible receiver
         assert body[0] == {"email": "example@example.com", "id": 1}
         assert body[1] == {"email": "test_1@test.com", "id": 3}
 
