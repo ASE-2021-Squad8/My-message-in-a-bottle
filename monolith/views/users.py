@@ -1,4 +1,12 @@
-from flask import Blueprint, json, redirect, render_template, request, jsonify
+from flask import (
+    Blueprint,
+    json,
+    redirect,
+    render_template,
+    request,
+    jsonify,
+    make_response,
+)
 from flask_login import logout_user
 
 
@@ -188,21 +196,21 @@ def report():
             )
 
 
-@users.route("/black_list/management", methods=["POST", "GET"])
+@users.route("/black_list", methods=["POST", "GET"])
 def display_black_list():
-
+    check_authenticated()
     owner_id = getattr(current_user, "id")
-    print(request)
     if request.method == "POST":
+        result = False
         json_data = json.loads(request.data)
         members_id = json_data["users"]
-        print(json_data)
+        # print(json_data)
         if json_data["op"] == "delete":
-            monolith.user_query.delete_users_black_list(owner_id, members_id)
+            result = monolith.user_query.delete_users_black_list(owner_id, members_id)
         elif json_data["op"] == "add":
-            monolith.user_query.add_users_to_black_list(owner_id, members_id)
+            result = monolith.user_query.add_users_to_black_list(owner_id, members_id)
 
-        return _prepare_json_response(owner_id)
+        return _prepare_json_response(owner_id, 200 if result else 5000)
 
     # via get it resturn jut the page
     return _prepare_black_list(owner_id)
@@ -220,10 +228,10 @@ def _prepare_black_list(owner_id):
     )
 
 
-def _prepare_json_response(owner_id):
+def _prepare_json_response(owner_id, status):
     body = dict()
     choices = monolith.user_query.get_choices(owner_id)
     body.update({"users": [{"id": i[0], "email": i[1]} for i in choices]})
     black_list = monolith.user_query.get_black_list(owner_id)
     body.update({"black_users": [{"id": i[0], "email": i[1]} for i in black_list]})
-    return jsonify(body)
+    return make_response(jsonify(body), status)

@@ -12,13 +12,12 @@
             }
             function update_black_list(form,operation){
                 let body = JSON.stringify({op : operation, users : get_users_id(form,operation)});
-                console.log("Body " + body);
                 $.ajax({
                     type : "POST",
                     contentType : "application/json",
                     dataType : "json",
                     data : body,
-                    url : "/black_list/management",
+                    url : "/black_list",
                     success : function(data,status){
                         console.log("Response: ");
                         console.log(data);
@@ -36,9 +35,11 @@
                             text: item.email
 					        }));
                         });
+                        alert("Black list updated successfully !")
                     },
                     error : function(a,b,c){
                         console.log(a + " " + b + " " + c);
+                        alert("Ooops something went wrong !")
                     },
                     cache : false
                 });
@@ -47,7 +48,7 @@
     </head>
         <body>
             </div>
-            <form action="/black_list/management" method="post">
+            <form>
                 {{ form.hidden_tag() }}
                 <label for="users">Users non-present in your black list</label>
                 <br>

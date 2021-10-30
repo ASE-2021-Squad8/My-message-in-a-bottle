@@ -23,11 +23,10 @@ def get_black_list(owner_id):
 
 def add_users_to_black_list(owner_id, members_id):
     _result = False
-    entry = Black_list()
-    entry.owner = owner_id
     try:
         for member_id in members_id:
-            print("adding " + str(member_id))
+            entry = Black_list()
+            entry.owner = owner_id
             entry.member = member_id
             db.session.add(entry)
 
