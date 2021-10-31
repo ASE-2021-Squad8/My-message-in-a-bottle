@@ -108,13 +108,15 @@ def send_message():
             None, "/send_message", True, 400, "Message to send cannot be empty"
         )
     msg = None
-    if request.form["draft_id"] is None or request.form["draft_id"]=="":
+    if request.form["draft_id"] is None or request.form["draft_id"] == "":
         # record to insert
         msg = Message()
         msg.text = request.form["text"]
         msg.is_draft = False
-        msg.is_delivered = True
+        msg.is_delivered = False
         msg.is_read = False
+        msg.delivery_date = delivery_date
+
     else:
         msg = monolith.messaging.unmark_draft(
             getattr(current_user, "id"), int(request.form["draft_id"])
@@ -126,11 +128,12 @@ def send_message():
     # when it will be delivered
     delay = (delivery_date - now).total_seconds()
     try:
+        id = monolith.messaging.save_message(msg)
         put_message_in_queque.apply_async(
-            args=[json.dumps(msg.as_dict())],
+            args=[json.dumps({"id": id})],
             countdown=delay,
         )
-        monolith.messaging.delete_user_message
+        # monolith.messaging.delete_user_message
     except put_message_in_queque.OperationalError as e:
         logger.exception("Send message task raised: %r", e)
 
