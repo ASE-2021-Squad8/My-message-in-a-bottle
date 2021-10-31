@@ -1,7 +1,5 @@
 from datetime import datetime, timedelta
 import unittest
-import pytest
-
 from flask import json, jsonify
 from monolith.app import create_test_app
 import time
@@ -62,8 +60,6 @@ class TestApp(unittest.TestCase):
             data = reply.get_json()
             assert reply.status_code == 404
 
-    """'
-    @pytest.mark.celery(result_backend="redis://")
     def test_send_message(self):
 
         reply = self.client.post(
@@ -91,18 +87,21 @@ class TestApp(unittest.TestCase):
         print(data)
         now = datetime.now()
         delivery_date = now + timedelta(minutes=1)
+
         reply = self.client.post(
-            "/send_message",
+            "/api/message/send_message",
             data=dict(
                 {
                     "recipient": data[0]["id"],
                     "text": "Let's do it !",
                     "delivery_date": delivery_date,
+                    "draft_id": "",
                 }
             ),
             follow_redirects=True,
         )
 
+        time.sleep(62)  # waiting for task
         msg = (
             Message.query.filter(
                 Message.recipient == int(data[0]["id"]), Message.sender == 1
@@ -112,6 +111,7 @@ class TestApp(unittest.TestCase):
         )
 
         assert msg.text == "Let's do it !"
+
         reply = self.client.get("/logout", follow_redirects=True)
 
         assert reply.status_code == 200
@@ -129,4 +129,3 @@ class TestApp(unittest.TestCase):
         )
 
         reply = self.client.get("/unregister", follow_redirects=True)
-"""

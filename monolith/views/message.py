@@ -130,7 +130,7 @@ def send_message():
     try:
         id = monolith.messaging.save_message(msg)
         put_message_in_queque.apply_async(
-            args=[json.dumps({"id": id})],
+            args=[json.dumps({"id": id, "TESTING": app.config["TESTING"]})],
             countdown=delay,
         )
         # monolith.messaging.delete_user_message

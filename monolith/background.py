@@ -1,9 +1,10 @@
 from os import name
 from celery import Celery
-from monolith.messaging import check_message_to_send, save_message, update_message_state
+from monolith.messaging import check_message_to_send, update_message_state
 from monolith.database import User, db, Message
 import json
 from celery.utils.log import get_logger
+from celery.schedules import crontab
 
 
 logger = get_logger(__name__)
@@ -21,7 +22,6 @@ celery.conf.beat_schedule = {
     }
 }
 celery.conf.timezone = "UTC"
-# CELERY_IMPORTS = ["background"]
 _APP = None
 
 # queue task
@@ -29,18 +29,18 @@ _APP = None
 def send_message(json_message):
     logger.info("Message: " + json_message)
     global _APP
+    tmp = json.loads(json_message)
     # lazy init
     if _APP is None:
         from monolith.app import create_app
 
-        app = create_app()
+        app = create_app(tmp["TESTING"])
         db.init_app(app)
     else:
         app = _APP
     # update message state
     try:
         with app.app_context():
-            tmp = json.loads(json_message)
             result = update_message_state(tmp["id"], "is_delivered", 1)
     except Exception as e:
         logger.exception("save_message raised %r", e)
