@@ -21,6 +21,8 @@ from monolith.background import send_message as put_message_in_queque
 # utility import
 from datetime import datetime as d
 
+from monolith.user_query import get_user_mail
+
 msg = Blueprint("message", __name__)
 ERROR_PAGE = "index.html"
 logger = get_logger(__name__)
@@ -129,11 +131,24 @@ def send_message():
     delay = (delivery_date - now).total_seconds()
     try:
         id = monolith.messaging.save_message(msg)
+        email_r = get_user_mail(msg.recipient)
+        email_s = get_user_mail(msg.sender)
         put_message_in_queque.apply_async(
-            args=[json.dumps({"id": id, "TESTING": app.config["TESTING"]})],
+            args=[
+                json.dumps(
+                    {
+                        "id": id,
+                        "TESTING": app.config["TESTING"],
+                        "body": "You have just received a massage from " + str(email_s),
+                        "recipient": email_r,
+                        "sender": email_s,
+                    }
+                )
+            ],
             countdown=delay,
+            routing_key="message",  # to specify the queue
+            queue="message",
         )
-        # monolith.messaging.delete_user_message
     except put_message_in_queque.OperationalError as e:
         logger.exception("Send message task raised: %r", e)
 
