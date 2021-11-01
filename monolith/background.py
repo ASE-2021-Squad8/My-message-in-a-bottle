@@ -50,7 +50,7 @@ def send_message(json_message):
     try:
         with app.app_context():
             result = update_message_state(tmp["id"], "is_delivered", 1)
-            if result:
+            if result and not tmp["TESTING"]:
                 # send notification via celery
                 send_notification_task.apply_async(
                     args=[json_message],
