@@ -87,3 +87,13 @@ def delete_users_black_list(owner_id, members_id):
         print("Exception in delete_user_black_list %r", e)
 
     return _result
+
+
+def get_user_mail(user_id):
+    result = ""
+    try:
+        tmp = db.session.query(User.email).filter(User.id == user_id).first()
+        result = tmp[0]
+    except Exception as e:
+        print("Exception in get_user_mail %r", e)
+    return result

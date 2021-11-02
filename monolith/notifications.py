@@ -1,21 +1,29 @@
-import smtplib, ssl
+import smtplib
 from email.message import EmailMessage
+import os
 
-smtp_server = "smtp.gmail.com"
-port = 587
+smtp_server = (
+    "smtp.gmail.com"
+    if not "MAIL_SERVER" in os.environ
+    else os.environ.get("MAIL_SERVER")
+)
+port = 587 if not "MAIL_PORT" in os.environ else int(os.environ.get("MAIL_PORT"))
 notifications_email = "mmiab.notifications@gmail.com"
-with open("password.txt", "r") as pwfile:
-        password = pwfile.readline()
-        pwfile.close()
+
+print(port)
+print(smtp_server)
+
 
 def send_notification(msg_sender, receiver, msg_body):
-    # Create a secure SSL context
-    context = ssl.create_default_context()
 
     # Log in to server and send email
+    server = None
     try:
+        with open("password.txt", "r") as pwfile:
+            password = pwfile.readline()
+            pwfile.close()
         server = smtplib.SMTP(smtp_server, port)
-        server.starttls(context=context)
+        server.starttls()
         server.login(notifications_email, password)
         mail = EmailMessage()
         mail["Subject"] = "MMIAB - Message from " + msg_sender
@@ -25,4 +33,5 @@ def send_notification(msg_sender, receiver, msg_body):
         # Print any error messages
         print(e)
     finally:
-        server.quit()
+        if server != None:
+            server.quit()

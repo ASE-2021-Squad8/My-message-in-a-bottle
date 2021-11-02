@@ -15,12 +15,15 @@ from monolith.forms import MessageForm
 import monolith.messaging
 import json
 from celery.utils.log import get_logger
+import pytz
 
 # import queue task
 from monolith.background import send_message as put_message_in_queque
 
 # utility import
 from datetime import datetime as d
+
+from monolith.user_query import get_user_mail
 
 msg = Blueprint("message", __name__)
 ERROR_PAGE = "index"
@@ -111,13 +114,15 @@ def send_message():
             None, "/send_message", True, 400, "Message to send cannot be empty"
         )
     msg = None
-    if request.form["draft_id"] is None or request.form["draft_id"]=="":
+    if request.form["draft_id"] is None or request.form["draft_id"] == "":
         # record to insert
         msg = Message()
         msg.text = request.form["text"]
         msg.is_draft = False
-        msg.is_delivered = True
+        msg.is_delivered = False
         msg.is_read = False
+        msg.delivery_date = delivery_date
+
     else:
         msg = monolith.messaging.unmark_draft(
             getattr(current_user, "id"), int(request.form["draft_id"])
@@ -127,13 +132,27 @@ def send_message():
     msg.recipient = int(request.form["recipient"])
 
     # when it will be delivered
-    delay = (delivery_date - now).total_seconds()
+    # delay = (delivery_date - now).total_seconds()
     try:
+        id = monolith.messaging.save_message(msg)
+        email_r = get_user_mail(msg.recipient)
+        email_s = get_user_mail(msg.sender)
         put_message_in_queque.apply_async(
-            args=[json.dumps(msg.as_dict())],
-            countdown=delay,
+            args=[
+                json.dumps(
+                    {
+                        "id": id,
+                        "TESTING": app.config["TESTING"],
+                        "body": "You have just received a massage",
+                        "recipient": email_r,
+                        "sender": email_s,
+                    }
+                )
+            ],
+            eta=delivery_date.astimezone(pytz.utc),  # cover to utc
+            routing_key="message",  # to specify the queue
+            queue="message",
         )
-        monolith.messaging.delete_user_message
     except put_message_in_queque.OperationalError as e:
         logger.exception("Send message task raised: %r", e)
 
@@ -212,3 +231,4 @@ def read_msg(id):
     if not monolith.messaging.set_message_is_read(id):
         return abort(404, "Message not found")
     return jsonify({"msg_read": True})
+
