@@ -6,6 +6,7 @@ import json
 from celery.utils.log import get_logger
 from celery.schedules import crontab
 from monolith.notifications import send_notification
+from monolith.user_query import get_user_mail
 
 
 logger = get_logger(__name__)
@@ -80,10 +81,30 @@ def check_messages(self, message):
     result = False
     with app.app_context():
         try:
-            check_message_to_send()
+            ids = check_message_to_send()
+            # for each message has been found as undelivered
+            # send notification
+            for id in ids:
+                email_s = get_user_mail(id[0])
+                email_r = get_user_mail(id[1])
+                json_message = json.dumps(
+                    {
+                        "sender": email_s,
+                        "recipient": email_r,
+                        "body": "You have just received a message",
+                        "TESTING": app.config["TESTING"],
+                    }
+                )
+                # send notification via celery
+                send_notification_task.apply_async(
+                    args=[json_message],
+                    routing_key="notification",
+                    queue="notification",
+                )
             result = True
         except Exception as e:
             logger.exception("check_messages raises %r", e)
+            raise e
     return result
 
 
@@ -92,6 +113,7 @@ def check_messages(self, message):
 def send_notification_task(json_message):
     logger.info("Message task: " + json_message)
     global _APP
+    result = False
     tmp = json.loads(json_message)
     # lazy init
     if _APP is None:
@@ -101,4 +123,10 @@ def send_notification_task(json_message):
         db.init_app(app)
     else:
         app = _APP
-    send_notification(tmp["sender"], tmp["recipient"], tmp["body"])
+    try:
+        send_notification(tmp["sender"], tmp["recipient"], tmp["body"])
+        result = True
+    except Exception as e:
+        logger.exception("send_notification_task raises")
+        raise e
+    return result

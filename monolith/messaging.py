@@ -95,6 +95,7 @@ def update_message_state(message_id, attr, state):
 
 
 def check_message_to_send():
+    ids = []
     # looking for messages that have not been sent but they should have been
     messages = (
         db.session.query(Message)
@@ -104,6 +105,8 @@ def check_message_to_send():
     )
     # updating state
     for msg in messages:
+        ids.append((msg.sender, msg.recipient))
         setattr(msg, "is_delivered", 1)
 
     db.session.commit()
+    return ids

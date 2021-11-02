@@ -139,7 +139,7 @@ def send_message():
                     {
                         "id": id,
                         "TESTING": app.config["TESTING"],
-                        "body": "You have just received a massage from " + str(email_s),
+                        "body": "You have just received a massage",
                         "recipient": email_r,
                         "sender": email_s,
                     }
