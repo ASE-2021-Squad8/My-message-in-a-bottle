@@ -265,7 +265,7 @@
 			var row = `<tr>
 							<td style="text-align:center">${msg.firstname + " " + msg.lastname}</td>
                             <td style="text-align:center">${msg.email}</tb>
-								<td style="text-align:center"><button onclick="open_message(msg)" class="btn btn-success">Open</button></td>
+								<td style="text-align:center"><button onclick="open_message(${msg.id_message}, '${msg.text}')" class="btn btn-success">Open</button></td>
 							<td style="text-align:center">
 								<button id="forward-sent" class="btn btn-primary">Forward</button>
 								<div id="popup-forward" class="modal">
