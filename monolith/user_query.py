@@ -132,10 +132,19 @@ def remove_from_blacklist(owner_id, members_id):
 
 
 def get_user_mail(user_id):
+    """Retrieves the email address for a specific user
+
+    :param user_id: the id of the user
+    :type user_id: int
+    :return: the user's email address
+    :rtype: str
+    """
+
     result = ""
     try:
         tmp = db.session.query(User.email).filter(User.id == user_id).first()
         result = tmp[0]
     except Exception as e:
         print("Exception in get_user_mail %r", e)
+
     return result
