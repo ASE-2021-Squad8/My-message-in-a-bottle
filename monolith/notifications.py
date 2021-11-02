@@ -1,4 +1,4 @@
-import smtplib, ssl
+import smtplib
 from email.message import EmailMessage
 
 smtp_server = "smtp.gmail.com"
@@ -7,8 +7,6 @@ notifications_email = "mmiab.notifications@gmail.com"
 
 
 def send_notification(msg_sender, receiver, msg_body):
-    # Create a secure SSL context
-    context = ssl.create_default_context()
 
     # Log in to server and send email
     try:
@@ -16,7 +14,7 @@ def send_notification(msg_sender, receiver, msg_body):
             password = pwfile.readline()
             pwfile.close()
         server = smtplib.SMTP(smtp_server, port)
-        server.starttls(context=context)
+        server.starttls()
         server.login(notifications_email, password)
         mail = EmailMessage()
         mail["Subject"] = "MMIAB - Message from " + msg_sender
