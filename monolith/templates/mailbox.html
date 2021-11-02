@@ -1,6 +1,5 @@
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
-<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
-	integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
 
 <style>
 	/* The Modal (background) */
@@ -120,25 +119,25 @@
 	}
 
 	function deleteMessage(message_id) {
-		console.log(message_id)
+		console.log(message_id);
 		$.ajax({
 			url: 'http://127.0.0.1:5000/api/message/delete/' + message_id,
 			type: 'DELETE',
 			success: function () {
-				alert("Message deleted")
-				//location.reload(true)
+				alert("Message deleted");
+				location.reload(true);
 			},
-		})
+		});
 	}
 
 	function send_msg_reply_forward(form_id) {
 		let inputform = $('#' + form_id).serializeArray();
-		console.log(inputform)
+		console.log(inputform);
 		let inputdata = {};
 		inputform.forEach(function (item) {
 			inputdata[item["name"]] = item["value"];
 		});
-		console.log(inputdata)
+		console.log(inputdata);
 		$.ajax({
 			url: "/api/message/send_message",
 			dataType: "html",
@@ -154,28 +153,28 @@
 		});
 	}
 
-	function open_message(msg) {
-		console.log(msg + " " + msg.id_message)
-		url = '/api/message/read_message/' + msg.id_message
-		$.get('http://127.0.0.1:5000' + url)
-		open_modal(msg.text)
+	function open_message(msg_id, msg_text) {
+		console.log(msg_id + " " + msg_text)
+		url = '/api/message/read_message/' + msg_id;
+		$.get('http://127.0.0.1:5000' + url);
+		open_modal(msg_text);
 	}
 
 	$.get('http://127.0.0.1:5000/api/message/received', function (data) {
-		buildTableReceived(data)
+		buildTableReceived(data);
 	});
 
 	function buildTableReceived(data) {
-		var table = document.getElementById('received')
+		var table = document.getElementById('received');
 		for (var i = 0; i < data.length; i++) {
-			msg = JSON.parse(data[i])
-			//console.log(msg)
+			msg = JSON.parse(data[i]);
+			console.log(msg);
 			var row = `<tr>
 							<td style="text-align:center">${msg.firstname + " " + msg.lastname}</td>
                             <td style="text-align:center">${msg.email}</tb>
-							<td style="text-align:center"><button onclick=open_message(msg) class="btn btn-success">Open</button></td>
+							<td style="text-align:center"><button onclick="open_message(${msg.id_message}, '${msg.text}')" class="btn btn-success">Open</button></td>
 							<td style="text-align:center">
-								<button id="reply" class="btn btn-primary" onclick=>Reply</button>
+								<button id="reply" class="btn btn-primary" onclick="">Reply</button>
 								<div id="popup-reply" class="modal">
 									<div class="modal-content">
 										<span class="close">&times;</span>
@@ -187,9 +186,9 @@
 												<option value="${msg.sender_id}" selected>${msg.email}</option>
 											</select><br><br>
 											<label for="text">Message text</label><br>
-											<textarea id="text" name="text"></textarea><br><br>
+											<textarea id="text" name="text" required></textarea><br><br>
 											<label for="delivery_date">Choose a time for delivering message</label><br>
-											<input type="datetime-local" id="delivery_date" name="delivery_date" /><br><br>
+											<input type="datetime-local" id="delivery_date" name="delivery_date" required/><br><br>
 											<button type="button" onclick='javascript:send_msg_reply_forward("reply-form")' class="btn btn-primary">Send message</button>
 										</form>
 									</div>
@@ -208,15 +207,15 @@
 											<label for="text">Message text</label><br>
 											<textarea id="text" name="text" readonly>''${msg.text}'' - forwarded from ${msg.email}</textarea><br><br>
 											<label for="delivery_date">Choose a time for delivering message</label><br>
-											<input type="datetime-local" id="delivery_date" name="delivery_date" /><br><br>
+											<input type="datetime-local" id="delivery_date" name="delivery_date" required/><br><br>
 											<button type="button" onclick='javascript:send_msg_reply_forward("forward-form-rec")' class="btn btn-primary">Send message</button>
 										</form>
 									</div>
 								</div>
 							</td>
 							<td style="text-align:center"><input type="button" value="Delete" onclick="deleteMessage(${msg.id_message})" class="btn btn-danger" /></td>
-					  </tr>`
-			table.innerHTML += row
+					  </tr>`;
+			table.innerHTML += row;
 
 		}
 		// var modal = document.getElementById("myModal");
@@ -254,21 +253,19 @@
 	}
 
 	$.get('http://127.0.0.1:5000/api/message/sent', function (data) {
-		buildTableSent(data)
+		buildTableSent(data);
 	});
 
 	function buildTableSent(data) {
-
-		var table = document.getElementById('sent')
-
+		var table = document.getElementById('sent');
 		for (var i = 0; i < data.length; i++) {
-			msg = JSON.parse(data[i])
-			console.log(msg)
+			msg = JSON.parse(data[i]);
+			console.log(msg);
 
 			var row = `<tr>
 							<td style="text-align:center">${msg.firstname + " " + msg.lastname}</td>
                             <td style="text-align:center">${msg.email}</tb>
-								<td style="text-align:center"><button onclick=open_message(msg) class="btn btn-success">Open</button></td>
+								<td style="text-align:center"><button onclick="open_message(msg)" class="btn btn-success">Open</button></td>
 							<td style="text-align:center">
 								<button id="forward-sent" class="btn btn-primary">Forward</button>
 								<div id="popup-forward" class="modal">
@@ -287,8 +284,8 @@
 									</div>
 								</div>
 							</td>
-					  </tr>`
-			table.innerHTML += row
+					  </tr>`;
+			table.innerHTML += row;
 
 		}
 		// var modal = document.getElementById("popup-forward");
@@ -319,7 +316,7 @@
 		//console.log(text)
 		modal.style.display = "block";
 		//console.log(modal)
-		modal_text.textContent = text
+		modal_text.textContent = text;
 	}
 
 	span.onclick = function () {

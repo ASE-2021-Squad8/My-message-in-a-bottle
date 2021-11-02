@@ -200,10 +200,10 @@ def mailbox():
 @msg.route('/api/message/delete/<message_id>', methods=["DELETE"])
 def delete_msg(message_id):
     check_authenticated()
-    if monolith.messaging.set_message_is_deleted == True:
+    if monolith.messaging.set_message_is_deleted(message_id):
         return jsonify({"message_id": message_id})
     else:
-        _get_result(None, ERROR_PAGE, True, 404, "Message not found")
+        return _get_result(None, ERROR_PAGE, True, 404, "Message not found")
 
 
 @msg.route("/api/message/read_message/<id>")

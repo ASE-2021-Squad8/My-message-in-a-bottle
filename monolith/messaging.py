@@ -112,11 +112,11 @@ def get_sent_messages(user_id):
 def set_message_is_deleted(message_id):
     msg = db.session.query(Message).filter(Message.message_id == message_id).first()
 
-    # Si possono "eliminare" soltanto i messaggi che sono stati letti
+    # only delete read messages
     if msg.is_read == True:
         setattr(msg, "is_deleted", True)
         db.session.commit()
-        return True  # in questo caso il messaggio è stato correttamente "eliminato"
+        return True 
     return False
 
 
@@ -128,6 +128,7 @@ def set_message_is_read(message_id):
         return False
 
     # set is_read true
-    setattr(msg, "is_read", True)
-    db.session.commit()
+    if not msg.is_read:
+        setattr(msg, "is_read", True)
+        db.session.commit()
     return True
