@@ -4,7 +4,7 @@
 		$.ajax({
 			url: "/user/get_recipients",
 			contentType: "application/json",
-			dataType : "json",
+			dataType: "json",
 			success: function (data, status) {
 				console.log("status " + status);
 				items = data;
@@ -21,13 +21,13 @@
 			}
 		});
 	}
-	
+
 	$(document).ready(function () {
 		get_recipient();
-		$.get('http://127.0.0.1:5000/api/message/draft/all', buildTable)
+		$.get('/api/message/draft/all', buildTable)
 	});
 
-	function buildTable(data){
+	function buildTable(data) {
 		var table = document.getElementById('draftsTable')
 
 		if (data.length == 0) {
@@ -35,27 +35,27 @@
 			return
 		}
 
-        table.innerHTML = `<tr class="bg-info">
+		table.innerHTML = `<tr class="bg-info">
             <th>Recipient</th>
             <th>E-mail</th>
             <th>Text</th>
             <th>Actions</th>
         </tr>`
 
-        for (var i = 0; i < data.length; i++) {
-            msg = data[i]
+		for (var i = 0; i < data.length; i++) {
+			msg = data[i]
 
-            user = ""
-            $.ajax({
-                url: 'http://127.0.0.1:5000/api/user/' + msg.recipient,
-                type: 'GET',
-                async: false,
-                dataType: 'json',
-                success: function(response) { user = response }
-            })
+			user = ""
+			$.ajax({
+				url: '/api/user/' + msg.recipient,
+				type: 'GET',
+				async: false,
+				dataType: 'json',
+				success: function (response) { user = response }
+			})
 
-            console.log(user)
-            
+			console.log(user)
+
 			var row = `<tr>
 							<td>${user.firstname + " " + user.lastname}</td>
                             <td>${user.email}</td>
@@ -64,36 +64,36 @@
                                 <input id="deldraft" type="button" value="Delete" onclick="deleteDraft(${msg.message_id})" /></td>
 					  </tr>`
 
-            table.innerHTML += row
+			table.innerHTML += row
 		}
 	}
 
-    function deleteDraft(draft_id) {
-        $.ajax({
-            url: 'http://127.0.0.1:5000/api/message/draft/' + draft_id,
-            type: 'DELETE',
-            success: function() {
-                alert("Draft deleted")
-                location.reload(true)
-            },
-        })
-    }
+	function deleteDraft(draft_id) {
+		$.ajax({
+			url: '/api/message/draft/' + draft_id,
+			type: 'DELETE',
+			success: function () {
+				alert("Draft deleted")
+				location.reload(true)
+			},
+		})
+	}
 
 	function editDraft(draft_id) {
 		$.ajax({
-                url: 'http://127.0.0.1:5000/api/message/draft/' + draft_id,
-                type: 'GET',
-                dataType: 'json',
-                success: function(response) {
-					console.log(response)
-					var text = document.getElementById('text')
-					var recipient = document.getElementById('recipient')
-					var draft_hidden_field = document.getElementById('draft_id')
+			url: '/api/message/draft/' + draft_id,
+			type: 'GET',
+			dataType: 'json',
+			success: function (response) {
+				console.log(response)
+				var text = document.getElementById('text')
+				var recipient = document.getElementById('recipient')
+				var draft_hidden_field = document.getElementById('draft_id')
 
-					text.value = response.text
-					recipient.value = response.recipient
-					draft_hidden_field.value = draft_id
-				}
+				text.value = response.text
+				recipient.value = response.recipient
+				draft_hidden_field.value = draft_id
+			}
 		})
 	}
 </script>
@@ -102,9 +102,9 @@
 <a href="/">Home</a><br>
 
 <table class="table table-striped">
-    <tbody id="draftsTable">
-        <h2>Drafted messages</h2>
-    </tbody>
+	<tbody id="draftsTable">
+		<h2>Drafted messages</h2>
+	</tbody>
 </table>
 
 <h2>Compose message</h2>
@@ -112,13 +112,13 @@
 	{{ form.hidden_tag() }}
 	<dl>
 		{% for field in form.display %}
-			<dt>{{ form[field].label }}</dt>
-			<dd>{{ form[field]() }}</dd><br>
-			{% if form[field].errors %}
-				{% for e in form[field].errors %}
-				<p class="help-block">{{ e }}</p>
-				{% endfor %}
-			{% endif %}
+		<dt>{{ form[field].label }}</dt>
+		<dd>{{ form[field]() }}</dd><br>
+		{% if form[field].errors %}
+		{% for e in form[field].errors %}
+		<p class="help-block">{{ e }}</p>
+		{% endfor %}
+		{% endif %}
 		{% endfor %}
 	</dl>
 	<label for="delivery_date">Choose a time for delivering message </label>

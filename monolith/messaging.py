@@ -83,7 +83,6 @@ def get_sent_messages(user_id):
     q = db.session.query(Message).filter(
         Message.sender == user_id,
         Message.is_draft == False,
-        Message.is_deleted == False,
     )
     list = []
     for msg in q:
@@ -116,7 +115,7 @@ def set_message_is_deleted(message_id):
     if msg.is_read == True:
         setattr(msg, "is_deleted", True)
         db.session.commit()
-        return True 
+        return True
     return False
 
 

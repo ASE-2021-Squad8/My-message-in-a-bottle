@@ -1,95 +1,98 @@
 <html>
-	<head>
-		<style>
-			/* The Modal (background) */
-			.modal {
-				display: none;
-				/* Hidden by default */
-				position: fixed;
-				/* Stay in place */
-				z-index: 1;
-				/* Sit on top */
-				left: 0;
-				top: 0;
-				width: 100%;
-				/* Full width */
-				height: 100%;
-				/* Full height */
-				overflow: auto;
-				/* Enable scroll if needed */
-				background-color: rgb(0, 0, 0);
-				/* Fallback color */
-				background-color: rgba(0, 0, 0, 0.4);
-				/* Black w/ opacity */
-			}
-		
-			/* Modal Content/Box */
-			.modal-content {
-				background-color: #fefefe;
-				text-align: left;
-				margin: 15% auto;
-				/* 15% from the top and centered */
-				padding: 20px;
-				border: 1px solid #888;
-				width: 80%;
-				/* Could be more or less, depending on screen size */
-			}
-		
-			/* The Close Button */
-			.close {
-				color: #aaa;
-				text-align: right;
-				float: right;
-				font-size: 28px;
-				font-weight: bold;
-			}
-		
-			.close:hover,
-			.close:focus {
-				color: black;
-				text-decoration: none;
-				cursor: pointer;
-			}
-		</style>
-		
-	</head>
-	<body>
-		<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
-		<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
 
-		<h1>Mailbox</h1>
-		<meta http-equiv="refresh" content="60">
+<head>
+	<style>
+		/* The Modal (background) */
+		.modal {
+			display: none;
+			/* Hidden by default */
+			position: fixed;
+			/* Stay in place */
+			z-index: 1;
+			/* Sit on top */
+			left: 0;
+			top: 0;
+			width: 100%;
+			/* Full width */
+			height: 100%;
+			/* Full height */
+			overflow: auto;
+			/* Enable scroll if needed */
+			background-color: rgb(0, 0, 0);
+			/* Fallback color */
+			background-color: rgba(0, 0, 0, 0.4);
+			/* Black w/ opacity */
+		}
 
-		<a href="/" type="button">Home</a><br><br>
+		/* Modal Content/Box */
+		.modal-content {
+			background-color: #fefefe;
+			text-align: left;
+			margin: 15% auto;
+			/* 15% from the top and centered */
+			padding: 20px;
+			border: 1px solid #888;
+			width: 80%;
+			/* Could be more or less, depending on screen size */
+		}
 
-		<h3>Received messages</h3>
-		<table class="table table-striped" id="received">
-			<thead class="thead-dark">
-				<tr class="bg-info">
-					<th class="text-center" scope="col">Sender</th>
-					<th class="text-center" scope="col">E-mail</th>
-					<th class="text-center" scope="col">Open message</th>
-					<th class="text-center" scope="col">Reply to message</th>
-					<th class="text-center" scope="col">Forward message</th>
-					<th class="text-center" scope="col">Delete message for me</th>
-				</tr>
-			</thead>
-		</table><br>
+		/* The Close Button */
+		.close {
+			color: #aaa;
+			text-align: right;
+			float: right;
+			font-size: 28px;
+			font-weight: bold;
+		}
+
+		.close:hover,
+		.close:focus {
+			color: black;
+			text-decoration: none;
+			cursor: pointer;
+		}
+	</style>
+
+</head>
+
+<body>
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+	<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+		integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+
+	<h1>Mailbox</h1>
+	<meta http-equiv="refresh" content="60">
+
+	<a href="/" type="button">Home</a><br><br>
+
+	<h3>Received messages</h3>
+	<table class="table table-striped" id="received">
+		<thead class="thead-dark">
+			<tr class="bg-info">
+				<th class="text-center" scope="col">Sender</th>
+				<th class="text-center" scope="col">E-mail</th>
+				<th class="text-center" scope="col">Open message</th>
+				<th class="text-center" scope="col">Reply to message</th>
+				<th class="text-center" scope="col">Forward message</th>
+				<th class="text-center" scope="col">Delete message for me</th>
+			</tr>
+		</thead>
+	</table><br>
 
 
-		<h3>Sent messages</h3>
-		<table class="table table-striped" id="sent">
-			<thead class="thead-dark">
-				<tr class="bg-info"></tr>
-				<th class="text-center">Receiver</th>
-				<th class="text-center">E-mail</th>
-				<th class="text-center">Open message</th>
-				<th class="text-center">Forward message</th>
-				</tr>
-			</thead>
-		</table>
+	<h3>Sent messages</h3>
+	<table class="table table-striped" id="sent">
+		<thead class="thead-dark">
+			<tr class="bg-info"></tr>
+			<th class="text-center">Receiver</th>
+			<th class="text-center">E-mail</th>
+			<th class="text-center">Open message</th>
+			<th class="text-center">Forward message</th>
+			</tr>
+		</thead>
+	</table>
 
-	<!--MODAL FOR READ MESSAGE--> 
+	<!--MODAL FOR READ MESSAGE-->
 	<div id="modal_read" class="modal">
 		<div class="modal-content">
 			<span class="close">&times;</span>
@@ -113,8 +116,9 @@
 				<label for="text">Message text</label><br>
 				<textarea id="text" name="text" required></textarea><br><br>
 				<label for="delivery_date">Choose a time for delivering message</label><br>
-				<input type="datetime-local" id="delivery_date" name="delivery_date" required/><br><br>
-				<button type="button" onclick='javascript:send_msg_reply_forward("reply-form")' class="btn btn-primary">Send message</button>
+				<input type="datetime-local" id="delivery_date" name="delivery_date" required /><br><br>
+				<button type="button" onclick='javascript:send_msg_reply_forward("reply-form")'
+					class="btn btn-primary">Send message</button>
 			</form>
 		</div>
 	</div>
@@ -130,61 +134,58 @@
 				<label for="recipient">Recipient</label><br>
 				<select id="recipient" name="recipient"></select><br><br>
 				<label for="text">Message text</label><br>
-				<textarea id="modal_forward_textarea" name="text" readonly>''${msg.text}'' - forwarded from ${msg.email}</textarea><br><br>
+				<textarea id="modal_forward_textarea" name="text"
+					readonly>''${msg.text}'' - forwarded from ${msg.email}</textarea><br><br>
 				<label for="delivery_date">Choose a time for delivering message</label><br>
-				<input type="datetime-local" id="delivery_date" name="delivery_date" required/><br><br>
-				<button type="button" onclick='javascript:send_msg_reply_forward("forward-form-rec")' class="btn btn-primary">Send message</button>
+				<input type="datetime-local" id="delivery_date" name="delivery_date" required /><br><br>
+				<button type="button" onclick='javascript:send_msg_reply_forward("forward-form-rec")'
+					class="btn btn-primary">Send message</button>
 			</form>
 		</div>
 	</div>
 
 	<script>
-		$.get('http://127.0.0.1:5000/api/message/received', function (data) {buildTableReceived(data);});
+		$.get('/api/message/received', function (data) { buildTableReceived(data); });
 
 
-		function buildTableReceived(data) 
-		{
-		var table = document.getElementById('received');
-		for (var i = 0; i < data.length; i++) 
-			{
-			msg = JSON.parse(data[i]);
-			var row = `<tr>
+		function buildTableReceived(data) {
+			var table = document.getElementById('received');
+			for (var i = 0; i < data.length; i++) {
+				msg = JSON.parse(data[i]);
+				var row = `<tr>
 							<td style="text-align:center">${msg.firstname + " " + msg.lastname}</td>
                             <td style="text-align:center">${msg.email}</td>
-							<td style="text-align:center"><button onclick= "open_message(${msg.id_message},'${msg.text}')" class="btn btn-success">Open</button></td>
-							<td style="text-align:center"><button onclick="reply_message('${msg.email}')" class="btn btn-primary">Reply</button></td>
+							<td style="text-align:center"><button onclick="open_message_received(${msg.id_message},'${msg.text}')" class="btn btn-success">Open</button></td>
+							<td style="text-align:center"><button onclick="reply_message('${msg.email}', ${msg.sender_id})" class="btn btn-primary">Reply</button></td>
 							<td style="text-align:center"><button onclick="forward_message('${msg.email}','${msg.text}')" class="btn btn-primary">Forward</button></td>
 							<td style="text-align:center"><button onclick="delete_message(${msg.id_message})" class="btn btn-danger">Delete</button></td>
 							
 					  </tr>`;
-			table.innerHTML += row;
+				table.innerHTML += row;
 
 			}
 		}
 
-		$.get('http://127.0.0.1:5000/api/message/sent', function (data) {buildTableSent(data)});
+		$.get('/api/message/sent', function (data) { buildTableSent(data) });
 
-		function buildTableSent(data) 
-		{
-		var table = document.getElementById('sent');
-		for (var i = 0; i < data.length; i++) 
-			{
+		function buildTableSent(data) {
+			var table = document.getElementById('sent');
+			for (var i = 0; i < data.length; i++) {
 				msg = JSON.parse(data[i]);
 				var row = `<tr>
 								<td style="text-align:center">${msg.firstname + " " + msg.lastname}</td>
 								<td style="text-align:center">${msg.email}</tb>
-								<td style="text-align:center"><button onclick= "open_message(${msg.id_message},'${msg.text}')" class="btn btn-success">Open</button></td>
+								<td style="text-align:center"><button onclick="open_message_sent(${msg.id_message},'${msg.text}')" class="btn btn-success">Open</button></td>
 								<td style="text-align:center"><button onclick="forward_message('${msg.email}','${msg.text}')" class="btn btn-primary">Forward</button></td>
 						</tr>`;
 				table.innerHTML += row;
 			}
 		}
 
-		function open_message(msg_id, msg_text)
-		{
+		function open_message_received(msg_id, msg_text) {
 			console.log(msg_id + " " + msg_text)
 			url = '/api/message/read_message/' + msg_id;
-			$.get('http://127.0.0.1:5000' + url);
+			$.get(url);
 
 			//OPEN MODAL
 			var modal = document.getElementById("modal_read");
@@ -199,82 +200,100 @@
 			modal_text.textContent = msg_text;
 
 			//Close modal
-			span.onclick = function ()
-			{
+			span.onclick = function () {
 				modal.style.display = "none";
 			}
 
 			//Close modal
-			window.onclick = function (event) 
-			{
-				if (event.target == modal) 
-				{
+			window.onclick = function (event) {
+				if (event.target == modal) {
 					modal.style.display = "none";
 				}
 			}
-			
 		}
 
-		function reply_message(msg_email)
-		{
+		// Does not mark message as read
+		function open_message_sent(msg_id, msg_text) {
+			console.log(msg_id + " " + msg_text)
+
+			//OPEN MODAL
+			var modal = document.getElementById("modal_read");
+			var modal_text = document.getElementById("modal_read_text");
+			var btn = document.getElementById("myBtn");
+			var span = document.getElementsByClassName("close")[0];
+			modal.style.display = "block";
+			modal_text.textContent = msg_text;
+
+			//Show  text
+			modal.style.display = "block";
+			modal_text.textContent = msg_text;
+
+			//Close modal
+			span.onclick = function () {
+				modal.style.display = "none";
+			}
+
+			//Close modal
+			window.onclick = function (event) {
+				if (event.target == modal) {
+					modal.style.display = "none";
+				}
+			}
+		}
+
+		function reply_message(msg_email, recipient_id) {
 			var modal_reply = document.getElementById("modal_reply");
-		 	var spanReply = document.getElementsByClassName("close")[1];
+			var spanReply = document.getElementsByClassName("close")[1];
 			var modal_reply_content = document.getElementById("recipient_reply");
 
-			//TODO Inserire email invece che msg_sender
-			modal_reply_content.textContent=msg_email;
+			console.log(msg_email + " " + recipient_id)
+
+			modal_reply_content.textContent = msg_email;
+			modal_reply_content.value = recipient_id;
 
 			$('#recipient').empty()
 			get_recipient();
 			modal_reply.style.display = "block";
 
 			//Close modal
-			spanReply.onclick = function ()
-			{
+			spanReply.onclick = function () {
 				modal_reply.style.display = "none";
 			}
 
 			//Close modal
-			window.onclick = function (event) 
-			{
-				if (event.target == modal_reply) 
-				{
+			window.onclick = function (event) {
+				if (event.target == modal_reply) {
 					modal_reply.style.display = "none";
 				}
 			}
 
 		}
 
-		function forward_message(msg_email,msg_text)
-		{
+		function forward_message(msg_email, msg_text) {
 			var modal_forward = document.getElementById("modal_forward");
 			var spanForward = document.getElementsByClassName("close")[2];
-			var modal_forward_textarea=document.getElementById("modal_forward_textarea");
+			var modal_forward_textarea = document.getElementById("modal_forward_textarea");
 
-			modal_forward_textarea.textContent=msg_text+ " " + "- forwarded from: " + msg_email;
+			modal_forward_textarea.textContent = "Forward from " + msg_email + " -> " + msg_text;
 
 			$('#recipient').empty()
-		 	get_recipient();
-		 	modal_forward.style.display = "block";
-		 
-		 	spanForward.onclick = function () 
-			{
-		 		modal_forward.style.display = "none";
-		 	}
-		 	
-		 	window.onclick = function(event) 
-			{
-				if (event.target == modal_forward) 
-				{
+			get_recipient();
+			modal_forward.style.display = "block";
+
+			spanForward.onclick = function () {
+				modal_forward.style.display = "none";
+			}
+
+			window.onclick = function (event) {
+				if (event.target == modal_forward) {
 					modal_forward.style.display = "none";
 				}
-		 	}
+			}
 		}
 
-		function delete_message(msg_id)
-		{
+		function delete_message(msg_id) {
 			$.ajax({
-				url: 'http://127.0.0.1:5000/api/message/delete/' + msg_id,
+				url: '/api/message/delete/' + msg_id,
 				type: 'DELETE',
 				success: function () {
 					alert("Message deleted");
@@ -283,8 +302,7 @@
 			});
 		}
 
-		function get_recipient() 
-		{
+		function get_recipient() {
 			$.ajax({
 				url: "/user/get_recipients",
 				contentType: "application/json",
@@ -305,15 +323,24 @@
 				}
 			});
 		}
-		function send_msg_reply_forward(form_id)
-		{
+
+		function send_msg_reply_forward(form_id) {
 			let inputform = $('#' + form_id).serializeArray();
 			console.log(inputform);
 			let inputdata = {};
 			inputform.forEach(function (item) {
 				inputdata[item["name"]] = item["value"];
 			});
-			console.log(inputdata);
+			if ($.trim(inputdata["text"]).length === 0) {
+				return alert("Text cannot be empty");
+			}
+			var inputDate = new Date(inputdata["delivery_date"]);
+			var now = new Date();
+			console.log(inputDate + " " + now);
+			if (inputDate < now) {
+				return alert("Date cannot be in the past")
+			}
+			console.log("DATA " + inputdata);
 			$.ajax({
 				url: "/api/message/send_message",
 				dataType: "html",
