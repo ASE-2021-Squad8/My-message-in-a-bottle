@@ -2,6 +2,8 @@ language: python
 python: 3.9
 env:
   - TOX_ENV=py39
+  - MAIL_SERVER=localhost
+  - MAIL_PORT=1025
 install:
   - pip install tox
 before_script:

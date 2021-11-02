@@ -1,9 +1,17 @@
 import smtplib
 from email.message import EmailMessage
+import os
 
-smtp_server = "smtp.gmail.com"
-port = 587
+smtp_server = (
+    "smtp.gmail.com"
+    if not "MAIL_SERVER" in os.environ
+    else os.environ.get("MAIL_SERVER")
+)
+port = 587 if not "MAIL_PORT" in os.environ else int(os.environ.get("MAIL_PORT"))
 notifications_email = "mmiab.notifications@gmail.com"
+
+print(port)
+print(smtp_server)
 
 
 def send_notification(msg_sender, receiver, msg_body):
