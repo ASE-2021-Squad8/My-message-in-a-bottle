@@ -1,0 +1,24 @@
+name: Documentation
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install project dependencies
+        run: pip install -r requirements.txt
+      - name: Make docs
+        run: ./docs.sh
+        working-directory: docs
+      - name: Upload docs
+        uses: actions/upload-artifact@v2.2.4
+        with:
+          name: mmiab-documentation-${{ github.head_ref }}-${{ github.sha }}
+          path: docs/_build/html
