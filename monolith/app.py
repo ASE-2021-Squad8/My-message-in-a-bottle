@@ -8,10 +8,25 @@ from monolith.views import blueprints
 
 
 def create_test_app():
+    """Utility that creates an instance of the application to be run in testing
+
+    Returns:
+        Flask: application instance
+    """
+
     return create_app(True)
 
 
 def create_app(test_mode=False):
+    """Creates an instance of the application.
+
+    Args:
+        test_mode (bool, optional): creates an application instance for testing. Defaults to False.
+
+    Returns:
+        Flask: application instance
+    """
+
     app = Flask(__name__)
     if test_mode:
         app.config["TESTING"] = True
