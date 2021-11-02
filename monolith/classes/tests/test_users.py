@@ -130,7 +130,7 @@ class TestApp(unittest.TestCase):
         body = reply.get_json()
         # expect all other users except test
         assert body[0] == {"email": "example@example.com", "id": 1}
-        assert body[1] == {"email": "test_1@test.com", "id": 3}
+        assert body[1] == {"email": "test_1@test.com", "id": 4}
 
         """
         BLACK LIST TEST
@@ -139,7 +139,7 @@ class TestApp(unittest.TestCase):
         # add user 3 into black list
         reply = self.client.post(
             "/user/black_list",
-            data=json.dumps({"op": "add", "users": [3]}),
+            data=json.dumps({"op": "add", "users": [4]}),
             content_type="application/json",
         )
 
@@ -151,10 +151,10 @@ class TestApp(unittest.TestCase):
         # now expect only user 1
         assert body[0] == {"email": "example@example.com", "id": 1}
 
-        # delete user 3 into black list
+        # delete user 4 into black list
         reply = self.client.post(
             "/user/black_list",
-            data=json.dumps({"op": "delete", "users": [3]}),
+            data=json.dumps({"op": "delete", "users": [4]}),
             content_type="application/json",
         )
 
@@ -164,7 +164,7 @@ class TestApp(unittest.TestCase):
         body = reply.get_json()
         # now excpec it among possible receiver
         assert body[0] == {"email": "example@example.com", "id": 1}
-        assert body[1] == {"email": "test_1@test.com", "id": 3}
+        assert body[1] == {"email": "test_1@test.com", "id": 4}
 
     def test_not_authenticated_update_data(self):
         reply = self.client.get("/update_data")

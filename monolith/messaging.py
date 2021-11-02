@@ -1,3 +1,4 @@
+from datetime import datetime
 from re import M
 from monolith.database import Message, db, User
 import json
@@ -6,6 +7,7 @@ import json
 def save_message(message):
     db.session.add(message)
     db.session.commit()
+    return message.message_id
 
 
 def get_user_drafts(user_id):
@@ -74,3 +76,37 @@ def get_all_messages(user_id):
     db.session.commit()
 
     return list
+
+
+# update message state setting attr to state
+def update_message_state(message_id, attr, state):
+    result = False
+    try:
+        message = (
+            db.session.query(Message).filter(Message.message_id == message_id).first()
+        )
+        setattr(message, attr, state)
+        db.session.commit()
+        result = True
+    except Exception as e:
+        db.session.rollback()
+        print("Exception in update_message_state %r", e)
+    return result
+
+
+def check_message_to_send():
+    ids = []
+    # looking for messages that have not been sent but they should have been
+    messages = (
+        db.session.query(Message)
+        .filter(Message.is_delivered == 0)
+        .filter(Message.delivery_date < datetime.now())
+        .all()
+    )
+    # updating state
+    for msg in messages:
+        ids.append((msg.sender, msg.recipient))
+        setattr(msg, "is_delivered", 1)
+
+    db.session.commit()
+    return ids
