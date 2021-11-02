@@ -196,9 +196,9 @@ def display_black_list():
         members_id = json_data["users"]
         # print(json_data)
         if json_data["op"] == "delete":
-            result = monolith.user_query.delete_users_black_list(owner_id, members_id)
+            result = monolith.user_query.remove_from_blacklist(owner_id, members_id)
         elif json_data["op"] == "add":
-            result = monolith.user_query.add_users_to_black_list(owner_id, members_id)
+            result = monolith.user_query.add_to_blacklist(owner_id, members_id)
 
         return _prepare_json_response(owner_id, 200 if result else 5000)
 
@@ -209,9 +209,9 @@ def display_black_list():
 def _prepare_black_list(owner_id):
     f = BlackListForm()
 
-    result = monolith.user_query.get_black_list(owner_id)
+    result = monolith.user_query.get_blacklist(owner_id)
     black_list = [usr[1] for usr in result]
-    f.users.choices = monolith.user_query.get_choices(owner_id)
+    f.users.choices = monolith.user_query.get_blacklist_candidates(owner_id)
     f.black_users.choices = result
     return render_template(
         "black_list.html", form=f, black_list=black_list, size=len(black_list)
@@ -220,17 +220,25 @@ def _prepare_black_list(owner_id):
 
 def _prepare_json_response(owner_id, status):
     body = dict()
-    choices = monolith.user_query.get_choices(owner_id)
+    choices = monolith.user_query.get_blacklist_candidates(owner_id)
     body.update({"users": [{"id": i[0], "email": i[1]} for i in choices]})
-    black_list = monolith.user_query.get_black_list(owner_id)
+    black_list = monolith.user_query.get_blacklist(owner_id)
     body.update({"black_users": [{"id": i[0], "email": i[1]} for i in black_list]})
     return make_response(jsonify(body), status)
 
 @users.route("/api/user/<id>", methods=["GET"])
-def get_email(id):
+def get_user_details(user_id):
+    """Retrieves public profile details for a specific user
+
+    :param user_id: the id of the user to retrieve the information of
+    :type user_id: int
+    :return: an object containing email, first and last name
+    :rtype: Markup
+    """
+    
     check_authenticated()
 
-    q = db.session.query(User).filter(User.id == id)
+    q = db.session.query(User).filter(User.id == user_id)
     user = q.first()
 
     if user is not None:
