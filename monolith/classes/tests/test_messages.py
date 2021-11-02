@@ -1,6 +1,5 @@
 from datetime import datetime, timedelta
 import unittest
-from flask import json, jsonify
 from monolith.app import create_test_app
 import time
 from monolith.database import Message
