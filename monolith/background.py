@@ -4,9 +4,10 @@ from monolith.messaging import check_message_to_send, update_message_state
 from monolith.database import User, db, Message
 import json
 from celery.utils.log import get_logger
-from celery.schedules import crontab
+from celery.schedules import crontab  # cronetab for lottery
 from monolith.notifications import send_notification
 from monolith.user_query import get_user_mail
+from datetime import timedelta
 
 
 logger = get_logger(__name__)
@@ -26,8 +27,8 @@ celery.conf.task_route = {
 celery.conf.beat_schedule = {
     "check_message": {
         "task": "monolith.background.check_messages",
-        "schedule": 900,  # 15 minutes
-        "args": (0, 0),
+        "schedule": timedelta(minutes=15),  # every 15 minutes
+        "args": (None, None),
     }
 }
 celery.conf.timezone = "UTC"
@@ -73,7 +74,7 @@ def check_messages(self, message):
     if _APP is None:
         from monolith.app import create_app
 
-        app = create_app()
+        app = create_app(True if message != None else False)
         db.init_app(app)
     else:
         app = _APP
@@ -105,7 +106,7 @@ def check_messages(self, message):
         except Exception as e:
             logger.exception("check_messages raises %r", e)
             raise e
-    return result
+    return (result, len(ids))  # state and number of sent message
 
 
 # send email via celery on notification queue

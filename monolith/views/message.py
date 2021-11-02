@@ -14,6 +14,7 @@ from monolith.forms import MessageForm
 import monolith.messaging
 import json
 from celery.utils.log import get_logger
+import pytz
 
 # import queue task
 from monolith.background import send_message as put_message_in_queque
@@ -128,7 +129,7 @@ def send_message():
     msg.recipient = int(request.form["recipient"])
 
     # when it will be delivered
-    delay = (delivery_date - now).total_seconds()
+    # delay = (delivery_date - now).total_seconds()
     try:
         id = monolith.messaging.save_message(msg)
         email_r = get_user_mail(msg.recipient)
@@ -145,7 +146,7 @@ def send_message():
                     }
                 )
             ],
-            countdown=delay,
+            eta=delivery_date.astimezone(pytz.utc),  # cover to utc
             routing_key="message",  # to specify the queue
             queue="message",
         )
