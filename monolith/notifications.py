@@ -17,6 +17,7 @@ print(smtp_server)
 def send_notification(msg_sender, receiver, msg_body):
 
     # Log in to server and send email
+    server = None
     try:
         with open("password.txt", "r") as pwfile:
             password = pwfile.readline()
@@ -32,4 +33,5 @@ def send_notification(msg_sender, receiver, msg_body):
         # Print any error messages
         print(e)
     finally:
-        server.quit()
+        if server != None:
+            server.quit()

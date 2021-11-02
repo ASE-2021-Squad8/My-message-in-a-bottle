@@ -31,6 +31,7 @@ class TestPeriodicTask(unittest.TestCase):
             expected_result = (True, 5)
             assert check_messages(0, 0) == expected_result
 
+    """
     def test_send_notification_task(self):
         recipient_mail = (
             "pioppoj@gmail.com"  # insert here your mail to get the notification
@@ -44,3 +45,4 @@ class TestPeriodicTask(unittest.TestCase):
             }
         )
         assert send_notification_task(json_message)
+        """
