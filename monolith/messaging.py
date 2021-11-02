@@ -49,16 +49,17 @@ def delete_user_message(user_id, message_id, is_draft=False):
     db.session.commit()
 
 
-def get_all_messages(user_id):
+def get_received_messages(user_id):
 
     # Retrieve of all message for user_id
     q = db.session.query(Message).filter(
-        Message.recipient == user_id, Message.is_draft == False
+        Message.recipient == user_id,
+        Message.is_draft == False,
+        Message.is_deleted == False,
     )
     list = []
     for msg in q:
-        setattr(msg, "is_read", True)
-        # retrieve the name of senxder
+        # retrieve the name of sender
         sender = db.session.query(User).filter(User.id == msg.get_sender()).first()
         json_msg = json.dumps(
             {
@@ -77,6 +78,60 @@ def get_all_messages(user_id):
 
     return list
 
+def get_sent_messages(user_id):
+
+    # Retrieve of all message for user_id
+    q = db.session.query(Message).filter(
+        Message.sender == user_id,
+        Message.is_draft == False,
+    )
+    list = []
+    for msg in q:
+        # retrieve the name of sender
+        recipient = (
+            db.session.query(User).filter(User.id == msg.get_recipient()).first()
+        )
+        json_msg = json.dumps(
+            {
+                "recipient_id": recipient.get_id(),
+                "firstname": recipient.get_firstname(),
+                "lastname": recipient.get_lastname(),
+                "id_message": msg.message_id,
+                "text": msg.text,
+                "email": recipient.email,
+            }
+        )
+
+        list.append(json_msg)
+
+    db.session.commit()
+
+    return list
+
+
+def set_message_is_deleted(message_id):
+    msg = db.session.query(Message).filter(Message.message_id == message_id).first()
+
+    # only delete read messages
+    if msg.is_read == True:
+        setattr(msg, "is_deleted", True)
+        db.session.commit()
+        return True
+    return False
+
+
+def set_message_is_read(message_id):
+    # retrieve the message
+    msg = db.session.query(Message).filter(Message.message_id == message_id).first()
+
+    if msg is None:
+        return False
+
+    # set is_read true
+    if not msg.is_read:
+        setattr(msg, "is_read", True)
+        db.session.commit()
+    return True
 
 # update message state setting attr to state
 def update_message_state(message_id, attr, state):

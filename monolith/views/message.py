@@ -1,4 +1,5 @@
 from datetime import datetime
+import traceback
 from flask import (
     Blueprint,
     request,
@@ -9,7 +10,7 @@ from flask import (
 )
 from werkzeug.utils import redirect
 from monolith.auth import current_user, check_authenticated
-from monolith.database import Message
+from monolith.database import Message, db
 from monolith.forms import MessageForm
 import monolith.messaging
 import json
@@ -25,7 +26,7 @@ from datetime import datetime as d
 from monolith.user_query import get_user_mail
 
 msg = Blueprint("message", __name__)
-ERROR_PAGE = "index.html"
+ERROR_PAGE = "index"
 logger = get_logger(__name__)
 
 
@@ -175,16 +176,31 @@ def _not_valid_string(text):
     return text is None or text == "" or text.isspace()
 
 
-@msg.route("/api/message/all", methods=["GET"])
-def get_all_mesages():
+@msg.route("/api/message/received", methods=["GET"])
+def _get_received_messages():
     check_authenticated()
 
     try:
-        messages = monolith.messaging.get_all_messages(getattr(current_user, "id"))
+        messages = monolith.messaging.get_received_messages(getattr(current_user, "id"))
         return jsonify(messages)
 
-    except Exception:
-        print(Exception)
+    except Exception as e:
+        print(str(e))
+        traceback.print_exc()
+        abort(404, "Message not found")
+
+
+@msg.route("/api/message/sent", methods=["GET"])
+def _get_sent_messages():
+    check_authenticated()
+
+    try:
+        messages = monolith.messaging.get_sent_messages(getattr(current_user, "id"))
+        return jsonify(messages)
+
+    except Exception as e:
+        print(str(e))
+        traceback.print_exc()
         abort(404, "Message not found")
 
 
@@ -193,26 +209,26 @@ def message_receved():
     return render_template("message_received.html")
 
 
-# reply
-@msg.route("/api/message/reply", methods=["POST"])
-def reply():
-    pass
-
-
-# forward
-@msg.route("/api/message/forward", methods=["POST"])
-def forward_msg():
-    pass
+@msg.route("/mailbox")
+def mailbox():
+    return render_template("mailbox.html")
 
 
 # Il tasto di elimina deve apparire solo nella sezione dei messaggi ricevuti, è possibile eliminare
-#solo i messaggi che sono stati letti
-@msg.route("/api/message/delete", methods=["POST"])
-def delete_msg():
-    pass
+# solo i messaggi che sono stati letti
+@msg.route('/api/message/delete/<message_id>', methods=["DELETE"])
+def delete_msg(message_id):
+    check_authenticated()
+    if monolith.messaging.set_message_is_deleted(message_id):
+        return jsonify({"message_id": message_id})
+    else:
+        return _get_result(None, ERROR_PAGE, True, 404, "Message not found")
 
 
-# Once the message is opened, it must be marked as read
-@msg.route("/message/read_message")
-def read_msg():
-    pass
+@msg.route("/api/message/read_message/<id>")
+def read_msg(id):
+    check_authenticated()
+    if not monolith.messaging.set_message_is_read(id):
+        return abort(404, "Message not found")
+    return jsonify({"msg_read": True})
+

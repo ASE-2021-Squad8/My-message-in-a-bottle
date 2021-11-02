@@ -2,6 +2,7 @@
 
 {% if current_user.is_authenticated %}
   <h4>Hi {{ current_user.firstname }}!</h4>
+  <a href="/mailbox">Mailbox</a><br>
   <a href="/send_message">Send or draft a message</a><br>
   <a href="/message_received">Received messages</a><br>
   <hr>

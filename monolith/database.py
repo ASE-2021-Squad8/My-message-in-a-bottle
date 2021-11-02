@@ -88,6 +88,9 @@ class Message(db.Model):
     def as_dict(self):
         return {c.name: getattr(self, c.name) for c in self.__table__.columns}
 
+    def get_recipient(self):
+        return self.recipient
+
     def get_sender(self):
         return self.sender
 
