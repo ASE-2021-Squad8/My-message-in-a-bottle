@@ -122,25 +122,11 @@ def set_message_is_deleted(message_id):
     return False
 
 
-def set_message_is_read(message_id):
+def get_message(message_id):
     # retrieve the message
     msg = db.session.query(Message).filter(Message.message_id == message_id).first()
     
-    if msg is None:
-        return False
-
-    # set is_read true, before check if message is already read
-    if not msg.is_read:
-        setattr(msg, "is_read", True)
-        db.session.commit()
-        #send email notification to sender
-
-        #retrieve sender
-        email_sender=get_user_mail(msg.sender)
-        #retrieve receiver
-        email_receiver=get_user_mail(msg.recipient)
-        send_notification(email_sender,email_receiver,msg.text)
-    return True
+    return msg
 
 # update message state setting attr to state
 def update_message_state(message_id, attr, state):

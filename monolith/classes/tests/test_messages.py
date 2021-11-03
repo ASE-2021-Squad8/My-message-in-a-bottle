@@ -101,6 +101,7 @@ class TestApp(unittest.TestCase):
         )
 
         time.sleep(62)  # waiting for task
+        
         msg = (
             Message.query.filter(
                 Message.recipient == int(data[0]["id"]), Message.sender == 1

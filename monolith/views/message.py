@@ -18,7 +18,7 @@ from celery.utils.log import get_logger
 import pytz
 
 # import queue task
-from monolith.background import send_message as put_message_in_queque
+from monolith.background import send_message as put_message_in_queque, send_notification_task as put_email_in_queue
 
 # utility import
 from datetime import datetime as d
@@ -228,7 +228,32 @@ def delete_msg(message_id):
 @msg.route("/api/message/read_message/<id>")
 def read_msg(id):
     check_authenticated()
-    if not monolith.messaging.set_message_is_read(id):
+    msg=monolith.messaging.get_message(id)
+
+    if msg is None:
         return abort(404, "Message not found")
-    return jsonify({"msg_read": True})
+
+    if not msg.is_read:
+
+        #updata msg.is_read
+        monolith.messaging.update_message_state(msg.message_id,"is_read",True)
+
+        #Retrieve email of receiver and sender
+        email_r=get_user_mail(msg.recipient)
+        email_s=get_user_mail(msg.sender)
+        json_message = json.dumps(
+                                    {
+                                    "TESTING": app.config["TESTING"],
+                                    "body": "You have just received a massage",
+                                    "recipient": email_r,
+                                    "sender": email_s,
+                                    }
+                                )
+        put_email_in_queue.apply_async(
+                        args=[json_message],
+                        routing_key="notification",
+                        queue="notification",)
+
+        return jsonify({"msg_read": True})
+    return jsonify({"msg_read": "Already true"})
 
