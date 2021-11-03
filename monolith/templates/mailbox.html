@@ -107,7 +107,7 @@
 		<div class="modal-content">
 			<span class="close">&times;</span>
 			<h2>Reply to message</h2>
-			<form method="POST" id="reply-form">
+			<form method="POST" id="reply-form" enctype="multipart/form-data">
 				<input type="hidden" id="draft_id" name="draft_id" value=''>
 				<label for="recipient">Recipient</label><br>
 				<select name="recipient">
@@ -115,6 +115,8 @@
 				</select><br><br>
 				<label for="text">Message text</label><br>
 				<textarea id="text" name="text" required></textarea><br><br>
+				<label for="attachment">Attach an image</label><br>
+				<input id="attachment" name="attachment" type="file"><br>
 				<label for="delivery_date">Choose a time for delivering message</label><br>
 				<input type="datetime-local" id="delivery_date" name="delivery_date" required /><br><br>
 				<button type="button" onclick='javascript:send_msg_reply_forward("reply-form")'
@@ -155,7 +157,7 @@
 				var row = `<tr>
 							<td style="text-align:center">${msg.firstname + " " + msg.lastname}</td>
                             <td style="text-align:center">${msg.email}</td>
-							<td style="text-align:center"><button onclick="open_message_received(${msg.id_message},'${msg.text}')" class="btn btn-success">Open</button></td>
+							<td style="text-align:center"><button onclick="open_message_received(${msg.id_message},'${msg.text}', '${msg.media}')" class="btn btn-success">Open</button></td>
 							<td style="text-align:center"><button onclick="reply_message('${msg.email}', ${msg.sender_id})" class="btn btn-primary">Reply</button></td>
 							<td style="text-align:center"><button onclick="forward_message('${msg.email}','${msg.text}')" class="btn btn-primary">Forward</button></td>
 							<td style="text-align:center"><button onclick="delete_message(${msg.id_message})" class="btn btn-danger">Delete</button></td>
@@ -175,17 +177,18 @@
 				var row = `<tr>
 								<td style="text-align:center">${msg.firstname + " " + msg.lastname}</td>
 								<td style="text-align:center">${msg.email}</tb>
-								<td style="text-align:center"><button onclick="open_message_sent(${msg.id_message},'${msg.text}')" class="btn btn-success">Open</button></td>
+								<td style="text-align:center"><button onclick="open_message_sent(${msg.id_message},'${msg.text}', '${msg.media}')" class="btn btn-success">Open</button></td>
 								<td style="text-align:center"><button onclick="forward_message('${msg.email}','${msg.text}')" class="btn btn-primary">Forward</button></td>
 						</tr>`;
 				table.innerHTML += row;
 			}
 		}
 
-		function open_message_received(msg_id, msg_text) {
+		function open_message_received(msg_id, msg_text, msg_media) {
 			console.log(msg_id + " " + msg_text)
 			url = '/api/message/read_message/' + msg_id;
 			$.get(url);
+
 
 			//OPEN MODAL
 			var modal = document.getElementById("modal_read");
@@ -198,6 +201,9 @@
 			//Show  text
 			modal.style.display = "block";
 			modal_text.textContent = msg_text;
+			if (msg.media) {
+				modal_text.innerHTML += `<br><a href={{ url_for("static", filename="user_uploads/MEDIA") }}>View attachment</a>`.replace("MEDIA", msg_media)
+			}
 
 			//Close modal
 			span.onclick = function () {
@@ -213,7 +219,7 @@
 		}
 
 		// Does not mark message as read
-		function open_message_sent(msg_id, msg_text) {
+		function open_message_sent(msg_id, msg_text, msg_media) {
 			console.log(msg_id + " " + msg_text)
 
 			//OPEN MODAL
@@ -227,6 +233,9 @@
 			//Show  text
 			modal.style.display = "block";
 			modal_text.textContent = msg_text;
+			if (msg.media) {
+				modal_text.innerHTML += `<br><a href={{ url_for("static", filename="user_uploads/MEDIA") }}>View attachment</a>`.replace("MEDIA", msg_media)
+			}
 
 			//Close modal
 			span.onclick = function () {
@@ -325,27 +334,25 @@
 		}
 
 		function send_msg_reply_forward(form_id) {
-			let inputform = $('#' + form_id).serializeArray();
-			console.log(inputform);
-			let inputdata = {};
-			inputform.forEach(function (item) {
-				inputdata[item["name"]] = item["value"];
-			});
-			if ($.trim(inputdata["text"]).length === 0) {
+			let inputform = $('#' + form_id)
+			let request_data = new FormData(inputform[0]);
+
+			if ($.trim(request_data.get("text")).length === 0) {
 				return alert("Text cannot be empty");
 			}
-			var inputDate = new Date(inputdata["delivery_date"]);
+			
+			var inputDate = new Date(request_data.get("delivery_date"));
 			var now = new Date();
-			console.log(inputDate + " " + now);
 			if (inputDate < now) {
 				return alert("Date cannot be in the past")
 			}
-			console.log("DATA " + inputdata);
+
 			$.ajax({
 				url: "/api/message/send_message",
-				dataType: "html",
-				data: jQuery.param(inputdata),
-				type: "post",
+				data: request_data,
+				contentType: false,
+				processData: false,
+				type: "POST",
 				success: function () {
 					alert("Message forwarded successfully");
 				},

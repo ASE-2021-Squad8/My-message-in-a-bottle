@@ -8,6 +8,7 @@ db = SQLAlchemy()
 
 
 class User(db.Model):
+    """User object for registered users"""
 
     __tablename__ = "user"
 
@@ -19,24 +20,41 @@ class User(db.Model):
     dateofbirth = db.Column(db.DateTime)
     reports = db.Column(db.Integer, default=0)
     is_active = db.Column(db.Boolean, default=True)
-    is_admin = db.Column(db.Boolean, default=False)
+    points = db.Column(db.Integer, default=0)
     # state if the contnet_filter is active
     content_filter = db.Column(db.Boolean, default=False)
-
-    is_anonymous = False
 
     def __init__(self, *args, **kw):
         super(User, self).__init__(*args, **kw)
         self._authenticated = False
 
     def set_password(self, password):
+        """Changes the user's password
+
+        :param password: the new password
+        :type password: str
+        """
         self.password = generate_password_hash(password)
 
     @property
     def is_authenticated(self):
+        """Checks if the user is logged in
+
+        :return: True when logged in, False otherwise
+        :rtype: bool
+        """
+
         return self._authenticated
 
     def authenticate(self, password):
+        """Authenticates the user using the provided password
+
+        :param password: the user's password
+        :type password: str
+        :return: True on success, False otherwise (wrong password)
+        :rtype: bool
+        """
+
         checked = check_password_hash(self.password, password)
         self._authenticated = checked
         return self._authenticated
@@ -59,10 +77,13 @@ class User(db.Model):
 
 @dataclass
 class Message(db.Model):
+    """Final message object, used for initial delivery, drafts, composition"""
+
     message_id: int
     text: str
     sender: int
     recipient: int
+    media: str
     delivery_date: datetime
     is_draft: bool
     is_delivered: bool
@@ -76,6 +97,7 @@ class Message(db.Model):
     delivery_date = db.Column(db.DateTime)
     sender = db.Column(db.Integer, ForeignKey(User.id))
     recipient = db.Column(db.Integer, ForeignKey(User.id))
+    media = db.Column(db.String(255))
     is_draft = db.Column(db.Boolean, default=True)
     is_delivered = db.Column(db.Boolean, default=False)
     is_read = db.Column(db.Boolean, default=False)
@@ -100,28 +122,15 @@ class Message(db.Model):
     def get_text(self):
         return self.text
 
+@dataclass
+class BlackList(db.Model):
+    """A user's blacklist"""
 
-class Message_to_send(db.Model):
-    message_id: int
-    text: str
-    sender: int
-    receiver: int
-    __tablename__ = "Message_to_send"
+    __tablename__ = "blacklist"
 
-    message_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    text = db.Column(db.String(4096))
-
-    sender = db.Column(db.Integer, ForeignKey(User.id))
-    receiver = db.Column(db.Integer, ForeignKey(User.id))
-
-    def as_dict(self):
-        return {c.name: getattr(self, c.name) for c in self.__table__.columns}
-
-
-class Black_list(db.Model):
     owner: int
     member: int
-    __tablename__ = "Black_list"
-    # user can own only one black list
+
+    # One blacklist per user
     owner = db.Column(db.Integer, ForeignKey(User.id), primary_key=True)
     member = db.Column(db.Integer, ForeignKey(User.id), primary_key=True)

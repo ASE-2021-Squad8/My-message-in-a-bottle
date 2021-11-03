@@ -1,4 +1,5 @@
 import datetime
+import os
 
 from flask import Flask
 
@@ -8,10 +9,25 @@ from monolith.views import blueprints
 
 
 def create_test_app():
+    """Utility that creates an instance of the application to be run in testing
+
+    Returns:
+        Flask: application instance
+    """
+
     return create_app(True)
 
 
 def create_app(test_mode=False):
+    """Creates an instance of the application.
+
+    Args:
+        test_mode (bool, optional): creates an application instance for testing. Defaults to False.
+
+    Returns:
+        Flask: application instance
+    """
+
     app = Flask(__name__)
     if test_mode:
         app.config["TESTING"] = True
@@ -22,6 +38,10 @@ def create_app(test_mode=False):
         app.config["WTF_CSRF_SECRET_KEY"] = "A SECRET KEY"
     app.config["SECRET_KEY"] = "ANOTHER ONE"
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+
+    app.config["UPLOAD_FOLDER"] = os.path.join(app.root_path, "static", "user_uploads")
+    if not os.path.exists(app.config["UPLOAD_FOLDER"]):
+        os.makedirs(app.config["UPLOAD_FOLDER"])
 
     for bp in blueprints:
         app.register_blueprint(bp)
@@ -41,7 +61,6 @@ def create_app(test_mode=False):
             example.lastname = "Admin"
             example.email = "example@example.com"
             example.dateofbirth = datetime.datetime(2020, 10, 5)
-            example.is_admin = True
             example.set_password("admin")
             db.session.add(example)
             db.session.commit()

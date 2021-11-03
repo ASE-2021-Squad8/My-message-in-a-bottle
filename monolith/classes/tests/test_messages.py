@@ -1,8 +1,13 @@
-from datetime import datetime, timedelta
+import io
+import time
 import unittest
+from datetime import datetime, timedelta
+
+from flask import url_for
 from monolith.app import create_test_app
 import time
 import json
+
 from monolith.database import Message
 
 
@@ -39,8 +44,12 @@ class TestApp(unittest.TestCase):
             reply = self.client.get("/api/message/draft/all")
             assert reply.status_code == 200
 
+            data = {"text": "Lorem ipsum dolor..."}
+            data["attachment"] = (io.BytesIO(b"This is a JPG file, I swear!"), "test.jpg")
             reply = self.client.post(
-                "/api/message/draft", data=dict(text="Lorem ipsum dolor...")
+                "/api/message/draft",
+                data=data,
+                content_type='multipart/form-data',
             )
             data = reply.get_json()
             assert reply.status_code == 200
@@ -50,6 +59,18 @@ class TestApp(unittest.TestCase):
             data = reply.get_json()
             assert reply.status_code == 200
             assert data[0]["text"] == "Lorem ipsum dolor..."
+            assert data[0]["media"] != ""
+
+            reply = self.client.delete("/api/message/draft/1/attachment")
+            data = reply.get_json()
+            assert reply.status_code == 200
+            assert int(data["message_id"]) == 1
+
+            reply = self.client.get("/api/message/draft/all")
+            data = reply.get_json()
+            assert reply.status_code == 200
+            assert data[0]["text"] == "Lorem ipsum dolor..."
+            assert data[0]["media"] == ""
 
             reply = self.client.delete("/api/message/draft/1")
             data = reply.get_json()
@@ -102,6 +123,7 @@ class TestApp(unittest.TestCase):
         )
         assert reply.status_code==400
 
+
         delivery_date_past = now - timedelta(days=1)
         #test send with data in the past
         reply = self.client.post(
@@ -113,11 +135,11 @@ class TestApp(unittest.TestCase):
                     "delivery_date": delivery_date_past,
                     "draft_id": "",
                 }
-            ),
-            follow_redirects=True,
+            ),follow_redirects=True,
         )
+            
         assert reply.status_code==400
-
+        
         reply = self.client.post(
             "/api/message/send_message",
             data=dict(
