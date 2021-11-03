@@ -1,6 +1,9 @@
 import json
 import os
 import traceback
+import hashlib
+import pathlib
+import time
 
 # utility import
 from datetime import datetime
@@ -40,12 +43,38 @@ def _extension_allowed(filename):
     :rtype: bool
     """
 
-    return "." in filename and filename.rsplit(".", 1)[1].lower() in {
-        "png",
-        "jpg",
-        "jpeg",
-        "gif",
+    return pathlib.Path(filename).suffix.lower() in {
+        ".png",
+        ".jpg",
+        ".jpeg",
+        ".gif",
     }
+
+def _generate_filename(file):
+    """Generates a filename for an uploaded file
+
+    :param file: file handle
+    :type file: file
+    :return: a filename suited for storage
+    :rtype: str
+    """
+
+    # To avoid clashes, generate a filename by hashing
+    # the file's contents, the sender and the time
+    sha1 = hashlib.sha1()
+    while True:
+                # Read in chunks of 64kb to contain memory usage
+        data = file.read(65536)
+        if not data:
+            break
+        sha1.update(data)
+    sha1.update(getattr(current_user, "email").encode('utf-8'))
+    sha1.update(str(int(time.time())).encode('utf-8'))
+            
+    # Seek back to the origin of the file (otherwise save will fail)
+    file.seek(0)
+
+    return sha1.hexdigest() + pathlib.Path(file.filename).suffix.lower()
 
 
 @msg.route("/api/message/draft", methods=["POST"])
@@ -73,25 +102,25 @@ def save_draft_message():
             message = Message()
 
         message.text = text
+        message.is_draft = True
+
         message.sender = getattr(current_user, "id")
         if "recipient" in request.form and request.form["recipient"] != "":
             message.recipient = request.form["recipient"]
-        message.is_draft = True
 
         if "attachment" in request.files:
             file = request.files["attachment"]
-            # Make sure the filename is not dangerous for the system
-            filename = secure_filename(file.filename)
 
-            if _extension_allowed(filename):
-                file.save(os.path.join(app.config["UPLOAD_FOLDER"], filename))
-
-                # If the draft already has a file, delete it
-                if message.media != "":
-                    os.unlink(os.path.join(app.config["UPLOAD_FOLDER"], message.media))
-                message.media = filename
-            else:
+            if not _extension_allowed(file.filename):
                 _get_result(None, ERROR_PAGE, True, 400, "File extension not allowed")
+
+            filename = _generate_filename(file)
+            file.save(os.path.join(app.config["UPLOAD_FOLDER"], filename))
+
+            # If the draft already has a file, delete it
+            if message.media is not None and message.media != "":
+                os.unlink(os.path.join(app.config["UPLOAD_FOLDER"], message.media))
+            message.media = filename
 
         monolith.messaging.save_message(message)
 
@@ -113,6 +142,16 @@ def get_user_draft(id):
             return jsonify({"message_id": id})
         except:
             _get_result(None, ERROR_PAGE, True, 404, "Draft not found")
+
+
+@msg.route("/api/message/draft/<id>/attachment", methods=["DELETE"])
+def get_user_draft_attachment(id):
+    check_authenticated()
+
+    if monolith.messaging.delete_draft_attachment(getattr(current_user, "id"), id):
+        return jsonify({"message_id": id})
+    else:
+        _get_result(None, ERROR_PAGE, True, 404, "No attachment present")
 
 
 @msg.route("/api/message/draft/all", methods=["GET"])
@@ -168,19 +207,17 @@ def send_message():
 
     if "attachment" in request.files:
         file = request.files["attachment"]
-        # Make sure the filename is not dangerous for the system
-        filename = secure_filename(file.filename)
 
-        if _extension_allowed(filename):
-            file.save(os.path.join(app.config["UPLOAD_FOLDER"], filename))
-
-            # If the draft already has a file, delete it
-            if msg.media != "":
-                os.unlink(os.path.join(app.config["UPLOAD_FOLDER"], message.media))
-            msg.media = filename
-        else:
+        if not _extension_allowed(file.filename):
             _get_result(None, ERROR_PAGE, True, 400, "File extension not allowed")
 
+        filename = _generate_filename(file)
+        file.save(os.path.join(app.config["UPLOAD_FOLDER"], filename))
+
+        # If the message already has a file, delete it
+        if msg.media is not None and msg.media != "":
+            os.unlink(os.path.join(app.config["UPLOAD_FOLDER"], msg.media))
+        msg.media = filename
 
     # when it will be delivered
     # delay = (delivery_date - now).total_seconds()
