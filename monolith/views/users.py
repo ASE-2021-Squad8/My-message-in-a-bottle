@@ -226,7 +226,7 @@ def display_black_list():
         elif json_data["op"] == "add":
             result = monolith.user_query.add_to_blacklist(owner_id, members_id)
 
-        return _prepare_json_response(owner_id, 200 if result else 5000)
+        return _prepare_json_response(owner_id, 200 if result else 500)
 
     # via get it resturn jut the page
     return _prepare_black_list(owner_id)
