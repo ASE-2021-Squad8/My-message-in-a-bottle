@@ -274,7 +274,7 @@ class TestApp(unittest.TestCase):
         reply = self.client.post(
             "/create_user",
             data=dict(
-                email="test_used_email@test.com",
+                email="example@example.com",
                 firstname="test",
                 lastname="test",
                 password="test",
@@ -284,22 +284,5 @@ class TestApp(unittest.TestCase):
         )
         assert reply.status_code == 200
 
-        user = User.query.filter(User.email == "test_used_email@test.com").all()
+        user = User.query.filter(User.email == "example@example.com").all()
         assert len(user) == 1
-
-        reply = self.client.post(
-            "/create_user",
-            data=dict(
-                email="test_used_email@test.com",
-                firstname="test",
-                lastname="test",
-                password="test",
-                dateofbirth="1111-1-1",
-            ),
-            follow_redirects=True,
-        )
-        assert reply.status_code == 200
-
-        user = User.query.filter(User.email == "test_used_email@test.com").all()
-        assert len(user) == 1
-
