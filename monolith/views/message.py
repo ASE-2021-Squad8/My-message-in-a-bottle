@@ -1,29 +1,25 @@
-from datetime import datetime
-import traceback
-from flask import (
-    Blueprint,
-    request,
-    abort,
-    jsonify,
-    current_app as app,
-    render_template,
-)
-from werkzeug.utils import redirect
-from monolith.auth import current_user, check_authenticated
-from monolith.database import Message, db
-from monolith.forms import MessageForm
-import monolith.messaging
 import json
-from celery.utils.log import get_logger
+import os
+import traceback
+
+# utility import
+from datetime import datetime
+from datetime import datetime as d
+
+import monolith.messaging
 import pytz
+from celery.utils.log import get_logger
+from flask import Blueprint, abort
+from flask import current_app as app
+from flask import jsonify, render_template, request
+from monolith.auth import check_authenticated, current_user
 
 # import queue task
 from monolith.background import send_message as put_message_in_queque
-
-# utility import
-from datetime import datetime as d
-
+from monolith.database import Message, db
+from monolith.forms import MessageForm
 from monolith.user_query import get_user_mail
+from werkzeug.utils import redirect, secure_filename
 
 msg = Blueprint("message", __name__)
 ERROR_PAGE = "index"
@@ -35,8 +31,31 @@ def _send_message():
     return render_template("send_message.html", form=MessageForm())
 
 
+def _extension_allowed(filename):
+    """Checks if a file is allowed to be uploaded
+
+    :param filename: name of the file
+    :type filename: str
+    :return: True if allowed, false otherwise
+    :rtype: bool
+    """
+
+    return "." in filename and filename.rsplit(".", 1)[1].lower() in {
+        "png",
+        "jpg",
+        "jpeg",
+        "gif",
+    }
+
+
 @msg.route("/api/message/draft", methods=["POST"])
 def save_draft_message():
+    """Saves a message as draft
+
+    :return: id of the saved message
+    :rtype: json
+    """
+
     check_authenticated()
     if request.method == "POST":
         text = request.form["text"]
@@ -55,9 +74,25 @@ def save_draft_message():
 
         message.text = text
         message.sender = getattr(current_user, "id")
-        if "recipient" in request.form and request.form["recipient"] is not None:
+        if "recipient" in request.form and request.form["recipient"] != "":
             message.recipient = request.form["recipient"]
         message.is_draft = True
+
+        if "attachment" in request.files:
+            file = request.files["attachment"]
+            # Make sure the filename is not dangerous for the system
+            filename = secure_filename(file.filename)
+
+            if _extension_allowed(filename):
+                file.save(os.path.join(app.config["UPLOAD_FOLDER"], filename))
+
+                # If the draft already has a file, delete it
+                if message.media != "":
+                    os.unlink(os.path.join(app.config["UPLOAD_FOLDER"], message.media))
+                message.media = filename
+            else:
+                _get_result(None, ERROR_PAGE, True, 400, "File extension not allowed")
+
         monolith.messaging.save_message(message)
 
         return _get_result(jsonify({"message_id": message.message_id}), "/send_message")
@@ -130,6 +165,22 @@ def send_message():
 
     msg.sender = int(getattr(current_user, "id"))
     msg.recipient = int(request.form["recipient"])
+
+    if "attachment" in request.files:
+        file = request.files["attachment"]
+        # Make sure the filename is not dangerous for the system
+        filename = secure_filename(file.filename)
+
+        if _extension_allowed(filename):
+            file.save(os.path.join(app.config["UPLOAD_FOLDER"], filename))
+
+            # If the draft already has a file, delete it
+            if msg.media != "":
+                os.unlink(os.path.join(app.config["UPLOAD_FOLDER"], message.media))
+            msg.media = filename
+        else:
+            _get_result(None, ERROR_PAGE, True, 400, "File extension not allowed")
+
 
     # when it will be delivered
     # delay = (delivery_date - now).total_seconds()
@@ -216,7 +267,7 @@ def mailbox():
 
 # Il tasto di elimina deve apparire solo nella sezione dei messaggi ricevuti, è possibile eliminare
 # solo i messaggi che sono stati letti
-@msg.route('/api/message/delete/<message_id>', methods=["DELETE"])
+@msg.route("/api/message/delete/<message_id>", methods=["DELETE"])
 def delete_msg(message_id):
     check_authenticated()
     if monolith.messaging.set_message_is_deleted(message_id):
@@ -231,4 +282,3 @@ def read_msg(id):
     if not monolith.messaging.set_message_is_read(id):
         return abort(404, "Message not found")
     return jsonify({"msg_read": True})
-
