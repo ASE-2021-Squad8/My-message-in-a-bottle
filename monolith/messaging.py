@@ -2,6 +2,8 @@ from datetime import datetime
 from re import M
 from monolith.database import Message, db, User
 import json
+from monolith.notifications import send_notification
+from monolith.user_query import get_user_mail
 
 
 def save_message(message):
@@ -123,14 +125,21 @@ def set_message_is_deleted(message_id):
 def set_message_is_read(message_id):
     # retrieve the message
     msg = db.session.query(Message).filter(Message.message_id == message_id).first()
-
+    
     if msg is None:
         return False
 
-    # set is_read true
+    # set is_read true, before check if message is already read
     if not msg.is_read:
         setattr(msg, "is_read", True)
         db.session.commit()
+        #send email notification to sender
+
+        #retrieve sender
+        email_sender=get_user_mail(msg.sender)
+        #retrieve receiver
+        email_receiver=get_user_mail(msg.recipient)
+        send_notification(email_sender,email_receiver,msg.text)
     return True
 
 # update message state setting attr to state
