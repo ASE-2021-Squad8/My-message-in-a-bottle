@@ -54,7 +54,9 @@
 				success: function (response) { user = response }
 			})
 
-			console.log(user)
+			if (msg.media) {
+				msg.text += ` <a href={{ url_for("static", filename="user_uploads/MEDIA") }}>View attachment</a>`.replace("MEDIA", msg.media)
+			}
 
 			var row = `<tr>
 							<td>${user.firstname + " " + user.lastname}</td>
@@ -63,7 +65,7 @@
                             <td><input id="editdraft" type="button" value="Edit" onclick="editDraft(${msg.message_id})" />
                                 <input id="deldraft" type="button" value="Delete" onclick="deleteDraft(${msg.message_id})" /></td>
 					  </tr>`
-
+			
 			table.innerHTML += row
 		}
 	}
@@ -108,7 +110,7 @@
 </table>
 
 <h2>Compose message</h2>
-<form method="POST">
+<form method="POST" enctype="multipart/form-data">
 	{{ form.hidden_tag() }}
 	<dl>
 		{% for field in form.display %}
