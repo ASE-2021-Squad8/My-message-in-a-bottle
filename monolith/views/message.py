@@ -225,13 +225,13 @@ def delete_msg(message_id):
         return _get_result(None, ERROR_PAGE, True, 404, "Message not found")
 
 
-@msg.route("/api/message/read_message/<id>")
+@msg.route("/api/message/read_message/<id>", methods=["GET"])
 def read_msg(id):
     check_authenticated()
     msg=monolith.messaging.get_message(id)
 
     if msg is None:
-        return abort(404, "Message not found")
+        return abort(404, json.dumps({"msg_read": False, "error": "message not found"}))
 
     if not msg.is_read:
 
@@ -239,12 +239,12 @@ def read_msg(id):
         monolith.messaging.update_message_state(msg.message_id,"is_read",True)
 
         #Retrieve email of receiver and sender
-        email_r=get_user_mail(msg.recipient)
-        email_s=get_user_mail(msg.sender)
+        email_r=get_user_mail(msg.sender)
+        email_s=get_user_mail(msg.recipient)
         json_message = json.dumps(
                                     {
                                     "TESTING": app.config["TESTING"],
-                                    "body": "You have just received a massage",
+                                    "body": str(email_s) + " has just read the message",
                                     "recipient": email_r,
                                     "sender": email_s,
                                     }
@@ -254,6 +254,6 @@ def read_msg(id):
                         routing_key="notification",
                         queue="notification",)
 
-        return jsonify({"msg_read": True})
-    return jsonify({"msg_read": "Already true"})
+        
+    return jsonify({"msg_read": True})
 
