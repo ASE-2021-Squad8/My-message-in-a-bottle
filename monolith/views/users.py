@@ -226,7 +226,7 @@ def _prepare_json_response(owner_id, status):
     body.update({"black_users": [{"id": i[0], "email": i[1]} for i in black_list]})
     return make_response(jsonify(body), status)
 
-@users.route("/api/user/<id>", methods=["GET"])
+@users.route("/api/user/<user_id>", methods=["GET"])
 def get_user_details(user_id):
     """Retrieves public profile details for a specific user
 
