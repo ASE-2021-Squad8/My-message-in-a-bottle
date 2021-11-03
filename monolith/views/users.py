@@ -6,7 +6,7 @@ from flask import (
     request,
     jsonify,
     make_response,
-    abort
+    abort,
 )
 
 from flask_login import logout_user
@@ -15,6 +15,7 @@ from flask_login import logout_user
 from monolith.database import User, db
 from monolith.forms import BlackListForm, UserForm, ChangePassForm
 from monolith.auth import check_authenticated, current_user
+from monolith.views.message import _not_valid_string
 import monolith.user_query
 import datetime
 
@@ -41,6 +42,30 @@ def create_user():
 
     if request.method == "POST":
         if form.validate_on_submit():
+            # Check if date of birth is valid (in the past)
+            inputdate = form.dateofbirth.data
+            # birth = (
+            #     datetime.fromisoformat(inputdate)
+            #     if not _not_valid_string(inputdate)
+            #     else None
+            # )
+            if inputdate is None or inputdate > datetime.date.today():
+                return render_template(
+                    "create_user.html",
+                    form=form,
+                    error="Date of birth cannot be empty or in the future",
+                )
+
+            # Check if a user with the same email already exists
+            email = form.email.data
+            if monolith.user_query.get_user_by_email(email):
+                return render_template(
+                    "create_user.html",
+                    form=form,
+                    error="A user with that email already exists",
+                )
+
+            # Create the user
             new_user = User()
             form.populate_obj(new_user)
             """
@@ -53,9 +78,11 @@ def create_user():
             db.session.commit()
             return redirect("/login")
         else:
-            return render_template("create_user.html", form=form)
+            return render_template(
+                "create_user.html", form=form, error="An error occurred"
+            )
     elif request.method == "GET":
-        return render_template("create_user.html", form=form)
+        return render_template("create_user.html", form=form, error="")
     else:
         raise RuntimeError("This should not happen!")
 
@@ -185,7 +212,6 @@ def report():
             )
 
 
-
 @users.route("/user/black_list", methods=["POST", "GET"])
 def display_black_list():
     check_authenticated()
@@ -226,6 +252,7 @@ def _prepare_json_response(owner_id, status):
     body.update({"black_users": [{"id": i[0], "email": i[1]} for i in black_list]})
     return make_response(jsonify(body), status)
 
+
 @users.route("/api/user/<id>", methods=["GET"])
 def get_user_details(user_id):
     """Retrieves public profile details for a specific user
@@ -235,7 +262,7 @@ def get_user_details(user_id):
     :return: an object containing email, first and last name
     :rtype: Markup
     """
-    
+
     check_authenticated()
 
     q = db.session.query(User).filter(User.id == user_id)
