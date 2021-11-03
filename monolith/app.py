@@ -1,4 +1,5 @@
 import datetime
+import os
 
 from flask import Flask
 
@@ -37,6 +38,10 @@ def create_app(test_mode=False):
         app.config["WTF_CSRF_SECRET_KEY"] = "A SECRET KEY"
     app.config["SECRET_KEY"] = "ANOTHER ONE"
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+
+    app.config["UPLOAD_FOLDER"] = os.path.join(app.root_path, "static", "user_uploads")
+    if not os.path.exists(app.config["UPLOAD_FOLDER"]):
+        os.makedirs(app.config["UPLOAD_FOLDER"])
 
     for bp in blueprints:
         app.register_blueprint(bp)
