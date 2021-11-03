@@ -20,7 +20,7 @@ class User(db.Model):
     dateofbirth = db.Column(db.DateTime)
     reports = db.Column(db.Integer, default=0)
     is_active = db.Column(db.Boolean, default=True)
-    points = db.Column(db.Integer, default=0) # TODO: constraint >= 0
+    points = db.Column(db.Integer, default=0)
     # state if the contnet_filter is active
     content_filter = db.Column(db.Boolean, default=False)
 
