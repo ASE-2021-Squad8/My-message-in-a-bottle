@@ -230,7 +230,7 @@ def read_msg(id):
     check_authenticated()
     msg=monolith.messaging.get_message(id)
 
-    if msg is None:
+    if msg is None or msg.is_deleted:
         return abort(404, json.dumps({"msg_read": False, "error": "message not found"}))
 
     if not msg.is_read:

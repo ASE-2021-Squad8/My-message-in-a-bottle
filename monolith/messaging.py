@@ -4,6 +4,7 @@ from monolith.database import Message, db, User
 import json
 from monolith.notifications import send_notification
 from monolith.user_query import get_user_mail
+from monolith.auth import current_user
 
 
 def save_message(message):
@@ -57,6 +58,7 @@ def get_received_messages(user_id):
     q = db.session.query(Message).filter(
         Message.recipient == user_id,
         Message.is_draft == False,
+        Message.is_delivered == True,
         Message.is_deleted == False,
     )
     list = []
@@ -86,6 +88,7 @@ def get_sent_messages(user_id):
     q = db.session.query(Message).filter(
         Message.sender == user_id,
         Message.is_draft == False,
+        Message.is_delivered == True,
     )
     list = []
     for msg in q:
@@ -112,10 +115,11 @@ def get_sent_messages(user_id):
 
 
 def set_message_is_deleted(message_id):
-    msg = db.session.query(Message).filter(Message.message_id == message_id).first()
+    msg = db.session.query(Message).filter(Message.message_id == message_id, Message.recipient==int(getattr(current_user, "id"))).first()
+
 
     # only delete read messages
-    if msg.is_read == True:
+    if msg.is_read:
         setattr(msg, "is_deleted", True)
         db.session.commit()
         return True
