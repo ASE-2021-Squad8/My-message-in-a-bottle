@@ -83,6 +83,7 @@ class Message(db.Model):
     text: str
     sender: int
     recipient: int
+    media: str
     delivery_date: datetime
     is_draft: bool
     is_delivered: bool
@@ -96,6 +97,7 @@ class Message(db.Model):
     delivery_date = db.Column(db.DateTime)
     sender = db.Column(db.Integer, ForeignKey(User.id))
     recipient = db.Column(db.Integer, ForeignKey(User.id))
+    media = db.Column(db.String(255))
     is_draft = db.Column(db.Boolean, default=True)
     is_delivered = db.Column(db.Boolean, default=False)
     is_read = db.Column(db.Boolean, default=False)
