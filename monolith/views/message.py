@@ -1,29 +1,28 @@
-from datetime import datetime
-import traceback
-from flask import (
-    Blueprint,
-    request,
-    abort,
-    jsonify,
-    current_app as app,
-    render_template,
-)
-from werkzeug.utils import redirect
-from monolith.auth import current_user, check_authenticated
-from monolith.database import Message, db
-from monolith.forms import MessageForm
-import monolith.messaging
 import json
-from celery.utils.log import get_logger
+import os
+import traceback
+import hashlib
+import pathlib
+import time
+
+# utility import
+from datetime import datetime
+from datetime import datetime as d
+
+import monolith.messaging
 import pytz
+from celery.utils.log import get_logger
+from flask import Blueprint, abort
+from flask import current_app as app
+from flask import jsonify, render_template, request
+from monolith.auth import check_authenticated, current_user
 
 # import queue task
 from monolith.background import send_message as put_message_in_queque
-
-# utility import
-from datetime import datetime as d
-
+from monolith.database import Message, db
+from monolith.forms import MessageForm
 from monolith.user_query import get_user_mail
+from werkzeug.utils import redirect, secure_filename
 
 msg = Blueprint("message", __name__)
 ERROR_PAGE = "index"
@@ -35,8 +34,57 @@ def _send_message():
     return render_template("send_message.html", form=MessageForm())
 
 
+def _extension_allowed(filename):
+    """Checks if a file is allowed to be uploaded
+
+    :param filename: name of the file
+    :type filename: str
+    :return: True if allowed, false otherwise
+    :rtype: bool
+    """
+
+    return pathlib.Path(filename).suffix.lower() in {
+        ".png",
+        ".jpg",
+        ".jpeg",
+        ".gif",
+    }
+
+def _generate_filename(file):
+    """Generates a filename for an uploaded file
+
+    :param file: file handle
+    :type file: file
+    :return: a filename suited for storage
+    :rtype: str
+    """
+
+    # To avoid clashes, generate a filename by hashing
+    # the file's contents, the sender and the time
+    sha1 = hashlib.sha1()
+    while True:
+                # Read in chunks of 64kb to contain memory usage
+        data = file.read(65536)
+        if not data:
+            break
+        sha1.update(data)
+    sha1.update(getattr(current_user, "email").encode('utf-8'))
+    sha1.update(str(int(time.time())).encode('utf-8'))
+            
+    # Seek back to the origin of the file (otherwise save will fail)
+    file.seek(0)
+
+    return sha1.hexdigest() + pathlib.Path(file.filename).suffix.lower()
+
+
 @msg.route("/api/message/draft", methods=["POST"])
 def save_draft_message():
+    """Saves a message as draft
+
+    :return: id of the saved message
+    :rtype: json
+    """
+
     check_authenticated()
     if request.method == "POST":
         text = request.form["text"]
@@ -54,10 +102,26 @@ def save_draft_message():
             message = Message()
 
         message.text = text
-        message.sender = getattr(current_user, "id")
-        if "recipient" in request.form and request.form["recipient"] is not None:
-            message.recipient = request.form["recipient"]
         message.is_draft = True
+
+        message.sender = getattr(current_user, "id")
+        if "recipient" in request.form and request.form["recipient"] != "":
+            message.recipient = request.form["recipient"]
+
+        if "attachment" in request.files:
+            file = request.files["attachment"]
+
+            if not _extension_allowed(file.filename):
+                _get_result(None, ERROR_PAGE, True, 400, "File extension not allowed")
+
+            filename = _generate_filename(file)
+            file.save(os.path.join(app.config["UPLOAD_FOLDER"], filename))
+
+            # If the draft already has a file, delete it
+            if message.media is not None and message.media != "":
+                os.unlink(os.path.join(app.config["UPLOAD_FOLDER"], message.media))
+            message.media = filename
+
         monolith.messaging.save_message(message)
 
         return _get_result(jsonify({"message_id": message.message_id}), "/send_message")
@@ -78,6 +142,16 @@ def get_user_draft(id):
             return jsonify({"message_id": id})
         except:
             _get_result(None, ERROR_PAGE, True, 404, "Draft not found")
+
+
+@msg.route("/api/message/draft/<id>/attachment", methods=["DELETE"])
+def get_user_draft_attachment(id):
+    check_authenticated()
+
+    if monolith.messaging.delete_draft_attachment(getattr(current_user, "id"), id):
+        return jsonify({"message_id": id})
+    else:
+        _get_result(None, ERROR_PAGE, True, 404, "No attachment present")
 
 
 @msg.route("/api/message/draft/all", methods=["GET"])
@@ -130,6 +204,20 @@ def send_message():
 
     msg.sender = int(getattr(current_user, "id"))
     msg.recipient = int(request.form["recipient"])
+
+    if "attachment" in request.files:
+        file = request.files["attachment"]
+
+        if not _extension_allowed(file.filename):
+            _get_result(None, ERROR_PAGE, True, 400, "File extension not allowed")
+
+        filename = _generate_filename(file)
+        file.save(os.path.join(app.config["UPLOAD_FOLDER"], filename))
+
+        # If the message already has a file, delete it
+        if msg.media is not None and msg.media != "":
+            os.unlink(os.path.join(app.config["UPLOAD_FOLDER"], msg.media))
+        msg.media = filename
 
     # when it will be delivered
     # delay = (delivery_date - now).total_seconds()
@@ -216,7 +304,7 @@ def mailbox():
 
 # Il tasto di elimina deve apparire solo nella sezione dei messaggi ricevuti, è possibile eliminare
 # solo i messaggi che sono stati letti
-@msg.route('/api/message/delete/<message_id>', methods=["DELETE"])
+@msg.route("/api/message/delete/<message_id>", methods=["DELETE"])
 def delete_msg(message_id):
     check_authenticated()
     if monolith.messaging.set_message_is_deleted(message_id):
@@ -231,4 +319,3 @@ def read_msg(id):
     if not monolith.messaging.set_message_is_read(id):
         return abort(404, "Message not found")
     return jsonify({"msg_read": True})
-

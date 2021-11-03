@@ -1,7 +1,11 @@
+import json
+import os
 from datetime import datetime
 from re import M
-from monolith.database import Message, db, User
-import json
+
+from flask.globals import current_app
+
+from monolith.database import Message, User, db
 
 
 def save_message(message):
@@ -37,6 +41,27 @@ def unmark_draft(user_id, draft_id):
         return message
 
 
+def delete_draft_attachment(user_id, message_id):
+    """Removes an attachment from a draft
+
+    :param user_id: id of the user who owns the draft
+    :type user_id: int
+    :param message_id: id of the drafted message
+    :type message_id: int
+    :return: True the attachment was removed, False otherwise
+    :rtype: bool
+    """
+
+    draft = get_user_draft(user_id, message_id)
+    if draft.media is not None or draft.media != "":
+        os.unlink(os.path.join(current_app.config["UPLOAD_FOLDER"], draft.media))
+        draft.media = ""
+        db.session.commit()
+        return True
+
+    return False
+
+
 def delete_user_message(user_id, message_id, is_draft=False):
     q = db.session.query(Message).filter(
         Message.sender == user_id, Message.message_id == message_id
@@ -69,6 +94,7 @@ def get_received_messages(user_id):
                 "id_message": msg.message_id,
                 "text": msg.text,
                 "email": sender.email,
+                "media": msg.media,
             }
         )
 
@@ -77,6 +103,7 @@ def get_received_messages(user_id):
     db.session.commit()
 
     return list
+
 
 def get_sent_messages(user_id):
 
@@ -99,6 +126,7 @@ def get_sent_messages(user_id):
                 "id_message": msg.message_id,
                 "text": msg.text,
                 "email": recipient.email,
+                "media": msg.media,
             }
         )
 
@@ -132,6 +160,7 @@ def set_message_is_read(message_id):
         setattr(msg, "is_read", True)
         db.session.commit()
     return True
+
 
 # update message state setting attr to state
 def update_message_state(message_id, attr, state):
