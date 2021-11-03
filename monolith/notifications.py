@@ -10,9 +10,6 @@ smtp_server = (
 port = 587 if not "MAIL_PORT" in os.environ else int(os.environ.get("MAIL_PORT"))
 notifications_email = "mmiab.notifications@gmail.com"
 
-print(port)
-print(smtp_server)
-
 
 def send_notification(msg_sender, receiver, msg_body):
 

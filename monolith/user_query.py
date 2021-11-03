@@ -87,7 +87,6 @@ def get_blacklist_candidates(owner_id):
         result = (
             db.session.query(User.id, User.email)
             .filter(User.id != owner_id)
-            .filter(User.is_admin == 0)
             .filter(
                 User.id.not_in(
                     db.session.query(BlackList.member).filter(
@@ -148,3 +147,19 @@ def get_user_mail(user_id):
         print("Exception in get_user_mail %r", e)
 
     return result
+
+
+def get_user_by_email(user_email):
+    """Checks if a user with the specified email already exists
+    
+    :param user_email: the email of the user
+    :type user_email: string
+    :return: True if the user exists, False otherwise
+    :rtype: bool
+    """
+    
+    user = db.session.query(User).filter(User.email == user_email).first()
+    if user is None:
+        return False
+    else:
+        return True
