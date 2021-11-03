@@ -89,7 +89,7 @@ class TestApp(unittest.TestCase):
         user = User.query.filter(User.email == "test_ban@test.com").first()
         assert not user.get_isactive()
 
-    def test_get_recipiens(self):
+    def test_get_recipients(self):
         reply = self.client.post(
             "/create_user",
             data=dict(
@@ -162,7 +162,7 @@ class TestApp(unittest.TestCase):
 
         reply = self.client.get("/user/get_recipients")
         body = reply.get_json()
-        # now excpec it among possible receiver
+        # now expect it among possible receiver
         assert body[0] == {"email": "example@example.com", "id": 1}
         assert body[1] == {"email": "test_1@test.com", "id": 4}
 
@@ -250,3 +250,56 @@ class TestApp(unittest.TestCase):
         user = User.query.filter(User.email == "pass_update@test.com").first()
         assert user is not None
         assert user.authenticate("test_new")
+
+    def test_create_user_future_dateofbirth(self):
+        reply = self.client.post(
+            "/create_user",
+            data=dict(
+                email="test_future_dateofbirth@test.com",
+                firstname="test",
+                lastname="test",
+                password="test",
+                dateofbirth="2222-1-1",
+            ),
+            follow_redirects=True,
+        )
+        assert reply.status_code == 200
+
+        user = User.query.filter(
+            User.email == "test_future_dateofbirth@test.com"
+        ).first()
+        assert user is None
+
+    def test_create_user_used_email(self):
+        reply = self.client.post(
+            "/create_user",
+            data=dict(
+                email="test_used_email@test.com",
+                firstname="test",
+                lastname="test",
+                password="test",
+                dateofbirth="1111-1-1",
+            ),
+            follow_redirects=True,
+        )
+        assert reply.status_code == 200
+
+        user = User.query.filter(User.email == "test_used_email@test.com").all()
+        assert len(user) == 1
+
+        reply = self.client.post(
+            "/create_user",
+            data=dict(
+                email="test_used_email@test.com",
+                firstname="test",
+                lastname="test",
+                password="test",
+                dateofbirth="1111-1-1",
+            ),
+            follow_redirects=True,
+        )
+        assert reply.status_code == 200
+
+        user = User.query.filter(User.email == "test_used_email@test.com").all()
+        assert len(user) == 1
+
