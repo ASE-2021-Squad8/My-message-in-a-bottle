@@ -61,7 +61,6 @@ def create_app(test_mode=False):
             example.lastname = "Admin"
             example.email = "example@example.com"
             example.dateofbirth = datetime.datetime(2020, 10, 5)
-            example.is_admin = True
             example.set_password("admin")
             db.session.add(example)
             db.session.commit()

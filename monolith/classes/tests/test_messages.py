@@ -102,7 +102,6 @@ class TestApp(unittest.TestCase):
         reply = self.client.get("/user/get_recipients")
         assert reply.status_code == 200
         data = reply.get_json()
-        print(data)
         now = datetime.now()
         delivery_date = now + timedelta(minutes=1)
 
@@ -119,6 +118,7 @@ class TestApp(unittest.TestCase):
             follow_redirects=True,
         )
 
+        print("Sleeping for 62 seconds")
         time.sleep(62)  # waiting for task
         msg = (
             Message.query.filter(
