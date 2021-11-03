@@ -94,6 +94,7 @@ def get_received_messages(user_id):
                 "id_message": msg.message_id,
                 "text": msg.text,
                 "email": sender.email,
+                "media": msg.media,
             }
         )
 
@@ -125,6 +126,7 @@ def get_sent_messages(user_id):
                 "id_message": msg.message_id,
                 "text": msg.text,
                 "email": recipient.email,
+                "media": msg.media,
             }
         )
 
