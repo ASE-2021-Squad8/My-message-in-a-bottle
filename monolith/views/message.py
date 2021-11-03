@@ -300,11 +300,6 @@ def _get_sent_messages():
         abort(404, "Message not found")
 
 
-@msg.route("/message_received")
-def message_receved():
-    return render_template("message_received.html")
-
-
 @msg.route("/mailbox")
 def mailbox():
     return render_template("mailbox.html")
