@@ -1,13 +1,14 @@
 function get_day_message(day, month, year) {
   console.log(month);
-  $.get('/api/calendar/' + day + "/" + month + "/" + year , function (data) { write_message(data); });
+  $.get('/api/calendar/' + day + "/" + month + "/" + year , function (data) { write_message(data, day, month, year); });
 }
 
-function write_message(data){
+function write_message(data, day, month, year){
     var messages =  document.getElementById('sentmsg');
     messages.innerHTML = ``
+    var int_month = parseInt(month, 10) + 1;
     if(data.length == 0){
-      var msg = `<h4 style="color:red">No messages sent for the selected day</h4>`
+      var msg = `<h4 style="color:red">No messages sent for the day: ${day}/${int_month}/${year}</h4>`
       messages.innerHTML += msg;
     }
     else{
