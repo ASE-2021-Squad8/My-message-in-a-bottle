@@ -165,6 +165,41 @@ def get_user_by_email(user_email):
         return True
 
 
+
+def get_lottery_participants():
+    """Returns all participants to monthly lottery
+    :param: no pramars
+    :return: empty list in case an exception occurs otherwise users list
+    :rtype: Users []
+    """
+    result = []
+    try:
+        result = db.session.query(User).filter(User.is_active).all()
+    except Exception as e:
+        print("Exception in get_lottery_participants %r", e)
+
+    return result
+
+
+def add_points(points, usr_id):
+    """Adds lottery points to an user
+    :param points: how many points to add
+    :param usr_id: id of the user
+    :return: True on success, False otherwise
+    :rtype: bool
+    """
+    result = False
+    try:
+        print("usr " + str(usr_id))
+        usr = db.session.query(User).filter(User.id == usr_id).first()
+        setattr(usr, "points", usr.points + points)
+        db.session.commit()
+        result = True
+    except Exception as e:
+        db.session.rollback()
+        print("Exception in add_points ", e)
+    return result
+
 def get_all_users():
     """Returns all the users registered to the service
     
@@ -191,4 +226,3 @@ def change_user_content_filter(user_id, activate):
     setattr(user, "content_filter", activate)
     db.session.commit()
     return getattr(user, "content_filter")
-
