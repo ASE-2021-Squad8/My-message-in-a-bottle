@@ -74,9 +74,6 @@ class User(db.Model):
     def get_lastname(self):
         return self.lastname
 
-    def get_email(self):
-        return self.email
-
 
 @dataclass
 class Message(db.Model):

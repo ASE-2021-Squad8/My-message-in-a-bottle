@@ -166,6 +166,11 @@ def get_user_by_email(user_email):
 
 
 def get_lottery_participants():
+    """Returns all participants to monthly lottery
+    :param: no pramars
+    :return: empty list in case an exception occurs otherwise users list
+    :rtype: Users []
+    """
     result = []
     try:
         result = db.session.query(User).filter(User.is_active).all()
@@ -176,6 +181,12 @@ def get_lottery_participants():
 
 
 def add_points(points, usr_id):
+    """Adds lottery points to an user
+    :param points: how many points to add
+    :param usr_id: id of the user
+    :return: True on success, False otherwise
+    :rtype: bool
+    """
     result = False
     try:
         print("usr " + str(usr_id))

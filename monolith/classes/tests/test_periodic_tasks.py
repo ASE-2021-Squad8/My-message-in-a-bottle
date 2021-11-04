@@ -28,7 +28,7 @@ class TestPeriodicTask(unittest.TestCase):
 
             # expect success state and number of message sent equal to 5
             expected_result = (True, 5)
-            assert check_messages(0, 0) == expected_result
+            assert check_messages(True) == expected_result
 
     """
     def test_send_notification_task(self):
@@ -45,11 +45,10 @@ class TestPeriodicTask(unittest.TestCase):
         )
         assert send_notification_task(json_message)
         """
-    """
+
     def test_lottery(self):
         result = lottery(True)
         assert result[0]
         with self.app.app_context():
             winner = db.session.query(User).filter(User.id == result[1]).first()
             assert winner.points == 20
-    """

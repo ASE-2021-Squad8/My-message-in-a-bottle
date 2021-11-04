@@ -29,12 +29,12 @@ celery.conf.beat_schedule = {
     "check_message": {
         "task": "monolith.background.check_messages",
         "schedule": timedelta(minutes=15),  # every 15 minutes
-        "args": (None, None),
+        "args": [False],  # test mode
     },
     "lottery": {
         "task": "monolith.background.lottery",
         "schedule": crontab(0, 0, day_of_month="1"),  # every 1st timedelta(seconds=20),
-        "args": [False],
+        "args": [False],  # test mode
     },
 }
 celery.conf.timezone = "UTC"
@@ -74,13 +74,13 @@ def send_message(json_message):
 
 # periodic task to manage possible fault
 @celery.task
-def check_messages(self, message):
+def check_messages(test_mode):
     global _APP
     # lazy init
     if _APP is None:
         from monolith.app import create_app
 
-        app = create_app(True if message != None else False)
+        app = create_app(test_mode)
         db.init_app(app)
     else:
         app = _APP
@@ -138,14 +138,15 @@ def send_notification_task(json_message):
 
 
 @celery.task
-def lottery(param):
+def lottery(test_mode):
     global _APP
     result = False
+    id_winner = -1
     # lazy init
     if _APP is None:
         from monolith.app import create_app
 
-        app = create_app(param)
+        app = create_app(test_mode)
         db.init_app(app)
     else:
         app = _APP
@@ -153,19 +154,20 @@ def lottery(param):
     with app.app_context():
         participants = get_lottery_participants()
         winner = r.randint(0, len(participants) - 1)
-        email_r = participants[winner].get_email()
+        email_r = participants[winner].email
         sender = "Message in a bottle"
         json_message = build_json(
             sender, email_r, "You have just won 20 points!", app.config["TESTING"]
         )
-        if add_points(20, participants[winner].get_id()):
+        if add_points(20, participants[winner].id):
             send_notification_task.apply_async(
                 args=[json_message],
                 routing_key="notification",
                 queue="notification",
             )
+            id_winner = participants[winner].id
             result = True
-    return (result, participants[winner].get_id())
+    return (result, id_winner)
 
 
 def build_json(email_s, email_r, body, testing):
