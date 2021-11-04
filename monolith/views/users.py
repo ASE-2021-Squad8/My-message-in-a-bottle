@@ -278,3 +278,15 @@ def get_user_details(user_id):
         )
     else:
         abort(404, "User not found")
+
+
+@users.route("/search_user")
+def _search_user():
+    return render_template("search_user.html")
+
+
+@users.route("/api/users/list")
+def get_users_list_json():
+    users = monolith.user_query.get_all_users()
+    userlist = [{"email": u.email, "firstname": u.firstname, "lastname": u.lastname} for u in users]
+    return jsonify(userlist)

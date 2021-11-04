@@ -1,0 +1,56 @@
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+	integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+
+<h1>Search for a user</h1>
+
+<br><a href="/">Home</a><br>
+
+<br><label>Search <input id="search" type="text" placeholder="Type to search"></label><br><br>
+<table class="table" id="users">
+	<thead class="thead-dark">
+		<tr class="bg-info">
+			<th scope="col">E-mail</th>
+			<th scope="col">First name</th>
+			<th scope="col">Last name</th>
+		</tr>
+	</thead>
+</table>
+
+
+<script>
+
+	$.get('/api/users/list', function (data) { buildTable(data); });
+
+	function buildTable(data) {
+		console.log(data);
+		var table = document.getElementById('users');
+		for (var i = 0; i < data.length; i++) {
+			user = data[i];
+			var row = `<tr>
+					<td>${user.email}</td>
+					<td>${user.firstname}</td>
+					<td>${user.lastname}</td>
+			  </tr>`;
+			table.innerHTML += row;
+
+		}
+		search();
+	}
+
+	function search() {
+		var $rows = $('#users tbody tr');
+		$('#search').keyup(function () {
+
+			var val = '^(?=.*\\b' + $.trim($(this).val()).split(/\s+/).join('\\b)(?=.*\\b') + ').*$',
+				reg = RegExp(val, 'i'),
+				text;
+
+			$rows.show().filter(function () {
+				text = $(this).text().replace(/\s+/g, ' ');
+				return !reg.test(text);
+			}).hide();
+		});
+	}
+
+</script>
