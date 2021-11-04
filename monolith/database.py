@@ -122,6 +122,7 @@ class Message(db.Model):
     def get_text(self):
         return self.text
 
+
 @dataclass
 class BlackList(db.Model):
     """A user's blacklist"""
