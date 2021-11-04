@@ -1,5 +1,6 @@
 import json
 import os
+from datetime import date, datetime
 import traceback
 import hashlib
 import pathlib
@@ -358,7 +359,13 @@ def calendar():
 @msg.route("/api/calendar/<int:day>/<int:month>/<int:year>")
 def calendar_send_message(day, month, year):
     basedate = datetime(year,month +1, day)
-    upperdate = datetime(year,month +1, day + 1)
+    if(month + 1 == 12 and day == 31):
+        upperdate = datetime(year + 1, 1, 1)
+    else:
+        try:
+            upperdate = datetime(year,month +1, day + 1)
+        except ValueError:
+            upperdate = date(year, month + 2, 1)
     userid = getattr(current_user, "id")
     message = monolith.messaging.get_day_message(userid, basedate, upperdate)
     return jsonify(message)
