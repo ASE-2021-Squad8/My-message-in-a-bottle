@@ -1,5 +1,6 @@
 from datetime import datetime
 from re import M
+from monolith.auth import check_authenticated
 from monolith.database import Message, db, User
 import json
 
@@ -165,3 +166,24 @@ def check_message_to_send():
 
     db.session.commit()
     return ids
+def get_day_message(userid, baseDate, upperDate):
+    check_authenticated()
+    q= db.session.query(Message).filter(Message.sender == userid, Message.delivery_date >= baseDate, Message.delivery_date < upperDate)
+    
+    list = []
+
+    for msg in q:
+        
+        recipient = (
+            db.session.query(User).filter(User.id == msg.get_recipient()).first()
+        )
+
+        json_msg = json.dumps(
+            {
+                "firstname": recipient.get_firstname(),
+                "text": msg.text,
+            }
+        )
+
+        list.append(json_msg)
+    return list

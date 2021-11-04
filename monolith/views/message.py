@@ -232,3 +232,15 @@ def read_msg(id):
         return abort(404, "Message not found")
     return jsonify({"msg_read": True})
 
+@msg.route("/api/calendar")
+def calendar():
+    return render_template("calendar.html")
+
+@msg.route("/api/calendar/<int:day>/<int:month>/<int:year>")
+def calendar_send_message(day, month, year):
+    basedate = datetime(year,month +1, day)
+    upperdate = datetime(year,month +1, day + 1)
+    userid = getattr(current_user, "id")
+    message = monolith.messaging.get_day_message(userid, basedate, upperdate)
+    return jsonify(message)
+
