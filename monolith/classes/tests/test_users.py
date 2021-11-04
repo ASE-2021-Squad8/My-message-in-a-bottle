@@ -300,9 +300,9 @@ class TestApp(unittest.TestCase):
         assert reply.status_code == 200
 
         # test filter activation
-        filter = monolith.user_query.change_user_content_filter(current_user.id, True)
+        filter = monolith.user_query.change_user_content_filter(1, True)
         assert filter == True
 
         # test filter deactivation
-        filter = monolith.user_query.change_user_content_filter(current_user.id, False)
+        filter = monolith.user_query.change_user_content_filter(1, False)
         assert filter == False
