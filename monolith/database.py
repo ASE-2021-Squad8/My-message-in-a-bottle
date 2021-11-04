@@ -74,6 +74,9 @@ class User(db.Model):
     def get_lastname(self):
         return self.lastname
 
+    def get_email(self):
+        return self.email
+
 
 @dataclass
 class Message(db.Model):
@@ -121,6 +124,7 @@ class Message(db.Model):
 
     def get_text(self):
         return self.text
+
 
 @dataclass
 class BlackList(db.Model):

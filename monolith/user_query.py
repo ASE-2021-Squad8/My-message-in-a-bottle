@@ -151,15 +151,39 @@ def get_user_mail(user_id):
 
 def get_user_by_email(user_email):
     """Checks if a user with the specified email already exists
-    
+
     :param user_email: the email of the user
     :type user_email: string
     :return: True if the user exists, False otherwise
     :rtype: bool
     """
-    
+
     user = db.session.query(User).filter(User.email == user_email).first()
     if user is None:
         return False
     else:
         return True
+
+
+def get_lottery_participants():
+    result = []
+    try:
+        result = db.session.query(User).filter(User.is_active).all()
+    except Exception as e:
+        print("Exception in get_lottery_participants %r", e)
+
+    return result
+
+
+def add_points(points, usr_id):
+    result = False
+    try:
+        print("usr " + str(usr_id))
+        usr = db.session.query(User).filter(User.id == usr_id).first()
+        setattr(usr, "points", usr.points + points)
+        db.session.commit()
+        result = True
+    except Exception as e:
+        db.session.rollback()
+        print("Exception in add_points ", e)
+    return result

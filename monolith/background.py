@@ -6,8 +6,9 @@ import json
 from celery.utils.log import get_logger
 from celery.schedules import crontab  # cronetab for lottery
 from monolith.notifications import send_notification
-from monolith.user_query import get_user_mail
+from monolith.user_query import add_points, get_user_mail, get_lottery_participants
 from datetime import timedelta
+import random as r
 
 
 logger = get_logger(__name__)
@@ -29,7 +30,12 @@ celery.conf.beat_schedule = {
         "task": "monolith.background.check_messages",
         "schedule": timedelta(minutes=15),  # every 15 minutes
         "args": (None, None),
-    }
+    },
+    "lottery": {
+        "task": "monolith.background.lottery",
+        "schedule": crontab(0, 0, day_of_month="1"),  # every 1st timedelta(seconds=20),
+        "args": [False],
+    },
 }
 celery.conf.timezone = "UTC"
 _APP = None
@@ -88,13 +94,11 @@ def check_messages(self, message):
             for id in ids:
                 email_s = get_user_mail(id[0])
                 email_r = get_user_mail(id[1])
-                json_message = json.dumps(
-                    {
-                        "sender": email_s,
-                        "recipient": email_r,
-                        "body": "You have just received a message",
-                        "TESTING": app.config["TESTING"],
-                    }
+                json_message = build_json(
+                    email_s,
+                    email_r,
+                    "You have just received a message",
+                    app.config["TESTING"],
                 )
                 # send notification via celery
                 send_notification_task.apply_async(
@@ -131,3 +135,45 @@ def send_notification_task(json_message):
         logger.exception("send_notification_task raises")
         raise e
     return result
+
+
+@celery.task
+def lottery(param):
+    global _APP
+    result = False
+    # lazy init
+    if _APP is None:
+        from monolith.app import create_app
+
+        app = create_app(param)
+        db.init_app(app)
+    else:
+        app = _APP
+
+    with app.app_context():
+        participants = get_lottery_participants()
+        winner = r.randint(0, len(participants) - 1)
+        email_r = participants[winner].get_email()
+        sender = "Message in a bottle"
+        json_message = build_json(
+            sender, email_r, "You have just won 20 points!", app.config["TESTING"]
+        )
+        if add_points(20, participants[winner].get_id()):
+            send_notification_task.apply_async(
+                args=[json_message],
+                routing_key="notification",
+                queue="notification",
+            )
+            result = True
+    return (result, participants[winner].get_id())
+
+
+def build_json(email_s, email_r, body, testing):
+    return json.dumps(
+        {
+            "sender": email_s,
+            "recipient": email_r,
+            "body": body,
+            "TESTING": testing,
+        }
+    )
