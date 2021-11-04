@@ -13,7 +13,6 @@ from flask.globals import current_app
 from monolith.database import Message, User, db
 
 
-
 def save_message(message):
     db.session.add(message)
     db.session.commit()
@@ -35,7 +34,9 @@ def get_user_draft(user_id, draft_id):
 def unmark_draft(user_id, draft_id):
     message = (
         db.session.query(Message)
-        .filter(Message.sender == user_id, Message.is_draft, Message.id == draft_id)
+        .filter(
+            Message.sender == user_id, Message.is_draft, Message.message_id == draft_id
+        )
         .first()
     )
 
@@ -146,8 +147,14 @@ def get_sent_messages(user_id):
 
 
 def set_message_is_deleted(message_id):
-    msg = db.session.query(Message).filter(Message.message_id == message_id, Message.recipient==int(getattr(current_user, "id"))).first()
-
+    msg = (
+        db.session.query(Message)
+        .filter(
+            Message.message_id == message_id,
+            Message.recipient == int(getattr(current_user, "id")),
+        )
+        .first()
+    )
 
     # only delete read messages
     if msg.is_read:
@@ -160,7 +167,7 @@ def set_message_is_deleted(message_id):
 def get_message(message_id):
     # retrieve the message
     msg = db.session.query(Message).filter(Message.message_id == message_id).first()
-    
+
     return msg
 
 
