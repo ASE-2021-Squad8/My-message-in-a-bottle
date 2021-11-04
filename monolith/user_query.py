@@ -173,3 +173,22 @@ def get_all_users():
     """
 
     return db.session.query(User)
+
+
+def change_user_content_filter(user_id, activate):
+    """Changes the users's content filter
+
+    :param user_id: the id of the user that's changing its filter
+    :type user_id: int
+    :param activate: the status of the new filter
+    :type activate: bool
+    :return: True if the filter is now activated, False otherwise
+    :rtype: bool
+    """
+    user = db.session.query(User).filter(User.id == user_id).first()
+    if user is None:
+        raise Exception("User not found")
+    setattr(user, "content_filter", activate)
+    db.session.commit()
+    return getattr(user, "content_filter")
+

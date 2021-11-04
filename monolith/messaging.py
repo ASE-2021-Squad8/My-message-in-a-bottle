@@ -1,15 +1,12 @@
 import json
 import os
-from datetime import datetime
-from re import M
 import json
+from datetime import datetime
 from monolith.notifications import send_notification
 from monolith.user_query import get_user_mail
 from monolith.auth import current_user
-
-
+from better_profanity import profanity
 from flask.globals import current_app
-
 from monolith.database import Message, User, db
 
 
@@ -94,13 +91,18 @@ def get_received_messages(user_id):
     for msg in q:
         # retrieve the name of sender
         sender = db.session.query(User).filter(User.id == msg.get_sender()).first()
+        # check if the receiver has a content filter activated and if so censor it
+        receiver = db.session.query(User).filter(User.id == current_user.id).first()
+        text = msg.text
+        if receiver.content_filter:
+            text = profanity.censor(msg.text)
         json_msg = json.dumps(
             {
                 "sender_id": sender.get_id(),
                 "firstname": sender.get_firstname(),
                 "lastname": sender.get_lastname(),
                 "id_message": msg.message_id,
-                "text": msg.text,
+                "text": text,
                 "email": sender.email,
                 "media": msg.media,
             }
