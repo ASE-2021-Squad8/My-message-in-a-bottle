@@ -19,11 +19,13 @@ from monolith.auth import check_authenticated, current_user
 
 # import queue task
 
-from monolith.background import send_message as put_message_in_queque, send_notification_task as put_email_in_queue
+from monolith.background import (
+    send_message as put_message_in_queue,
+    send_notification_task as put_email_in_queue,
+)
 
 # utility import
 from datetime import datetime as d
-
 
 
 from monolith.database import Message, db
@@ -58,6 +60,7 @@ def _extension_allowed(filename):
         ".gif",
     }
 
+
 def _generate_filename(file):
     """Generates a filename for an uploaded file
 
@@ -71,14 +74,14 @@ def _generate_filename(file):
     # the file's contents, the sender and the time
     sha1 = hashlib.sha1()
     while True:
-                # Read in chunks of 64kb to contain memory usage
+        # Read in chunks of 64kb to contain memory usage
         data = file.read(65536)
         if not data:
             break
         sha1.update(data)
-    sha1.update(getattr(current_user, "email").encode('utf-8'))
-    sha1.update(str(int(time.time())).encode('utf-8'))
-            
+    sha1.update(getattr(current_user, "email").encode("utf-8"))
+    sha1.update(str(int(time.time())).encode("utf-8"))
+
     # Seek back to the origin of the file (otherwise save will fail)
     file.seek(0)
 
@@ -233,7 +236,7 @@ def send_message():
         id = monolith.messaging.save_message(msg)
         email_r = get_user_mail(msg.recipient)
         email_s = get_user_mail(msg.sender)
-        put_message_in_queque.apply_async(
+        put_message_in_queue.apply_async(
             args=[
                 json.dumps(
                     {
@@ -249,7 +252,7 @@ def send_message():
             routing_key="message",  # to specify the queue
             queue="message",
         )
-    except put_message_in_queque.OperationalError as e:
+    except put_message_in_queue.OperationalError as e:
         logger.exception("Send message task raised: %r", e)
 
     return _get_result(jsonify({"message sent": True}), "/send_message")
@@ -319,31 +322,31 @@ def delete_msg(message_id):
 @msg.route("/api/message/read_message/<id>", methods=["GET"])
 def read_msg(id):
     check_authenticated()
-    msg=monolith.messaging.get_message(id)
+    msg = monolith.messaging.get_message(id)
 
     if msg is None or msg.is_deleted:
         return abort(404, json.dumps({"msg_read": False, "error": "message not found"}))
 
     if not msg.is_read:
 
-        #updata msg.is_read
-        monolith.messaging.update_message_state(msg.message_id,"is_read",True)
+        # updata msg.is_read
+        monolith.messaging.update_message_state(msg.message_id, "is_read", True)
 
-        #Retrieve email of receiver and sender
-        email_r=get_user_mail(msg.sender)
-        email_s=get_user_mail(msg.recipient)
+        # Retrieve email of receiver and sender
+        email_r = get_user_mail(msg.sender)
+        email_s = get_user_mail(msg.recipient)
         json_message = json.dumps(
-                                    {
-                                    "TESTING": app.config["TESTING"],
-                                    "body": str(email_s) + " has just read the message",
-                                    "recipient": email_r,
-                                    "sender": email_s,
-                                    }
-                                )
+            {
+                "TESTING": app.config["TESTING"],
+                "body": str(email_s) + " has just read the message",
+                "recipient": email_r,
+                "sender": email_s,
+            }
+        )
         put_email_in_queue.apply_async(
-                        args=[json_message],
-                        routing_key="notification",
-                        queue="notification",)
+            args=[json_message],
+            routing_key="notification",
+            queue="notification",
+        )
 
-        
     return jsonify({"msg_read": True})
