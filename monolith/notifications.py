@@ -9,6 +9,9 @@ smtp_server = (
 )
 port = 587 if not "MAIL_PORT" in os.environ else int(os.environ.get("MAIL_PORT"))
 notifications_email = "mmiab.notifications@gmail.com"
+with open("password.txt", "r") as pwfile:
+    password = pwfile.readline()
+    pwfile.close()
 
 
 def send_notification(msg_sender, receiver, msg_body):
@@ -16,9 +19,6 @@ def send_notification(msg_sender, receiver, msg_body):
     # Log in to server and send email
     server = None
     try:
-        with open("password.txt", "r") as pwfile:
-            password = pwfile.readline()
-            pwfile.close()
         server = smtplib.SMTP(smtp_server, port)
         server.starttls()
         server.login(notifications_email, password)
