@@ -3,6 +3,7 @@ import unittest
 from monolith.app import create_test_app
 from monolith.database import User, db
 from monolith.auth import current_user
+import monolith.user_query
 import datetime
 import json
 
@@ -299,13 +300,9 @@ class TestApp(unittest.TestCase):
         assert reply.status_code == 200
 
         # test filter activation
-        reply = self.client.get("/api/content_filter/1")
-        body = reply.data
-        print(body)
-        assert body == True
+        filter = monolith.user_query.change_user_content_filter(current_user.id, True)
+        assert filter == True
 
         # test filter deactivation
-        reply = self.client.get("/api/content_filter/0")
-        body = reply.data
-        print(body)
-        assert body == False
+        filter = monolith.user_query.change_user_content_filter(current_user.id, False)
+        assert filter == False
