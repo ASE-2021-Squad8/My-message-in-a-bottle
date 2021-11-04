@@ -1,10 +1,11 @@
-<h1>My Message in a Bottle -- Primer</h1>
+<h1>My Message in a Bottle</h1>
 
 {% if current_user.is_authenticated %}
-  <h4>Hi {{ current_user.firstname }}!</h4>
+  Hi! You're now logged in as <b>{{ current_user.firstname }} {{ current_user.lastname }}</b> ({{current_user.email}})<br><br>
+  <a href="/search_user">Search a user</a><br>
   <a href="/mailbox">Mailbox</a><br>
   <a href="/send_message">Send or draft a message</a><br>
-  <hr>
+  <br><hr><br>
   <a href="/settings">Settings</a><br>
   <a href="/logout">Logout</a>
     <h2>{{ welcome }}</h2>

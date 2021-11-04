@@ -151,15 +151,25 @@ def get_user_mail(user_id):
 
 def get_user_by_email(user_email):
     """Checks if a user with the specified email already exists
-    
+
     :param user_email: the email of the user
     :type user_email: string
     :return: True if the user exists, False otherwise
     :rtype: bool
     """
-    
+
     user = db.session.query(User).filter(User.email == user_email).first()
     if user is None:
         return False
     else:
         return True
+
+
+def get_all_users():
+    """Returns all the users registered to the service
+    
+    :return: the list of all the users registered
+    :rtype: list
+    """
+
+    return db.session.query(User)
