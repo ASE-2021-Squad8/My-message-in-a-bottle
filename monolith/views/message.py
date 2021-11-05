@@ -234,7 +234,7 @@ def send_message():
                 msg.media = filename
             else:
                 _get_result(None, ERROR_PAGE, True, 400, "File extension not allowed")
-                
+
         # when it will be delivered
         # delay = (delivery_date - now).total_seconds()
         try:
@@ -287,20 +287,6 @@ def _get_received_messages():
     try:
         messages = monolith.messaging.get_received_messages(getattr(current_user, "id"))
         return jsonify(messages)
-
-    except Exception as e:
-        print(str(e))
-        traceback.print_exc()
-        abort(404, "Message not found")
-
-
-@msg.route("/api/message/received/<message_id>", methods=["GET"])
-def _get_received_message(message_id):
-    check_authenticated()
-
-    try:
-        message = monolith.messaging.get_received_message(getattr(current_user, "id"), message_id)
-        return jsonify(message)
 
     except Exception as e:
         print(str(e))
