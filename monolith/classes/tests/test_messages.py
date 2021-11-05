@@ -159,10 +159,16 @@ class TestApp(unittest.TestCase):
         time.sleep(3)  # waiting for task
 
         # get sent message
-        reply = self.client.get("/api/message/sent", follow_redirects=True)
-
+        reply = self.client.get("/api/message/sent/metadata", follow_redirects=True)
         data_message = reply.get_json()
         msg = json.loads(data_message[0])
+        id_message = msg["id_message"]
+
+        # get recipient message
+        reply = self.client.get(
+            "/api/message/sent/" + str(id_message), follow_redirects=True
+        )
+        msg = reply.get_json()
         assert msg["text"] == "Let's do it !"
 
         # logout
@@ -186,10 +192,9 @@ class TestApp(unittest.TestCase):
 
         # get recipient message
         reply = self.client.get(
-            "/api/message/received/" + id_message, follow_redirects=True
+            "/api/message/received/" + str(id_message), follow_redirects=True
         )
-        data = reply.get_json()
-        msg = json.loads(data[0])
+        msg = reply.get_json()
         assert msg["text"] == "Let's do it !"
 
         # delete existing not read message
