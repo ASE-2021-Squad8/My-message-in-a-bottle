@@ -161,7 +161,7 @@ class TestApp(unittest.TestCase):
         # get sent message
         reply = self.client.get("/api/message/sent/metadata", follow_redirects=True)
         data_message = reply.get_json()
-        msg = json.loads(data_message[0])
+        msg = data_message[0]
         id_message = msg["id_message"]
 
         # get recipient message
