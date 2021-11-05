@@ -184,7 +184,7 @@ def get_sent_messages_metadata(user_id):
     :param user_id: id of the user
     :type user_id: int
     :return: a list of sent message metadata
-    :rtype: list[json]
+    :rtype: list[dict]
     """
 
     # Retrieve of all message for user_id
@@ -199,16 +199,14 @@ def get_sent_messages_metadata(user_id):
         recipient = (
             db.session.query(User).filter(User.id == msg.get_recipient()).first()
         )
-        json_msg = json.dumps(
-            {
+        json_msg = {
                 "recipient_id": recipient.get_id(),
                 "firstname": recipient.get_firstname(),
                 "lastname": recipient.get_lastname(),
                 "id_message": msg.message_id,
                 "email": recipient.email,
                 "media": msg.media,
-            }
-        )
+        }
 
         list.append(json_msg)
 
