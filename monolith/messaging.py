@@ -82,7 +82,14 @@ def delete_user_message(user_id, message_id, is_draft=False):
     db.session.commit()
 
 
-def get_received_messages(user_id):
+def get_received_messages_metadata(user_id):
+    """Retrieves metadata for all messages received by an user
+
+    :param user_id: id of the user
+    :type user_id: int
+    :return: a list of message metadata
+    :rtype: list[json]
+    """
 
     # Retrieve of all message for user_id
     q = db.session.query(Message).filter(
@@ -94,19 +101,14 @@ def get_received_messages(user_id):
     list = []
     for msg in q:
         # retrieve the name of sender
-        sender = db.session.query(User).filter(User.id == msg.get_sender()).first()
-        # check if the receiver has a content filter activated and if so censor it
-        receiver = db.session.query(User).filter(User.id == current_user.id).first()
-        text = msg.text
-        if receiver.content_filter:
-            text = profanity.censor(msg.text)
+        sender = db.session.query(User).filter(User.id == msg.sender).first()
+
         json_msg = json.dumps(
             {
-                "sender_id": sender.get_id(),
-                "firstname": sender.get_firstname(),
-                "lastname": sender.get_lastname(),
+                "sender_id": sender.id,
+                "firstname": sender.firstname,
+                "lastname": sender.lastname,
                 "id_message": msg.message_id,
-                "text": text,
                 "email": sender.email,
                 "media": msg.media,
             }
@@ -114,12 +116,76 @@ def get_received_messages(user_id):
 
         list.append(json_msg)
 
-    db.session.commit()
-
     return list
 
 
-def get_sent_messages(user_id):
+def get_received_message(user_id, message_id):
+    """Returns a specific message received by a user.
+    Does not retrieve drafts or pending messages.
+
+    :param user_id: user id
+    :type user_id: int
+    :param message_id: id of the received message
+    :type message_id: int
+    :raises KeyError: if no such message was received
+    :return: the received message
+    :rtype: Message
+    """
+
+    q = db.session.query(Message).filter(
+        Message.recipient == user_id,
+        Message.message_id == message_id,
+        Message.is_draft == False,
+        Message.is_delivered == True,
+        Message.is_deleted == False,
+    )
+
+    message = q.first()
+    if message is None:
+        raise KeyError
+
+    user = db.session.query(User).filter(User.id == user_id).first()
+    if user.content_filter:
+        message_copy = message
+        message_copy.text = profanity.censor(message.text)
+        return message_copy
+
+    return message
+
+
+def get_sent_message(user_id, message_id):
+    """Returns a specific message sent by a user
+
+    :param user_id: user id
+    :type user_id: int
+    :param message_id: id of the sent message
+    :type message_id: int
+    :raises KeyError: if no such message was received
+    :return: the sent message
+    :rtype: Message
+    """
+
+    q = db.session.query(Message).filter(
+        Message.sender == user_id,
+        Message.message_id == message_id,
+        Message.is_draft == False,
+    )
+
+    message = q.first()
+    if message is None:
+        raise KeyError
+
+    return message
+
+
+def get_sent_messages_metadata(user_id):
+    """Retrieves metadata for all messages sent by an user
+
+    :param user_id: id of the user
+    :type user_id: int
+    :return: a list of sent message metadata
+    :rtype: list[dict]
+    """
 
     # Retrieve of all message for user_id
     q = db.session.query(Message).filter(
@@ -133,21 +199,16 @@ def get_sent_messages(user_id):
         recipient = (
             db.session.query(User).filter(User.id == msg.get_recipient()).first()
         )
-        json_msg = json.dumps(
-            {
-                "recipient_id": recipient.get_id(),
-                "firstname": recipient.get_firstname(),
-                "lastname": recipient.get_lastname(),
-                "id_message": msg.message_id,
-                "text": msg.text,
-                "email": recipient.email,
-                "media": msg.media,
-            }
-        )
+        json_msg = {
+            "recipient_id": recipient.get_id(),
+            "firstname": recipient.get_firstname(),
+            "lastname": recipient.get_lastname(),
+            "id_message": msg.message_id,
+            "email": recipient.email,
+            "media": msg.media,
+        }
 
         list.append(json_msg)
-
-    db.session.commit()
 
     return list
 
@@ -169,6 +230,7 @@ def set_message_is_deleted(message_id):
         return True
     return False
 
+
 def set_message_is_deleted_lottery(message_id):
 
     try:
@@ -182,6 +244,7 @@ def set_message_is_deleted_lottery(message_id):
     except Exception:
         db.session.rollback()
         return False
+
 
 def get_message(message_id):
     # retrieve the message
@@ -224,20 +287,22 @@ def check_message_to_send():
     db.session.commit()
     return ids
 
+
 def get_day_message(userid, baseDate, upperDate):
     check_authenticated()
-    q= db.session.query(Message).filter(Message.sender == userid, Message.delivery_date >= baseDate, Message.delivery_date < upperDate, Message.is_draft == False)
-    
+    q = db.session.query(Message).filter(
+        Message.sender == userid,
+        Message.delivery_date >= baseDate,
+        Message.delivery_date < upperDate,
+        Message.is_draft == False,
+    )
+
     list = []
-  
+
     for msg in q:
-        
-        recipient = (
-            db.session.query(User).filter(User.id == msg.recipient).first()
-        )
-        sender = (
-            db.session.query(User).filter(User.id == msg.sender).first()
-        )
+
+        recipient = db.session.query(User).filter(User.id == msg.recipient).first()
+        sender = db.session.query(User).filter(User.id == msg.sender).first()
         delivery_date = msg.delivery_date
         hour_deliver = delivery_date.hour
         minute_deliver = delivery_date.minute

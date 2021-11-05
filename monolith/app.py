@@ -2,6 +2,7 @@ import datetime
 import os
 
 from flask import Flask
+from flask_ckeditor import CKEditor
 
 from monolith.auth import login_manager
 from monolith.database import User, db
@@ -29,6 +30,7 @@ def create_app(test_mode=False):
     """
 
     app = Flask(__name__)
+    app.config['CKEDITOR_PKG_TYPE'] = 'basic'
     if test_mode:
         app.config["TESTING"] = True
         app.config["WTF_CSRF_ENABLED"] = False
@@ -50,6 +52,8 @@ def create_app(test_mode=False):
     db.init_app(app)
     login_manager.init_app(app)
     db.create_all(app=app)
+
+    ckeditor = CKEditor(app)
 
     # create a first admin user
     with app.app_context():

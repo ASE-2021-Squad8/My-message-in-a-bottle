@@ -45,11 +45,14 @@ class TestApp(unittest.TestCase):
             assert reply.status_code == 200
 
             data = {"text": "Lorem ipsum dolor..."}
-            data["attachment"] = (io.BytesIO(b"This is a JPG file, I swear!"), "test.jpg")
+            data["attachment"] = (
+                io.BytesIO(b"This is a JPG file, I swear!"),
+                "test.jpg",
+            )
             reply = self.client.post(
                 "/api/message/draft",
                 data=data,
-                content_type='multipart/form-data',
+                content_type="multipart/form-data",
             )
             data = reply.get_json()
             assert reply.status_code == 200
@@ -106,9 +109,9 @@ class TestApp(unittest.TestCase):
         assert reply.status_code == 200
         data = reply.get_json()
         now = datetime.now()
-        delivery_date = now + timedelta(seconds=2)
+        delivery_date = now + timedelta(seconds=4)
 
-        #test send with msg empty
+        # test send with msg empty
         reply = self.client.post(
             "/api/message/send_message",
             data=dict(
@@ -121,11 +124,10 @@ class TestApp(unittest.TestCase):
             ),
             follow_redirects=True,
         )
-        assert reply.status_code==400
-
+        assert reply.status_code == 400
 
         delivery_date_past = now - timedelta(days=1)
-        #test send with data in the past
+        # test send with data in the past
         reply = self.client.post(
             "/api/message/send_message",
             data=dict(
@@ -135,11 +137,12 @@ class TestApp(unittest.TestCase):
                     "delivery_date": delivery_date_past,
                     "draft_id": "",
                 }
-            ),follow_redirects=True,
+            ),
+            follow_redirects=True,
         )
-            
-        assert reply.status_code==400
-        
+
+        assert reply.status_code == 400
+
         reply = self.client.post(
             "/api/message/send_message",
             data=dict(
@@ -153,80 +156,77 @@ class TestApp(unittest.TestCase):
             follow_redirects=True,
         )
 
-        time.sleep(3)  # waiting for task
+        reply = self.client.get("/api/message/sent/metadata", follow_redirects=True)
+        assert len(reply.get_json()) == 0
 
-        #get sent message
-        reply = self.client.get(
-            "/api/message/sent", follow_redirects=True
-        )
+        print("Waiting for the message delivery", end="")
+        time.sleep(10)
 
+        # get sent message
+        reply = self.client.get("/api/message/sent/metadata", follow_redirects=True)
         data_message = reply.get_json()
-        msg = json.loads(data_message[0])
-        assert msg["text"]=="Let's do it !"
-        
-        #logout
-        reply = self.client.get("/logout", follow_redirects=True)
-        assert reply.status_code==200
+        msg = data_message[0]
+        id_message = msg["id_message"]
 
-        #login by recipient
+        # get recipient message
+        reply = self.client.get(
+            "/api/message/sent/" + str(id_message), follow_redirects=True
+        )
+        msg = reply.get_json()
+        assert msg["text"] == "Let's do it !"
+
+        # logout
+        reply = self.client.get("/logout", follow_redirects=True)
+        assert reply.status_code == 200
+
+        # login by recipient
         reply = self.client.post(
             "/login",
             data=dict(email=data[0]["email"], password="recipient"),
             follow_redirects=True,
         )
         assert reply.status_code == 200
-        
-        #get recipient message
-        reply = self.client.get(
-            "/api/message/received", follow_redirects=True
-        )
 
-        data = reply.get_json()
-        msg = json.loads(data[0])
-        assert msg["text"]=="Let's do it !"
-
-        #get recipient message
-        reply = self.client.get(
-            "/api/message/received", follow_redirects=True
-        )
-        assert reply.status_code==200
+        # get recipient message
+        reply = self.client.get("/api/message/received/metadata", follow_redirects=True)
+        assert reply.status_code == 200
         data = reply.get_json()
         msg = json.loads(data[0])
         id_message = msg["id_message"]
 
-        #delete existing not read message
-        reply=self.client.delete(
-            "api/message/delete/"+str(id_message),follow_redirects=True
+        # get recipient message
+        reply = self.client.get(
+            "/api/message/received/" + str(id_message), follow_redirects=True
         )
-        assert reply.status_code==404
+        msg = reply.get_json()
+        assert msg["text"] == "Let's do it !"
 
-        #read received message 
-        reply=self.client.get(
-            "api/message/read_message/"+str(id_message), follow_redirects=True
+        # delete existing not read message
+        reply = self.client.delete(
+            "api/message/delete/" + str(id_message), follow_redirects=True
         )
-        assert reply.status_code==200
+        assert reply.status_code == 404
 
-        #delete existing message
-        reply=self.client.delete(
-            "api/message/delete/"+str(id_message),follow_redirects=True
+        # read received message
+        reply = self.client.get(
+            "api/message/read_message/" + str(id_message), follow_redirects=True
         )
-        assert reply.status_code==200
+        assert reply.status_code == 200
 
-        id_deleted=reply.get_json()["message_id"]
-        assert str(id_deleted)==str(id_message)
-
-
-        
-        #read not-existing message 
-        reply=self.client.get(
-            "api/message/read_message/"+str(id_message), follow_redirects=True
+        # delete existing message
+        reply = self.client.delete(
+            "api/message/delete/" + str(id_message), follow_redirects=True
         )
-        assert reply.status_code==404
+        assert reply.status_code == 200
 
+        id_deleted = reply.get_json()["message_id"]
+        assert str(id_deleted) == str(id_message)
+
+        # read not-existing message
+        reply = self.client.get(
+            "api/message/read_message/" + str(id_message), follow_redirects=True
+        )
+        assert reply.status_code == 404
 
         reply = self.client.get("/unregister", follow_redirects=True)
-        assert reply.status_code==200
-
-
-    
-
+        assert reply.status_code == 200
