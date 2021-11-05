@@ -294,6 +294,20 @@ def _get_received_messages():
         abort(404, "Message not found")
 
 
+@msg.route("/api/message/received/<message_id>", methods=["GET"])
+def _get_received_message(message_id):
+    check_authenticated()
+
+    try:
+        message = monolith.messaging.get_received_message(getattr(current_user, "id"), message_id)
+        return jsonify(message)
+
+    except Exception as e:
+        print(str(e))
+        traceback.print_exc()
+        abort(404, "Message not found")
+
+
 @msg.route("/api/message/sent", methods=["GET"])
 def _get_sent_messages():
     check_authenticated()
