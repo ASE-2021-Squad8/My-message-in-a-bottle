@@ -1,6 +1,17 @@
 
 function buildTableReceived(data) {
     var table = document.getElementById('received');
+    table.innerHTML = `<thead class="thead-dark">
+    <tr class="bg-info">
+        <th class="text-center" scope="col">Sender</th>
+        <th class="text-center" scope="col">E-mail</th>
+        <th class="text-center" scope="col">Open message</th>
+        <th class="text-center" scope="col">Reply to message</th>
+        <th class="text-center" scope="col">Forward message</th>
+        <th class="text-center" scope="col">Delete message for me</th>
+    </tr>
+</thead>`
+    
     for (var i = 0; i < data.length; i++) {
         msg = JSON.parse(data[i]);
         var row = `<tr>
@@ -18,6 +29,14 @@ function buildTableReceived(data) {
 
 function buildTableSent(data) {
     var table = document.getElementById('sent');
+    table.innerHTML = `		<thead class="thead-dark">
+    <tr class="bg-info"></tr>
+    <th class="text-center">Receiver</th>
+    <th class="text-center">E-mail</th>
+    <th class="text-center">Open message</th>
+    <th class="text-center">Forward message</th>
+    </tr>
+</thead>`
     for (var i = 0; i < data.length; i++) {
         msg = data[i];
         var row = `<tr>

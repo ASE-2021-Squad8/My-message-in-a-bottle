@@ -70,29 +70,12 @@
 	<h3>Received messages</h3>
 	<a type="button" href="" class="btn btn-outline-dark btn-sm">Reload messages</a><br><br>
 	<table class="table table-striped" id="received">
-		<thead class="thead-dark">
-			<tr class="bg-info">
-				<th class="text-center" scope="col">Sender</th>
-				<th class="text-center" scope="col">E-mail</th>
-				<th class="text-center" scope="col">Open message</th>
-				<th class="text-center" scope="col">Reply to message</th>
-				<th class="text-center" scope="col">Forward message</th>
-				<th class="text-center" scope="col">Delete message for me</th>
-			</tr>
-		</thead>
+		
 	</table><br>
 
 
 	<h3>Sent messages</h3>
 	<table class="table table-striped" id="sent">
-		<thead class="thead-dark">
-			<tr class="bg-info"></tr>
-			<th class="text-center">Receiver</th>
-			<th class="text-center">E-mail</th>
-			<th class="text-center">Open message</th>
-			<th class="text-center">Forward message</th>
-			</tr>
-		</thead>
 	</table>
 
 	<!--MODAL FOR READ MESSAGE-->
@@ -152,7 +135,12 @@
 	</div>
 
 	<script>
-		$.get('/api/message/received/metadata', function (data) { buildTableReceived(data); });
-		$.get('/api/message/sent/metadata', function (data) { buildTableSent(data) });
+		function refreshTables() {
+			$.get('/api/message/received/metadata', function (data) { buildTableReceived(data); });
+			$.get('/api/message/sent/metadata', function (data) { buildTableSent(data) });
+		}
+		
+		refreshTables();
+		setInterval(refreshTables, 10 * 1000);
 	</script>
 </html>
