@@ -135,6 +135,9 @@
 		{% endif %}
 		{% endfor %}
 	</dl>
+
+	{{ ckeditor.load() }}
+	{{ ckeditor.config(name='text') }}
 	<label for="delivery_date">Choose a time for delivering message </label>
 	<input type="datetime-local" id="delivery_date" name="delivery_date" />
 	<button type="submit" formaction="/api/message/send_message">Send message</button>
