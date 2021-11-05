@@ -120,12 +120,16 @@ def get_received_messages(user_id):
 
 
 def get_received_message(user_id, message_id):
-    """Returns a specific message received by a user
+    """Returns a specific message received by a user.
+    Does not retrieve drafts or pending messages.
 
     :param user_id: user id
     :type user_id: int
     :param message_id: id of the received message
     :type message_id: int
+    :raises KeyError: if no such message was received
+    :return: the received message
+    :rtype: Message
     """
 
     q = db.session.query(Message).filter(
@@ -141,7 +145,31 @@ def get_received_message(user_id, message_id):
         raise KeyError
     
     return message
+
+
+def get_sent_message(user_id, message_id):
+    """Returns a specific message sent by a user
+
+    :param user_id: user id
+    :type user_id: int
+    :param message_id: id of the sent message
+    :type message_id: int
+    :raises KeyError: if no such message was received
+    :return: the sent message
+    :rtype: Message
+    """
+
+    q = db.session.query(Message).filter(
+        Message.sender == user_id,
+        Message.message_id == message_id,
+        Message.is_draft == False,
+    )
+
+    message = q.first()
+    if message is None:
+        raise KeyError
     
+    return message
 
 
 def get_sent_messages(user_id):
