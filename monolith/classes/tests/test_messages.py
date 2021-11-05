@@ -109,7 +109,7 @@ class TestApp(unittest.TestCase):
         assert reply.status_code == 200
         data = reply.get_json()
         now = datetime.now()
-        delivery_date = now + timedelta(seconds=2)
+        delivery_date = now + timedelta(seconds=4)
 
         # test send with msg empty
         reply = self.client.post(
@@ -156,7 +156,11 @@ class TestApp(unittest.TestCase):
             follow_redirects=True,
         )
 
-        time.sleep(3)  # waiting for task
+        reply = self.client.get("/api/message/sent/metadata", follow_redirects=True)
+        assert len(reply.get_json()) == 0
+
+        print("Waiting for the message delivery", end="")
+        time.sleep(10)
 
         # get sent message
         reply = self.client.get("/api/message/sent/metadata", follow_redirects=True)

@@ -144,7 +144,7 @@ def get_received_message(user_id, message_id):
     if message is None:
         raise KeyError
 
-    user = db.session.query(User).filter(User.id == user_id)
+    user = db.session.query(User).filter(User.id == user_id).first()
     if user.content_filter:
         message_copy = message
         message_copy.text = profanity.censor(message.text)

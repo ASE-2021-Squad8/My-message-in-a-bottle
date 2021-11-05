@@ -189,7 +189,6 @@ def add_points(points, usr_id):
     """
     result = False
     try:
-        print("usr " + str(usr_id))
         usr = db.session.query(User).filter(User.id == usr_id).first()
         setattr(usr, "points", usr.points + points)
         db.session.commit()
