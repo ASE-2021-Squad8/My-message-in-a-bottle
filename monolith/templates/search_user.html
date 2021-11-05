@@ -1,25 +1,24 @@
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
-<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
-	integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+{% extends "base.html" %}
+{% block title %}Search user{% endblock %}
 
+{% block content %}
 <h1>Search for a user</h1>
 
 <br><a href="/">Home</a><br>
 
 <br><label>Search <input id="search" type="text" placeholder="Type to search"></label><br><br>
-<table class="table" id="users">
-	<thead class="thead-dark">
-		<tr class="bg-info">
+<table class="table table-light" id="users">
+	<thead>
+		<tr>
 			<th scope="col">E-mail</th>
 			<th scope="col">First name</th>
 			<th scope="col">Last name</th>
 		</tr>
 	</thead>
 </table>
-
-
+{% endblock %}
+{% block scripts %}
 <script>
-
 	$.get('/api/users/list', function (data) { buildTable(data); });
 
 	function buildTable(data) {
@@ -52,5 +51,5 @@
 			}).hide();
 		});
 	}
-
 </script>
+{% endblock %}
