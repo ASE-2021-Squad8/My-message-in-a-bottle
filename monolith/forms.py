@@ -1,6 +1,7 @@
 import wtforms as f
 from flask_wtf import FlaskForm
 from flask_wtf.file import FileAllowed, FileField
+from flask_ckeditor import CKEditorField
 from wtforms.fields.simple import HiddenField
 from wtforms.validators import DataRequired
 from wtforms.fields.html5 import EmailField, DateField
@@ -21,7 +22,7 @@ class UserForm(FlaskForm):
 
 
 class MessageForm(FlaskForm):
-    text = f.TextAreaField("Message text", validators=[DataRequired()], id="text")
+    text = CKEditorField("Message text", validators=[DataRequired()], id="text")
     delivery_date = f.DateTimeField("delivery_date")
     recipient = f.SelectMultipleField("Recipient", id="recipient", validators=[DataRequired()])
     attachment = FileField("Attachment", id="attachment", validators=[FileAllowed(['jpg', "png", "jpeg", "gif"], "Only images can be uploaded")])
