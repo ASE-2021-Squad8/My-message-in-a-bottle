@@ -119,6 +119,31 @@ def get_received_messages(user_id):
     return list
 
 
+def get_received_message(user_id, message_id):
+    """Returns a specific message received by a user
+
+    :param user_id: user id
+    :type user_id: int
+    :param message_id: id of the received message
+    :type message_id: int
+    """
+
+    q = db.session.query(Message).filter(
+        Message.recipient == user_id,
+        Message.message_id == message_id,
+        Message.is_draft == False,
+        Message.is_delivered == True,
+        Message.is_deleted == False,
+    )
+
+    message = q.first()
+    if message is None:
+        raise KeyError
+    
+    return message
+    
+
+
 def get_sent_messages(user_id):
 
     # Retrieve of all message for user_id
