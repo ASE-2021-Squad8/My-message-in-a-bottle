@@ -19,7 +19,7 @@ function buildTableReceived(data) {
 function buildTableSent(data) {
     var table = document.getElementById('sent');
     for (var i = 0; i < data.length; i++) {
-        msg = JSON.parse(data[i]);
+        msg = data[i];
         var row = `<tr>
 								<td style="text-align:center">${msg.firstname + " " + msg.lastname}</td>
 								<td style="text-align:center">${msg.email}</tb>
