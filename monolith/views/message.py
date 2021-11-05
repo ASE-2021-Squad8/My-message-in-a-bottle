@@ -198,62 +198,65 @@ def send_message():
         return _get_result(
             None, "/send_message", True, 400, "Message to send cannot be empty"
         )
-    msg = None
-    if request.form["draft_id"] is None or request.form["draft_id"] == "":
-        # record to insert
-        msg = Message()
-        msg.text = request.form["text"]
-        msg.is_draft = False
-        msg.is_delivered = False
-        msg.is_read = False
-        msg.delivery_date = delivery_date
 
-    else:
-        msg = monolith.messaging.unmark_draft(
-            getattr(current_user, "id"), int(request.form["draft_id"])
-        )
+    recipients= request.form.getlist("recipient")
 
-    msg.sender = int(getattr(current_user, "id"))
-    msg.recipient = int(request.form["recipient"])
+    for recipient in recipients:
+        if request.form["draft_id"] is None or request.form["draft_id"] == "":
+            # record to insert
+            msg = Message()
+            msg.text = request.form["text"]
+            msg.is_draft = False
+            msg.is_delivered = False
+            msg.is_read = False
+            msg.delivery_date = delivery_date
 
-    if "attachment" in request.files:
-        file = request.files["attachment"]
+        else:
+            msg = monolith.messaging.unmark_draft(
+                getattr(current_user, "id"), int(request.form["draft_id"])
+            )
 
-        if not _extension_allowed(file.filename):
-            _get_result(None, ERROR_PAGE, True, 400, "File extension not allowed")
+        msg.sender = int(getattr(current_user, "id"))
+        msg.recipient = int(recipient)
 
-        filename = _generate_filename(file)
-        file.save(os.path.join(app.config["UPLOAD_FOLDER"], filename))
+        if "attachment" in request.files:
+            file = request.files["attachment"]
 
-        # If the message already has a file, delete it
-        if msg.media is not None and msg.media != "":
-            os.unlink(os.path.join(app.config["UPLOAD_FOLDER"], msg.media))
-        msg.media = filename
+            if not _extension_allowed(file.filename):
+                _get_result(None, ERROR_PAGE, True, 400, "File extension not allowed")
 
-    # when it will be delivered
-    # delay = (delivery_date - now).total_seconds()
-    try:
-        id = monolith.messaging.save_message(msg)
-        email_r = get_user_mail(msg.recipient)
-        email_s = get_user_mail(msg.sender)
-        put_message_in_queue.apply_async(
-            args=[
-                json.dumps(
-                    {
-                        "id": id,
-                        "TESTING": app.config["TESTING"],
-                        "body": "You have just received a massage",
-                        "recipient": email_r,
-                        "sender": email_s,
-                    }
-                )
-            ],
-            eta=delivery_date.astimezone(pytz.utc),  # cover to utc
-            routing_key="message",  # to specify the queue
-            queue="message",
-        )
-    except put_message_in_queue.OperationalError as e:
-        logger.exception("Send message task raised: %r", e)
+            filename = _generate_filename(file)
+            file.save(os.path.join(app.config["UPLOAD_FOLDER"], filename))
+
+            # If the message already has a file, delete it
+            if msg.media is not None and msg.media != "":
+                os.unlink(os.path.join(app.config["UPLOAD_FOLDER"], msg.media))
+            msg.media = filename
+
+        # when it will be delivered
+        # delay = (delivery_date - now).total_seconds()
+        try:
+            id = monolith.messaging.save_message(msg)
+            email_r = get_user_mail(msg.recipient)
+            email_s = get_user_mail(msg.sender)
+            put_message_in_queue.apply_async(
+                args=[
+                    json.dumps(
+                        {
+                            "id": id,
+                            "TESTING": app.config["TESTING"],
+                            "body": "You have just received a massage",
+                            "recipient": email_r,
+                            "sender": email_s,
+                        }
+                    )
+                ],
+                eta=delivery_date.astimezone(pytz.utc),  # cover to utc
+                routing_key="message",  # to specify the queue
+                queue="message",
+            )
+        except put_message_in_queue.OperationalError as e:
+            logger.exception("Send message task raised: %r", e)
 
     return _get_result(jsonify({"message sent": True}), "/send_message")
 

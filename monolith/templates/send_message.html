@@ -123,6 +123,8 @@
 <form method="POST" enctype="multipart/form-data">
 	{{ form.hidden_tag() }}
 	<dl>
+		<dt><label>Choose recipients </label></dt>
+		<dt><select multiple name="recipient" required id="recipient"></dt></select>
 		{% for field in form.display %}
 		<dt>{{ form[field].label }}</dt>
 		<dd>{{ form[field]() }}</dd><br>
