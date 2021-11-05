@@ -170,7 +170,7 @@
 			}
 		}
 
-		$.get('/api/message/sent', function (data) { buildTableSent(data) });
+		$.get('/api/message/sent/metadata', function (data) { buildTableSent(data) });
 
 		function buildTableSent(data) {
 			var table = document.getElementById('sent');
@@ -180,7 +180,7 @@
 								<td style="text-align:center">${msg.firstname + " " + msg.lastname}</td>
 								<td style="text-align:center">${msg.email}</tb>
 								<td style="text-align:center"><button onclick="open_message_sent(${msg.id_message})" class="btn btn-success">Open</button></td>
-								<td style="text-align:center"><button onclick="forward_message('${msg.email}','${msg.id_message}')" class="btn btn-primary">Forward</button></td>
+								<td style="text-align:center"><button onclick="forward_message('${msg.email}','${msg.id_message}', true)" class="btn btn-primary">Forward</button></td>
 						</tr>`;
 				table.innerHTML += row;
 			}
@@ -312,7 +312,7 @@
 
 		}
 
-		function forward_message(msg_email, msg_id) {
+		function forward_message(msg_email, msg_id, forwarding_sent=false) {
 			var modal_forward = document.getElementById("modal_forward");
 			var spanForward = document.getElementsByClassName("close")[2];
 			CKEDITOR.instances.fwd_text.setData("<b>Loading message contents...</b>");
@@ -323,7 +323,7 @@
 
 			// Get the message contents
 			$.ajax({
-				url: '/api/message/received/' + msg_id,
+				url: '/api/message/' + (forwarding_sent ? 'sent/' : 'received/') + msg_id,
 				type: 'GET',
 				dataType: 'json',
 				success: function (message) {
