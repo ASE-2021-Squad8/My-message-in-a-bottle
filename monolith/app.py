@@ -7,6 +7,8 @@ from flask_ckeditor import CKEditor
 from monolith.auth import login_manager
 from monolith.database import User, db
 from monolith.views import blueprints
+from monolith.views.home import to_error_page
+from jinja2.exceptions import TemplateError
 
 
 def create_test_app():
@@ -30,7 +32,7 @@ def create_app(test_mode=False):
     """
 
     app = Flask(__name__)
-    app.config['CKEDITOR_PKG_TYPE'] = 'basic'
+    app.config["CKEDITOR_PKG_TYPE"] = "basic"
     if test_mode:
         app.config["TESTING"] = True
         app.config["WTF_CSRF_ENABLED"] = False
@@ -40,6 +42,9 @@ def create_app(test_mode=False):
         app.config["WTF_CSRF_SECRET_KEY"] = "A SECRET KEY"
     app.config["SECRET_KEY"] = "ANOTHER ONE"
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+    # show error page
+    app.register_error_handler(500, to_error_page)
+    app.register_error_handler(TemplateError, to_error_page)
 
     app.config["UPLOAD_FOLDER"] = os.path.join(app.root_path, "static", "user_uploads")
     if not os.path.exists(app.config["UPLOAD_FOLDER"]):

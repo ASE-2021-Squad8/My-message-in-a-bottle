@@ -92,7 +92,7 @@ class Message(db.Model):
     __tablename__ = "message"
 
     message_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    text = db.Column(db.String(4096))
+    text = db.Column(db.String())
     delivery_date = db.Column(db.DateTime)
     sender = db.Column(db.Integer, ForeignKey(User.id))
     recipient = db.Column(db.Integer, ForeignKey(User.id))

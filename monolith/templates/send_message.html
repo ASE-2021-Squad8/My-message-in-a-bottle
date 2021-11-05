@@ -24,7 +24,7 @@
 
 	$(document).ready(function () {
 		get_recipient();
-		$.get('/api/message/draft/all', buildTable)
+		$.get('/api/message/draft/all', buildTable);
 	});
 
 	function buildTable(data) {
@@ -137,7 +137,7 @@
 	</dl>
 
 	{{ ckeditor.load() }}
-	{{ ckeditor.config(name='text') }}
+	{{ ckeditor.config(name='text',width=800, height=500) }}
 	<label for="delivery_date">Choose a time for delivering message </label>
 	<input type="datetime-local" id="delivery_date" name="delivery_date" />
 	<button type="submit" formaction="/api/message/send_message">Send message</button>
