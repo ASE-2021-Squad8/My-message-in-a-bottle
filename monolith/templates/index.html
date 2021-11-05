@@ -1,15 +1,20 @@
-<h1>My Message in a Bottle</h1>
+{% extends "base.html" %}
+{% block title %}Index{% endblock %}
 
+{% block content %}
+<h1>My Message in a Bottle</h1>
 {% if current_user.is_authenticated %}
-  Hi! You're now logged in as <b>{{ current_user.firstname }} {{ current_user.lastname }}</b> ({{current_user.email}})<br><br>
-  <a href="/search_user">Search a user</a><br>
-  <a href="/mailbox">Mailbox</a><br>
-  <a href="/send_message">Send or draft a message</a><br>
-  <br><hr><br>
-  <a href="/settings">Settings</a><br>
-  <a href="/logout">Logout</a>
-    <h2>{{ welcome }}</h2>
-    <h1>{{message}}</h1>
+Hi!<br>
+You're now logged in as <b>{{ current_user.firstname }} {{current_user.lastname }}</b> ({{current_user.email}})<br><br>
+<a href="/search_user">Search a user</a><br>
+<a href="/mailbox">Mailbox</a><br>
+<a href="/send_message">Send or draft a message</a><br>
+<br><hr><br>
+<a href="/settings">Settings</a><br>
+<a href="/logout">Logout</a>
+<h2>{{welcome}}</h2>
+<h1>{{message}}</h1>
 {% else %}
-  Hi Anonymous, <a href="/login">Log in</a> or <a href="/create_user">Register</a>
+Hi, please <a href="/login">Log in</a> or <a href="/create_user">Register</a>
 {% endif %}
+{% endblock %}
