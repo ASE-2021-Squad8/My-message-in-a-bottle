@@ -194,9 +194,10 @@ def update_message_state(message_id, attr, state):
         message = (
             db.session.query(Message).filter(Message.message_id == message_id).first()
         )
-        setattr(message, attr, state)
-        db.session.commit()
-        result = True
+        if message is not None:
+            setattr(message, attr, state)
+            db.session.commit()
+            result = True
     except Exception as e:
         db.session.rollback()
         print("Exception in update_message_state %r", e)
