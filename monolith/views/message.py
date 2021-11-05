@@ -225,6 +225,13 @@ def delete_msg(message_id):
         return _get_result(None, ERROR_PAGE, True, 404, "Message not found")
 
 
+@msg.route('/api/lottery/message/delete/<message_id>', methods=["DELETE"])
+def lottery_delete_msg(message_id):
+    check_authenticated()
+    result = monolith.messaging.set_message_is_deleted_lottery(message_id)
+
+    return jsonify({"message_id": message_id}) if result else jsonify({"message_id": -1})
+
 @msg.route("/api/message/read_message/<id>")
 def read_msg(id):
     check_authenticated()
@@ -237,7 +244,7 @@ def calendar():
     return render_template("calendar.html")
 
 @msg.route("/api/calendar/<int:day>/<int:month>/<int:year>")
-def calendar_send_message(day, month, year):
+def calendar_sed_message(day, month, year):
     check_authenticated()
     if(day > 31 and month + 1 > 12):
         return _get_result(None, ERROR_PAGE, True, 404, "Invalid date")
@@ -251,6 +258,8 @@ def calendar_send_message(day, month, year):
             except ValueError:
                 upperdate = date(year, month + 2, 1)
         userid = getattr(current_user, "id")
+
+        #Per ora lascio come ultimo parametro passato True, dovrà essere sostituito con canDelete
         message = monolith.messaging.get_day_message(userid, basedate, upperdate)
         return jsonify(message)
 

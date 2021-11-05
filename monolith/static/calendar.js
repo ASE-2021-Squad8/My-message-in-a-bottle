@@ -8,21 +8,44 @@ function write_message(data, day, month, year){
     messages.innerHTML = ``
     var int_month = parseInt(month, 10) + 1;
     if(data.length == 0){
-      var msg = `<h4 style="color:red">No messages sent for the day: ${day}/${int_month}/${year}</h4>`
-      messages.innerHTML += msg;
+      var display_html = `<h4 style="color:red">No messages sent for the day: ${day}/${int_month}/${year}</h4>`
+      messages.innerHTML += display_html;
     }
     else{
+        var display_html = `<h3 style="color:red">Your daily message</h3>`
         for (var i = 0; i < data.length; i++) {
-        msg = JSON.parse(data[i]);
-        var msg = `
-              <h4 style="color:red"> Message number: ${i}</h4>
-              <h4 style="color:black"> Recpient: ${msg.firstname}
-              Text message: ${msg.text}</h4><br>
+        current_msg = JSON.parse(data[i]);
+        var text = current_msg.future ? "Will be sent at": "Sent at";
+        display_html += `
+              <h4 style="color:red"> ${text} ${current_msg.hour}:${current_msg.minute}</h4>
+              <h4 style="color:black"> Recipient Mail: ${current_msg.email}
+              Text message: ${current_msg.text}</h4>
               `;
-        messages.innerHTML += msg;
+
+        
+        if(current_msg.candelete){
+            display_html += `<div><button onclick="delete_and_reload(${current_msg.message_id},${day}, ${month}, ${year})">Withdraw</button></div></br>`;
+        }
+        
 
       }
+      messages.innerHTML += display_html;
     }
+}
+
+function delete_and_reload(msg_id, day, month, year){
+  $.ajax({
+    url: '/api/lottery/message/delete/' + msg_id,
+    type: 'DELETE',
+    dataType: "json",
+    success: function (data) {
+      var msg = data.message_id == -1 ? "Ops something went wrong, take a look at delivery date": "Message deleted!";
+
+      alert(msg);
+      get_day_message(day, month, year);
+    },
+  });
+  
 }
 
 const date = new Date();

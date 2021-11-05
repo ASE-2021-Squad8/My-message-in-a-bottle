@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import date, datetime
 from re import M
 from monolith.auth import check_authenticated
 from monolith.database import Message, db, User
@@ -120,6 +120,18 @@ def set_message_is_deleted(message_id):
         return True
     return False
 
+def set_message_is_deleted_lottery(message_id):
+
+    try:
+        msg = db.session.query(Message).filter(Message.message_id == message_id).first()
+        if msg.delivery_date > datetime.now():
+            db.session.query(Message).filter(Message.message_id == message_id).delete()
+            db.session.commit()
+            return True
+        return False
+    except Exception:
+        db.session.rollback()
+        return False
 
 def set_message_is_read(message_id):
     # retrieve the message
@@ -166,22 +178,34 @@ def check_message_to_send():
 
     db.session.commit()
     return ids
+
 def get_day_message(userid, baseDate, upperDate):
     check_authenticated()
-    q= db.session.query(Message).filter(Message.sender == userid, Message.delivery_date >= baseDate, Message.delivery_date < upperDate)
+    q= db.session.query(Message).filter(Message.sender == userid, Message.delivery_date >= baseDate, Message.delivery_date < upperDate, Message.is_draft == False)
     
     list = []
-
+  
     for msg in q:
         
         recipient = (
             db.session.query(User).filter(User.id == msg.get_recipient()).first()
         )
-
+        delivery_date = msg.delivery_date
+        hour_deliver = delivery_date.hour
+        minute_deliver = delivery_date.minute
+        now = datetime.now()
+        canDelete = delivery_date > now
+        future = delivery_date > now
         json_msg = json.dumps(
             {
-                "firstname": recipient.get_firstname(),
+                "message_id": msg.message_id,
+                "firstname": recipient.firstname,
+                "email": recipient.email,
                 "text": msg.text,
+                "hour": hour_deliver,
+                "minute": minute_deliver,
+                "candelete": canDelete,
+                "future": future,
             }
         )
 
