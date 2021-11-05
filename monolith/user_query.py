@@ -165,7 +165,6 @@ def get_user_by_email(user_email):
         return True
 
 
-
 def get_lottery_participants():
     """Returns all participants to monthly lottery
     :param: no pramars
@@ -200,9 +199,10 @@ def add_points(points, usr_id):
         print("Exception in add_points ", e)
     return result
 
+
 def get_all_users():
     """Returns all the users registered to the service
-    
+
     :return: the list of all the users registered
     :rtype: list
     """

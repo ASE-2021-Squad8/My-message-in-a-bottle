@@ -22,8 +22,6 @@ class User(db.Model):
     is_active = db.Column(db.Boolean, default=True)
     points = db.Column(db.Integer, default=0)
     content_filter = db.Column(db.Boolean, default=False)
-    # state if the contnet_filter is active
-    content_filter = db.Column(db.Boolean, default=False)
 
     def __init__(self, *args, **kw):
         super(User, self).__init__(*args, **kw)
