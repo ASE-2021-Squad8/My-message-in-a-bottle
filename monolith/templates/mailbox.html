@@ -157,14 +157,13 @@
 				var row = `<tr>
 							<td style="text-align:center">${msg.firstname + " " + msg.lastname}</td>
                             <td style="text-align:center">${msg.email}</td>
-							<td style="text-align:center"><button onclick="open_message_received(${msg.id_message},'${msg.text}', '${msg.media}')" class="btn btn-success">Open</button></td>
+							<td style="text-align:center"><button onclick="open_message_received(${msg.id_message})" class="btn btn-success">Open</button></td>
 							<td style="text-align:center"><button onclick="reply_message('${msg.email}', ${msg.sender_id})" class="btn btn-primary">Reply</button></td>
 							<td style="text-align:center"><button onclick="forward_message('${msg.email}','${msg.text}')" class="btn btn-primary">Forward</button></td>
 							<td style="text-align:center"><button onclick="delete_message(${msg.id_message})" class="btn btn-danger">Delete</button></td>
 							
 					  </tr>`;
 				table.innerHTML += row;
-
 			}
 		}
 
@@ -177,40 +176,57 @@
 				var row = `<tr>
 								<td style="text-align:center">${msg.firstname + " " + msg.lastname}</td>
 								<td style="text-align:center">${msg.email}</tb>
-								<td style="text-align:center"><button onclick="open_message_sent(${msg.id_message},'${msg.text}', '${msg.media}')" class="btn btn-success">Open</button></td>
+								<td style="text-align:center"><button onclick="open_message_sent(${msg.id_message})" class="btn btn-success">Open</button></td>
 								<td style="text-align:center"><button onclick="forward_message('${msg.email}','${msg.text}')" class="btn btn-primary">Forward</button></td>
 						</tr>`;
 				table.innerHTML += row;
 			}
 		}
 
-		function open_message_received(msg_id, msg_text, msg_media) {
-			console.log(msg_id + " " + msg_text)
+		function open_message_received(msg_id) {
+			// Mark message as read
 			url = '/api/message/read_message/' + msg_id;
 			$.get(url);
 
-
-			//OPEN MODAL
+			// Set model up to read message
 			var modal = document.getElementById("modal_read");
 			var modal_text = document.getElementById("modal_read_text");
 			var btn = document.getElementById("myBtn");
 			var span = document.getElementsByClassName("close")[0];
 			modal.style.display = "block";
-			modal_text.textContent = msg_text;
+			modal_text.innerHTML = "<b>Loading message contents...</b>";
 
-			//Show  text
-			modal.style.display = "block";
-			modal_text.textContent = msg_text;
-			if (msg.media) {
-				modal_text.innerHTML += `<br><a href={{ url_for("static", filename="user_uploads/MEDIA") }}>View attachment</a>`.replace("MEDIA", msg_media)
-			}
+			// Get the message contents
+			$.ajax({
+				url: '/api/message/received/' + msg_id,
+				type: 'GET',
+				dataType: 'json',
+				success: function (message) {
+					var modal = document.getElementById("modal_read");
+					var modal_text = document.getElementById("modal_read_text");
+					var btn = document.getElementById("myBtn");
+					var span = document.getElementsByClassName("close")[0];
+					modal.style.display = "block";
+					modal_text.innerHTML = message.text;
 
-			//Close modal
+					if (message.media) {
+						modal_text.innerHTML += `<br><a href={{ url_for("static", filename="user_uploads/MEDIA") }}>View attachment</a>`.replace("MEDIA", message.media)
+					}
+				},
+				error: function () {
+					var modal = document.getElementById("modal_read");
+					var modal_text = document.getElementById("modal_read_text");
+					var btn = document.getElementById("myBtn");
+					var span = document.getElementsByClassName("close")[0];
+					modal.style.display = "block";
+					modal_text.innerHTML = "<b>Something went wrong :(</b>";
+				}
+			})
+
+			// Set up modal closing
 			span.onclick = function () {
 				modal.style.display = "none";
 			}
-
-			//Close modal
 			window.onclick = function (event) {
 				if (event.target == modal) {
 					modal.style.display = "none";
@@ -218,31 +234,46 @@
 			}
 		}
 
-		// Does not mark message as read
-		function open_message_sent(msg_id, msg_text, msg_media) {
-			console.log(msg_id + " " + msg_text)
-
-			//OPEN MODAL
+		function open_message_sent(msg_id) {
+			// Set model up to read message
 			var modal = document.getElementById("modal_read");
 			var modal_text = document.getElementById("modal_read_text");
 			var btn = document.getElementById("myBtn");
 			var span = document.getElementsByClassName("close")[0];
 			modal.style.display = "block";
-			modal_text.textContent = msg_text;
+			modal_text.innerHTML = "<b>Loading message contents...</b>";
 
-			//Show  text
-			modal.style.display = "block";
-			modal_text.textContent = msg_text;
-			if (msg.media) {
-				modal_text.innerHTML += `<br><a href={{ url_for("static", filename="user_uploads/MEDIA") }}>View attachment</a>`.replace("MEDIA", msg_media)
-			}
+			// Get the message contents
+			$.ajax({
+				url: '/api/message/sent/' + msg_id,
+				type: 'GET',
+				dataType: 'json',
+				success: function (message) {
+					var modal = document.getElementById("modal_read");
+					var modal_text = document.getElementById("modal_read_text");
+					var btn = document.getElementById("myBtn");
+					var span = document.getElementsByClassName("close")[0];
+					modal.style.display = "block";
+					modal_text.innerHTML = message.text;
 
-			//Close modal
+					if (message.media) {
+						modal_text.innerHTML += `<br><a href={{ url_for("static", filename="user_uploads/MEDIA") }}>View attachment</a>`.replace("MEDIA", message.media)
+					}
+				},
+				error: function () {
+					var modal = document.getElementById("modal_read");
+					var modal_text = document.getElementById("modal_read_text");
+					var btn = document.getElementById("myBtn");
+					var span = document.getElementsByClassName("close")[0];
+					modal.style.display = "block";
+					modal_text.innerHTML = "<b>Something went wrong :(</b>";
+				}
+			})
+
+			// Set up modal close
 			span.onclick = function () {
 				modal.style.display = "none";
 			}
-
-			//Close modal
 			window.onclick = function (event) {
 				if (event.target == modal) {
 					modal.style.display = "none";
@@ -340,7 +371,7 @@
 			if ($.trim(request_data.get("text")).length === 0) {
 				return alert("Text cannot be empty");
 			}
-			
+
 			var inputDate = new Date(request_data.get("delivery_date"));
 			var now = new Date();
 			if (inputDate < now) {
