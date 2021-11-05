@@ -123,16 +123,16 @@ def save_draft_message():
         if "attachment" in request.files:
             file = request.files["attachment"]
 
-            if not _extension_allowed(file.filename):
+            if file.filename != "" and _extension_allowed(file.filename):
+                filename = _generate_filename(file)
+                file.save(os.path.join(app.config["UPLOAD_FOLDER"], filename))
+
+                # If the draft already has a file, delete it
+                if message.media is not None and message.media != "":
+                    os.unlink(os.path.join(app.config["UPLOAD_FOLDER"], message.media))
+                message.media = filename
+            else:
                 _get_result(None, ERROR_PAGE, True, 400, "File extension not allowed")
-
-            filename = _generate_filename(file)
-            file.save(os.path.join(app.config["UPLOAD_FOLDER"], filename))
-
-            # If the draft already has a file, delete it
-            if message.media is not None and message.media != "":
-                os.unlink(os.path.join(app.config["UPLOAD_FOLDER"], message.media))
-            message.media = filename
 
         monolith.messaging.save_message(message)
 
@@ -220,20 +220,21 @@ def send_message():
         msg.sender = int(getattr(current_user, "id"))
         msg.recipient = int(recipient)
 
+
         if "attachment" in request.files:
             file = request.files["attachment"]
 
-            if not _extension_allowed(file.filename):
+            if file.filename != "" and _extension_allowed(file.filename):
+                filename = _generate_filename(file)
+                file.save(os.path.join(app.config["UPLOAD_FOLDER"], filename))
+
+                # If the draft already has a file, delete it
+                if msg.media is not None and msg.media != "":
+                    os.unlink(os.path.join(app.config["UPLOAD_FOLDER"], msg.media))
+                msg.media = filename
+            else:
                 _get_result(None, ERROR_PAGE, True, 400, "File extension not allowed")
-
-            filename = _generate_filename(file)
-            file.save(os.path.join(app.config["UPLOAD_FOLDER"], filename))
-
-            # If the message already has a file, delete it
-            if msg.media is not None and msg.media != "":
-                os.unlink(os.path.join(app.config["UPLOAD_FOLDER"], msg.media))
-            msg.media = filename
-
+                
         # when it will be delivered
         # delay = (delivery_date - now).total_seconds()
         try:
