@@ -7,7 +7,7 @@ from monolith.auth import check_authenticated
 from monolith.database import Message, db, User
 import json
 from monolith.notifications import send_notification
-from monolith.user_query import get_user_mail
+from monolith.user_query import add_points, get_user_mail
 from monolith.auth import current_user
 
 
@@ -172,6 +172,7 @@ def set_message_is_deleted_lottery(message_id):
         msg = db.session.query(Message).filter(Message.message_id == message_id).first()
         if msg.delivery_date > datetime.now():
             db.session.query(Message).filter(Message.message_id == message_id).delete()
+            add_points(-60, msg.sender)
             db.session.commit()
             return True
         return False
@@ -228,13 +229,17 @@ def get_day_message(userid, baseDate, upperDate):
     for msg in q:
         
         recipient = (
-            db.session.query(User).filter(User.id == msg.get_recipient()).first()
+            db.session.query(User).filter(User.id == msg.recipient).first()
+        )
+        sender = (
+            db.session.query(User).filter(User.id == msg.sender).first()
         )
         delivery_date = msg.delivery_date
         hour_deliver = delivery_date.hour
         minute_deliver = delivery_date.minute
         now = datetime.now()
-        canDelete = delivery_date > now
+
+        canDelete = delivery_date > now and sender.points >= 60
         future = delivery_date > now
         json_msg = json.dumps(
             {
