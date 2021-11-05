@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Calendar</title>
+    
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+    integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+   
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.13.0/css/all.min.css"/>
+    
+      <link
+      href="https://fonts.googleapis.com/css2?family=Quicksand:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"/>
+
+    <link href= "{{url_for('static', filename='style.css')}}" rel="stylesheet">
+    </head>
+
+  <body>
+
+  </div>
+  <h1 style="color: cornflowerblue; padding-left: 40px;">Select a date and see the messages sent that day</h1>
+  <div style= "padding-left: 40px;"class="message" id="sentmsg"></div> 
+    <div class="container">
+        <div class="calendar">
+            <div class="month">
+              <i class="fas fa-angle-left prev"></i>
+            <div class="date">
+                <h1></h1>
+                <p></p>
+            </div>
+            <i class="fas fa-angle-right next"></i>
+        </div>
+        <div class="weekdays">
+            <div>Sun</div>
+            <div>Mon</div>
+            <div>Tue</div>
+            <div>Wed</div>
+            <div>Thu</div>
+            <div>Fri</div>
+            <div>Sat</div>
+        </div>
+        <div class="days"></div>
+      </div>
+
+    </div>
+
+<script src="{{ url_for('static', filename='calendar.js') }}"></script>
+  </body>
+</html>

@@ -1,9 +1,13 @@
 import json
 import os
+from datetime import datetime
+from datetime import date, datetime
+from monolith.auth import check_authenticated
+from monolith.database import Message, db, User
 import json
 from datetime import datetime
 from monolith.notifications import send_notification
-from monolith.user_query import get_user_mail
+from monolith.user_query import add_points, get_user_mail
 from monolith.auth import current_user
 from better_profanity import profanity
 from flask.globals import current_app
@@ -165,6 +169,19 @@ def set_message_is_deleted(message_id):
         return True
     return False
 
+def set_message_is_deleted_lottery(message_id):
+
+    try:
+        msg = db.session.query(Message).filter(Message.message_id == message_id).first()
+        if msg.delivery_date > datetime.now():
+            db.session.query(Message).filter(Message.message_id == message_id).delete()
+            add_points(-60, msg.sender)
+            db.session.commit()
+            return True
+        return False
+    except Exception:
+        db.session.rollback()
+        return False
 
 def get_message(message_id):
     # retrieve the message
@@ -180,9 +197,10 @@ def update_message_state(message_id, attr, state):
         message = (
             db.session.query(Message).filter(Message.message_id == message_id).first()
         )
-        setattr(message, attr, state)
-        db.session.commit()
-        result = True
+        if message is not None:
+            setattr(message, attr, state)
+            db.session.commit()
+            result = True
     except Exception as e:
         db.session.rollback()
         print("Exception in update_message_state %r", e)
@@ -205,3 +223,40 @@ def check_message_to_send():
 
     db.session.commit()
     return ids
+
+def get_day_message(userid, baseDate, upperDate):
+    check_authenticated()
+    q= db.session.query(Message).filter(Message.sender == userid, Message.delivery_date >= baseDate, Message.delivery_date < upperDate, Message.is_draft == False)
+    
+    list = []
+  
+    for msg in q:
+        
+        recipient = (
+            db.session.query(User).filter(User.id == msg.recipient).first()
+        )
+        sender = (
+            db.session.query(User).filter(User.id == msg.sender).first()
+        )
+        delivery_date = msg.delivery_date
+        hour_deliver = delivery_date.hour
+        minute_deliver = delivery_date.minute
+        now = datetime.now()
+
+        canDelete = delivery_date > now and sender.points >= 60
+        future = delivery_date > now
+        json_msg = json.dumps(
+            {
+                "message_id": msg.message_id,
+                "firstname": recipient.firstname,
+                "email": recipient.email,
+                "text": msg.text,
+                "hour": hour_deliver,
+                "minute": minute_deliver,
+                "candelete": canDelete,
+                "future": future,
+            }
+        )
+
+        list.append(json_msg)
+    return list

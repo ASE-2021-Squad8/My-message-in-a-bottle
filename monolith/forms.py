@@ -23,10 +23,10 @@ class UserForm(FlaskForm):
 class MessageForm(FlaskForm):
     text = f.TextAreaField("Message text", validators=[DataRequired()], id="text")
     delivery_date = f.DateTimeField("delivery_date")
-    recipient = f.SelectField("Recipient", id="recipient", validators=[DataRequired()])
+    recipient = f.SelectMultipleField("Recipient", id="recipient", validators=[DataRequired()])
     attachment = FileField("Attachment", id="attachment", validators=[FileAllowed(['jpg', "png", "jpeg", "gif"], "Only images can be uploaded")])
     draft_id = HiddenField("Draft ID", id="draft_id")
-    display = ["recipient", "text", "attachment"]
+    display = ["text", "attachment"]
 
 
 class ChangePassForm(FlaskForm):

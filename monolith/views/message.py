@@ -1,5 +1,6 @@
 import json
 import os
+from datetime import date, datetime
 import traceback
 import hashlib
 import pathlib
@@ -198,62 +199,65 @@ def send_message():
         return _get_result(
             None, "/send_message", True, 400, "Message to send cannot be empty"
         )
-    msg = None
-    if request.form["draft_id"] is None or request.form["draft_id"] == "":
-        # record to insert
-        msg = Message()
-        msg.text = request.form["text"]
-        msg.is_draft = False
-        msg.is_delivered = False
-        msg.is_read = False
-        msg.delivery_date = delivery_date
 
-    else:
-        msg = monolith.messaging.unmark_draft(
-            getattr(current_user, "id"), int(request.form["draft_id"])
-        )
+    recipients= request.form.getlist("recipient")
 
-    msg.sender = int(getattr(current_user, "id"))
-    msg.recipient = int(request.form["recipient"])
+    for recipient in recipients:
+        if request.form["draft_id"] is None or request.form["draft_id"] == "":
+            # record to insert
+            msg = Message()
+            msg.text = request.form["text"]
+            msg.is_draft = False
+            msg.is_delivered = False
+            msg.is_read = False
+            msg.delivery_date = delivery_date
 
-    if "attachment" in request.files:
-        file = request.files["attachment"]
+        else:
+            msg = monolith.messaging.unmark_draft(
+                getattr(current_user, "id"), int(request.form["draft_id"])
+            )
 
-        if not _extension_allowed(file.filename):
-            _get_result(None, ERROR_PAGE, True, 400, "File extension not allowed")
+        msg.sender = int(getattr(current_user, "id"))
+        msg.recipient = int(recipient)
 
-        filename = _generate_filename(file)
-        file.save(os.path.join(app.config["UPLOAD_FOLDER"], filename))
+        if "attachment" in request.files:
+            file = request.files["attachment"]
 
-        # If the message already has a file, delete it
-        if msg.media is not None and msg.media != "":
-            os.unlink(os.path.join(app.config["UPLOAD_FOLDER"], msg.media))
-        msg.media = filename
+            if not _extension_allowed(file.filename):
+                _get_result(None, ERROR_PAGE, True, 400, "File extension not allowed")
 
-    # when it will be delivered
-    # delay = (delivery_date - now).total_seconds()
-    try:
-        id = monolith.messaging.save_message(msg)
-        email_r = get_user_mail(msg.recipient)
-        email_s = get_user_mail(msg.sender)
-        put_message_in_queue.apply_async(
-            args=[
-                json.dumps(
-                    {
-                        "id": id,
-                        "TESTING": app.config["TESTING"],
-                        "body": "You have just received a massage",
-                        "recipient": email_r,
-                        "sender": email_s,
-                    }
-                )
-            ],
-            eta=delivery_date.astimezone(pytz.utc),  # cover to utc
-            routing_key="message",  # to specify the queue
-            queue="message",
-        )
-    except put_message_in_queue.OperationalError as e:
-        logger.exception("Send message task raised: %r", e)
+            filename = _generate_filename(file)
+            file.save(os.path.join(app.config["UPLOAD_FOLDER"], filename))
+
+            # If the message already has a file, delete it
+            if msg.media is not None and msg.media != "":
+                os.unlink(os.path.join(app.config["UPLOAD_FOLDER"], msg.media))
+            msg.media = filename
+
+        # when it will be delivered
+        # delay = (delivery_date - now).total_seconds()
+        try:
+            id = monolith.messaging.save_message(msg)
+            email_r = get_user_mail(msg.recipient)
+            email_s = get_user_mail(msg.sender)
+            put_message_in_queue.apply_async(
+                args=[
+                    json.dumps(
+                        {
+                            "id": id,
+                            "TESTING": app.config["TESTING"],
+                            "body": "You have just received a massage",
+                            "recipient": email_r,
+                            "sender": email_s,
+                        }
+                    )
+                ],
+                eta=delivery_date.astimezone(pytz.utc),  # cover to utc
+                routing_key="message",  # to specify the queue
+                queue="message",
+            )
+        except put_message_in_queue.OperationalError as e:
+            logger.exception("Send message task raised: %r", e)
 
     return _get_result(jsonify({"message sent": True}), "/send_message")
 
@@ -319,7 +323,14 @@ def delete_msg(message_id):
         return _get_result(None, ERROR_PAGE, True, 404, "Message not found")
 
 
-@msg.route("/api/message/read_message/<id>", methods=["GET"])
+@msg.route('/api/lottery/message/delete/<message_id>', methods=["DELETE"])
+def lottery_delete_msg(message_id):
+    check_authenticated()
+    result = monolith.messaging.set_message_is_deleted_lottery(message_id)
+
+    return jsonify({"message_id": message_id}) if result else jsonify({"message_id": -1})
+
+@msg.route("/api/message/read_message/<id>")
 def read_msg(id):
     check_authenticated()
     msg = monolith.messaging.get_message(id)
@@ -350,3 +361,29 @@ def read_msg(id):
         )
 
     return jsonify({"msg_read": True})
+    
+@msg.route("/api/calendar")
+def calendar():
+    return render_template("calendar.html")
+
+@msg.route("/api/calendar/<int:day>/<int:month>/<int:year>")
+def calendar_sed_message(day, month, year):
+    check_authenticated()
+    if(day > 31 and month + 1 > 12):
+        return _get_result(None, ERROR_PAGE, True, 404, "Invalid date")
+    else:
+        basedate = datetime(year,month +1, day)
+        if(month + 1 == 12 and day == 31):
+            upperdate = datetime(year + 1, 1, 1)
+        else:
+            try:
+                upperdate = datetime(year,month +1, day + 1)
+            except ValueError:
+                upperdate = date(year, month + 2, 1)
+        userid = getattr(current_user, "id")
+
+        #Per ora lascio come ultimo parametro passato True, dovrà essere sostituito con canDelete
+        message = monolith.messaging.get_day_message(userid, basedate, upperdate)
+        return jsonify(message)
+
+
