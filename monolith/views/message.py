@@ -200,7 +200,11 @@ def send_message():
             None, "/send_message", True, 400, "Message to send cannot be empty"
         )
 
-    recipients= request.form.getlist("recipient")
+    recipients = request.form.getlist("recipient")
+    if recipients == [] or recipients is None:
+        return _get_result(
+          None, "/send_message", True, 400, "Message needs at least one recipient"
+        )
 
     for recipient in recipients:
         if request.form["draft_id"] is None or request.form["draft_id"] == "":
