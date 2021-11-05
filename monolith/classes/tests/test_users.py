@@ -3,6 +3,7 @@ import unittest
 from monolith.app import create_test_app
 from monolith.database import User, db
 from monolith.auth import current_user
+import monolith.user_query
 import datetime
 import json
 
@@ -61,8 +62,8 @@ class TestApp(unittest.TestCase):
             ),
             follow_redirects=True,
         )
-
         assert reply.status_code == 200
+
         reply = self.client.post(
             "/login",
             data=dict(
@@ -286,3 +287,22 @@ class TestApp(unittest.TestCase):
 
         user = User.query.filter(User.email == "example@example.com").all()
         assert len(user) == 1
+
+    def test_content_filter(self):
+        reply = self.client.post(
+            "/login",
+            data=dict(
+                email="example@example.com",
+                password="admin",
+            ),
+            follow_redirects=True,
+        )
+        assert reply.status_code == 200
+
+        # test filter activation
+        filter = monolith.user_query.change_user_content_filter(1, True)
+        assert filter == True
+
+        # test filter deactivation
+        filter = monolith.user_query.change_user_content_filter(1, False)
+        assert filter == False

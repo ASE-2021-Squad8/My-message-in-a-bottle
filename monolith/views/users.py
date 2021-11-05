@@ -290,3 +290,25 @@ def get_users_list_json():
     users = monolith.user_query.get_all_users()
     userlist = [{"email": u.email, "firstname": u.firstname, "lastname": u.lastname} for u in users]
     return jsonify(userlist)
+
+
+@users.route("/content_filter")
+def content_filter():
+    return render_template("content_filter.html", feedback="")
+
+
+@users.route("/api/content_filter/<value>")
+def set_content_filter(value):
+    check_authenticated()
+    value = True if int(value) == 1 else False
+    try:
+        set = monolith.user_query.change_user_content_filter(current_user.id, value)
+    except Exception as e:
+        print(str(e))
+        return render_template("content_filter.html", feedback="This should not happen")
+    
+    if set == True:
+        feedback = "You content filter is enabled"
+    else:
+        feedback = "You content filter is disabled"
+    return render_template("content_filter.html", feedback=feedback)

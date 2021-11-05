@@ -1,4 +1,5 @@
 amqp==5.0.6
+better-profanity==0.7.0
 billiard==3.6.4.0
 celery==5.1.2
 Click==7.0
