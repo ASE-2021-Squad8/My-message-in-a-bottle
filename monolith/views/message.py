@@ -280,12 +280,12 @@ def _not_valid_string(text):
     return text is None or text == "" or text.isspace()
 
 
-@msg.route("/api/message/received", methods=["GET"])
-def _get_received_messages():
+@msg.route("/api/message/received/metadata", methods=["GET"])
+def _get_received_messages_metadata():
     check_authenticated()
 
     try:
-        messages = monolith.messaging.get_received_messages(getattr(current_user, "id"))
+        messages = monolith.messaging.get_received_messages_metadata(getattr(current_user, "id"))
         return jsonify(messages)
 
     except Exception as e:

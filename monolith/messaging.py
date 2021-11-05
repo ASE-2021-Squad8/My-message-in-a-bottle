@@ -82,8 +82,14 @@ def delete_user_message(user_id, message_id, is_draft=False):
     db.session.commit()
 
 
-def get_received_messages(user_id):
+def get_received_messages_metadata(user_id):
+    """Retrieves metadata for all messages received by an user
 
+    :param user_id: id of the user
+    :type user_id: int
+    :return: a list of message metadata
+    :rtype: list[json]
+    """
     # Retrieve of all message for user_id
     q = db.session.query(Message).filter(
         Message.recipient == user_id,
@@ -106,7 +112,6 @@ def get_received_messages(user_id):
                 "firstname": sender.get_firstname(),
                 "lastname": sender.get_lastname(),
                 "id_message": msg.message_id,
-                "text": text,
                 "email": sender.email,
                 "media": msg.media,
             }

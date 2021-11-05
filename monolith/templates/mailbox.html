@@ -150,7 +150,7 @@
 	</div>
 
 	<script>
-		$.get('/api/message/received', function (data) { buildTableReceived(data); });
+		$.get('/api/message/received/metadata', function (data) { buildTableReceived(data); });
 
 
 		function buildTableReceived(data) {
