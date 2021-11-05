@@ -1,34 +1,34 @@
-<body>
-	<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
-	integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+{% extends "base.html" %}
+{% block title %}Send or draft message{% endblock %}
 
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-<script src="{{url_for('static', filename='send_message.js')}}"></script>
-
+{% block content %}
 <h1>Send a message</h1>
-<a href="/" type="button" class="btn btn-outline-primary">Homepage</a><br><br>
+	<a href="/" type="button" class="btn btn-outline-primary">Homepage</a><br><br>
+	<h3>Drafted messages</h3>
 
-<h3>Drafted messages</h3>
-<table class="table table-striped" id="draftsTable">
-</table>
+	<!-- This gets filled by JS -->
+	<table class="table table-light" id="draftsTable">
+	</table>
 
-<h2>Compose message</h2>
-<form method="POST" enctype="multipart/form-data">
-	{{ form.hidden_tag() }}
-	<dl>
-		<dt><label>Choose recipients </label></dt>
-		<dt><select multiple name="recipient" required id="recipient"></dt></select>
-		{% for field in form.display %}
-		<dt>{{ form[field].label }}</dt>
-		<dd>{{ form[field]() }}</dd><br>
-		{% if form[field].errors %}
-		{% for e in form[field].errors %}
-		<p class="help-block">{{ e }}</p>
-		{% endfor %}
-		{% endif %}
-		{% endfor %}
-	</dl>
+	<h2>Compose message</h2>
+	<p style="color:red">{{message}}</p>
+	<form method="POST" enctype="multipart/form-data">
+		{{ form.hidden_tag() }}
+		<dl>
+			<dt><label>Choose recipients </label></dt>
+			<dt><select multiple name="recipient" id="recipient"></dt></select>
+			{% for field in form.display %}
+			<dt>{{ form[field].label }}</dt>
+			<dd>{{ form[field]() }}</dd><br>
+			{% if form[field].errors %}
+			{% for e in form[field].errors %}
+			<p class="help-block">{{ e }}</p>
+			{% endfor %}
+			{% endif %}
+			{% endfor %}
+		</dl>
 
+<<<<<<< HEAD
 	{{ ckeditor.load() }}
 	{{ ckeditor.config(name='text',width=800, height=500) }}
 	<label for="delivery_date">Choose a time for delivering message </label>
@@ -38,3 +38,17 @@
 </form>
 <p style="color:red">{{message}}</p>
 </body>
+=======
+		{{ ckeditor.load() }}
+		{{ ckeditor.config(name='text') }}
+		<label for="delivery_date">Choose a time for delivering message </label>
+		<input type="datetime-local" id="delivery_date" name="delivery_date" />
+		<button type="submit" formaction="/api/message/send_message">Send message</button>
+		<button type="submit" formaction="/api/message/draft">Save draft</button>
+	</form>
+{% endblock %}
+
+{% block scripts %}	
+<script src="{{url_for('static', filename='send_message.js')}}"></script>
+{% endblock %}
+>>>>>>> 3507c5d (templates: convert send_message to jinja template)
