@@ -1,55 +1,51 @@
+{% extends "base.html" %}
+{% block title %}Edit profile{% endblock %}
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Abril+Fatface&display=swap" rel="stylesheet">
-
-    <meta charset="UTF-8">
-    <title>Message in a bottle-Account-Data</title>
-    <link href= "{{url_for('static', filename='bootstrap/css/bootstrap.min.css')}}" rel="stylesheet">
-</head>
-
-  <style>
-    body  {
-      background-image: url("{{url_for('static', filename='account_datas.jpg')}}");
-      background-size: cover;
-      color:black;
-    }
-    
-    h1{
-      font-family: 'Abril Fatface', cursive;
-    }
-
-    .container-md{
-      top: 40%;
-      background-color: #F2F2F2;
-      border-radius: 3%;
-      width: 400px;
-      height: 500px;
-    }
-  </style>
+{% block html_head %}
+<style>
+  body  {
+    background-image: url("{{url_for('static', filename='account_datas.jpg')}}");
+    background-size: cover;
+    color:black;
+  }
   
-  <button type="button" style="  position: relative; left: 20px; top: 15px" class="btn btn-light btn-lg">Home</button>
-  
-  <div class="container-md">
-    <div class = "text-center">
-      <body>
-          <form action="" method="POST">
-            {{ form.hidden_tag() }}
-            <br>
-            <h1>Edit profile</h1>
-            <h5>First name</h5><input type="text" name="textfirstname" value= {{user.firstname}}>
-            <h5>Last name</h5><input type="text" name="textlastname" value= {{user.lastname}}>
-            <h5>Email</h5><input type="text" name="textemail" value= {{user.email}}>
-            <h5>Date of birth</h5><input type="date" name="textbirth" value= {{user.dateofbirth}}>
-            <p>
-            <br> 
-            <input type=submit value="Submit" class="btn btn-outline-primary"><br>
-            <h7 style="color: red;"> {{ error }}</h7>
-      </body>
+  h1{
+    font-family: 'Abril Fatface', cursive;
+  }
+
+  .container-md{
+    top: 40%;
+    background-color: #F2F2F2;
+    border-radius: 3%;
+    width: 400px;
+    height: 450px;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<a href="/" type="button" style="position: relative; left: 20px; top: 15px"
+  class="btn btn-primary">Homepage</a>
+<a href="/settings" type="button" style="position: relative; left: 20px; top:
+  15px" class="btn btn-primary">Back to settings</a>
+
+<div class="container-md">
+  <div class="text-center">
+    <form action="" method="POST">
+      {{ form.hidden_tag() }}
+      <br>
+      <h1>Edit profile</h1>
+      <h5>First name</h5><input type="text" name="textfirstname" value=
+        {{user.firstname}}>
+      <h5>Last name</h5><input type="text" name="textlastname" value=
+        {{user.lastname}}>
+      <h5>Email</h5><input type="text" name="textemail" value= {{user.email}}>
+      <h5>Date of birth</h5><input type="date" name="textbirth" value=
+        {{user.dateofbirth}}>
+      <p>
+        <br>
+        <input type=submit value="Submit" class="btn btn-outline-primary"><br>
+        <h7 style="color: red;"> {{ error }}</h7>
+      </div>
     </div>
-  </div>
-</html>
+{% endblock %}
