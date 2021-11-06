@@ -1,11 +1,13 @@
 import json
 import random
 import unittest
+import os
 from datetime import datetime, timedelta
 
 from monolith.app import create_test_app
 from monolith.background import check_messages, lottery, send_notification_task
 from monolith.database import Message, User, db
+from monolith.notifications import send_notification
 
 
 class TestPeriodicTask(unittest.TestCase):
@@ -32,8 +34,10 @@ class TestPeriodicTask(unittest.TestCase):
             expected_result = (True, 5)
             assert check_messages(True) == expected_result
 
-    
     def test_send_notification_task(self):
+        os.environ["MAIL_SERVER"] = "localhost"
+        os.environ["MAIL_SERVER_PASSWORD"] = ""
+
         recipient_mail = (
             "pioppoj@gmail.com"  # insert here your mail to get the notification
         )
@@ -46,7 +50,16 @@ class TestPeriodicTask(unittest.TestCase):
             }
         )
         assert send_notification_task(json_message)
-        
+
+    def test_login_fail(self):
+        os.environ["MAIL_SERVER"] = "smtp.gmail.com"
+        os.environ["MAIL_SERVER_PASSWORD"] = "WRONGPASSWORD"
+        print("Waiting for socket timeout, go grab a coffee")
+        self.assertRaises(
+            Exception,
+            send_notification,
+            "squad 8", "example@example.com", "This should fail"
+        )
 
     def test_lottery(self):
         result = lottery(True)

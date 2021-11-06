@@ -1,16 +1,16 @@
+import os
 import smtplib
 from email.message import EmailMessage
-import os
-
-PORT = int(os.environ.get("MAIL_PORT", 587))
-NOTIFICATIONS_EMAIL = os.environ.get(
-    "MAIL_NOREPLY_ADDRESS", "mmiab.notifications@gmail.com"
-)
-SMTP_SERVER = os.environ.get("MAIL_SERVER", "smtp.gmail.com")
-SMTP_PASSWORD = os.environ.get("MAIL_SERVER_PASSWORD", "")
 
 
 def send_notification(msg_sender, receiver, msg_body):
+    PORT = int(os.environ.get("MAIL_PORT", 1025))
+    NOTIFICATIONS_EMAIL = os.environ.get(
+        "MAIL_NOREPLY_ADDRESS", "noreply@mmiab.localhost"
+    )
+    SMTP_SERVER = os.environ.get("MAIL_SERVER", "localhost")
+    SMTP_PASSWORD = os.environ.get("MAIL_SERVER_PASSWORD", "")
+
     # Log in to server and send email
     server = None
     try:
@@ -23,8 +23,8 @@ def send_notification(msg_sender, receiver, msg_body):
         mail.set_content(msg_body)
         server.sendmail(NOTIFICATIONS_EMAIL, receiver, mail.as_string())
     except Exception as e:
-        # Print any error messages
-        print(e)
+        print(str(e))
+        raise Exception(str(e))
     finally:
         if server != None:
             server.quit()

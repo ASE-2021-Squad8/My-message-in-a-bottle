@@ -132,7 +132,7 @@ def send_notification_task(json_message):
         send_notification(tmp["sender"], tmp["recipient"], tmp["body"])
         result = True
     except Exception as e:
-        logger.exception("send_notification_task raises")
+        logger.exception("send_notification_task raises ", e)
         raise e
     return result
 
