@@ -54,7 +54,7 @@ class TestPeriodicTask(unittest.TestCase):
     def test_login_fail(self):
         os.environ["MAIL_SERVER"] = "smtp.gmail.com"
         os.environ["MAIL_SERVER_PASSWORD"] = "WRONGPASSWORD"
-        print("Waiting for socket timeout, go grab a coffee", end=" ")
+        print("Waiting for socket timeout, go grab a coffee", end=" ", flush=True)
         self.assertRaises(
             Exception,
             send_notification,

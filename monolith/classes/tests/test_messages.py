@@ -159,7 +159,7 @@ class TestApp(unittest.TestCase):
         reply = self.client.get("/api/message/sent/metadata", follow_redirects=True)
         assert len(reply.get_json()) == 0
 
-        print("Waiting for the message delivery", end=" ")
+        print("Waiting for the message delivery", end=" ", flush=True)
         time.sleep(10)
 
         # get sent message
