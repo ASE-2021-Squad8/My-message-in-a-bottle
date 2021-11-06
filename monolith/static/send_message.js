@@ -57,16 +57,6 @@ function buildTable(data) {
             msg.text += `<a class="btn btn-secondary" href="${MEDIA_URL}">View attachment</a>`.replace("MEDIA", msg.media)
         }
 
-<<<<<<< HEAD
-        var row = `<tr>
-                        <td>${user.firstname + " " + user.lastname}</td>
-                        <td>${user.email}</td>
-                        <td>${msg.text}</td>
-                        <td><input id="removeattachment" type="button" value="Purge attachment" onclick="removeAttachment(${msg.message_id})" />
-                            <input id="editdraft" type="button" value="Edit" onclick="editDraft(${msg.message_id})" />
-                            <input id="deldraft" type="button" value="Delete" onclick="deleteDraft(${msg.message_id})" /></td>
-                  </tr>`
-=======
         var row = `<tr>`
         
         if(msg.email) {
@@ -87,7 +77,6 @@ function buildTable(data) {
         row += `<input id="editdraft" type="button" value="Edit" class="btn btn-primary" onclick="editDraft(${msg.message_id})" />
                 <input id="deldraft" type="button" class="btn btn-danger" value="Delete" onclick="deleteDraft(${msg.message_id})" />
                 </td></tr>`
->>>>>>> 9f751e6 (send_message: cosmetic fixes, fix attachment url)
 
         table.innerHTML += row
     }

@@ -1,8 +1,8 @@
 
 function buildTableReceived(data) {
     var table = document.getElementById('received');
-    table.innerHTML = `<thead class="thead-dark">
-    <tr class="bg-info">
+    table.innerHTML = `<thead class="thead-light">
+    <tr>
         <th class="text-center" scope="col">Sender</th>
         <th class="text-center" scope="col">E-mail</th>
         <th class="text-center" scope="col">Open message</th>
@@ -29,7 +29,7 @@ function buildTableReceived(data) {
 
 function buildTableSent(data) {
     var table = document.getElementById('sent');
-    table.innerHTML = `		<thead class="thead-dark">
+    table.innerHTML = `<thead class="thead-light">
     <tr class="bg-info"></tr>
     <th class="text-center">Receiver</th>
     <th class="text-center">E-mail</th>
