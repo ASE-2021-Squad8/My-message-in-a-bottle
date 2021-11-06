@@ -33,7 +33,7 @@ function buildTable(data) {
         return
     }
 
-    table.innerHTML = `<thead class="thead-dark">
+    table.innerHTML = `<thead class="thead-light">
         <tr class="bg-info">
         <th scope="col">Recipient</th>
         <th scope="col">E-mail</th>
