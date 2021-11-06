@@ -1,30 +1,30 @@
 import os
 import smtplib
 from email.message import EmailMessage
+import socket
+from collections import namedtuple
+
+EmailConfig = namedtuple("EmailConfig", ["server", "port", "email", "password"])
+DefaultEmailConfig = EmailConfig(
+    os.environ.get("MAIL_SERVER", "localhost"),
+    int(os.environ.get("MAIL_PORT", 1025)),
+    os.environ.get("MAIL_NOREPLY_ADDRESS", "noreply@mmiab.localhost"),
+    os.environ.get("MAIL_SERVER_PASSWORD", ""),
+)
 
 
-def send_notification(msg_sender, receiver, msg_body):
-    PORT = int(os.environ.get("MAIL_PORT", 1025))
-    NOTIFICATIONS_EMAIL = os.environ.get(
-        "MAIL_NOREPLY_ADDRESS", "noreply@mmiab.localhost"
-    )
-    SMTP_SERVER = os.environ.get("MAIL_SERVER", "localhost")
-    SMTP_PASSWORD = os.environ.get("MAIL_SERVER_PASSWORD", "")
+def send_notification(msg_sender, receiver, msg_body, config=DefaultEmailConfig):
 
-    # Log in to server and send email
-    server = None
     try:
-        server = smtplib.SMTP(SMTP_SERVER, PORT)
-        if SMTP_PASSWORD != "":
-            server.starttls()
-            server.login(NOTIFICATIONS_EMAIL, SMTP_PASSWORD)
-        mail = EmailMessage()
-        mail["Subject"] = "MMIAB - Message from " + msg_sender
-        mail.set_content(msg_body)
-        server.sendmail(NOTIFICATIONS_EMAIL, receiver, mail.as_string())
-    except Exception as e:
-        print(str(e))
-        raise Exception(str(e))
-    finally:
-        if server != None:
-            server.quit()
+        with smtplib.SMTP(config.server, config.port, timeout=10) as server:
+            if config.password != "":
+                server.starttls()
+                server.login(config.email, config.password)
+
+            mail = EmailMessage()
+            mail["Subject"] = "MMIAB - Message from " + msg_sender
+            mail.set_content(msg_body)
+
+            server.sendmail(config.email, receiver, mail.as_string())
+    except socket.timeout as e:
+        raise e
