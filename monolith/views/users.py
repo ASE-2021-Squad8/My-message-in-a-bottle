@@ -23,13 +23,23 @@ users = Blueprint("users", __name__)
 
 
 @users.route("/users")
-def _users():
+def _users():  # pragma: no cover
     _users = db.session.query(User)
     return render_template("users.html", users=_users)
 
 
+@users.route("/content_filter")
+def content_filter():  # pragma: no cover
+    return render_template("content_filter.html", feedback="")
+
+
+@users.route("/search_user")
+def _search_user():  # pragma: no cover
+    return render_template("search_user.html")
+
+
 @users.route("/account_data", methods=["GET"])
-def _user():
+def _user():  # pragma: no cover
     check_authenticated()
     data = current_user.dateofbirth
     date_of_birth = data.strftime("%a, %d %B, %Y")
@@ -44,11 +54,6 @@ def create_user():
         if form.validate_on_submit():
             # Check if date of birth is valid (in the past)
             inputdate = form.dateofbirth.data
-            # birth = (
-            #     datetime.fromisoformat(inputdate)
-            #     if not _not_valid_string(inputdate)
-            #     else None
-            # )
             if inputdate is None or inputdate > datetime.date.today():
                 return render_template(
                     "create_user.html",
@@ -77,14 +82,8 @@ def create_user():
             db.session.add(new_user)
             db.session.commit()
             return redirect("/login")
-        else:
-            return render_template(
-                "create_user.html", form=form, error="An error occurred"
-            )
-    elif request.method == "GET":
+    elif request.method == "GET":  # pragma: no cover
         return render_template("create_user.html", form=form, error="")
-    else:
-        raise RuntimeError("This should not happen!")
 
 
 @users.route("/user/get_recipients", methods=["GET"])
@@ -111,6 +110,19 @@ def change_data_user():
     form = UserForm()
 
     if request.method == "POST":
+        if (
+            request.form["textfirstname"] == ""
+            or request.form["textlastname"] == ""
+            or request.form["textemail"] == ""
+            or request.form["textbirth"] == ""
+        ):
+            return render_template(
+                "edit_profile.html",
+                form=form,
+                user=current_user,
+                error="All fields must be completed!",
+            )
+
         userid = getattr(current_user, "id")
         user = User.query.filter(User.id == userid).first()
         user.firstname = request.form["textfirstname"]
@@ -120,25 +132,10 @@ def change_data_user():
         date_as_datetime = datetime.datetime.strptime(data, "%Y-%m-%d")
         user.dateofbirth = date_as_datetime
 
-        if (
-            user.firstname == ""
-            or user.lastname == ""
-            or user.email == ""
-            or user.dateofbirth == ""
-        ):
-            return render_template(
-                "edit_profile.html",
-                form=form,
-                user=current_user,
-                error="All fields must be completed!",
-            )
-
         db.session.commit()
         return redirect("/account_data")
-    elif request.method == "GET":
+    elif request.method == "GET":  # pragma: no cover
         return render_template("edit_profile.html", form=form, user=current_user)
-    else:
-        raise RuntimeError("This should not happen!")
 
 
 @users.route("/reset_password", methods=["POST", "GET"])
@@ -170,17 +167,14 @@ def change_pass_user():
         return render_template(
             "reset_password.html", form=form, success="Password updated!"
         )
-
-    elif request.method == "GET":
+    elif request.method == "GET":  # pragma: no cover
         return render_template("reset_password.html", form=form)
-    else:
-        raise RuntimeError("This should not happen!")
 
 
 @users.route("/report_user", methods=["GET", "POST"])
 def report():
     check_authenticated()
-    if request.method == "GET":
+    if request.method == "GET":  # pragma: no cover
         return render_template("report_user.html")
     else:
         mail = str(request.form["useremail"])
@@ -204,7 +198,7 @@ def report():
                 error="",
                 reported=mail + " has been reported" + banned + ".",
             )
-        else:
+        else:  # pragma: no cover
             return render_template(
                 "report_user.html",
                 error="You have to specify an email to report a user.",
@@ -227,21 +221,16 @@ def display_black_list():
             result = monolith.user_query.add_to_blacklist(owner_id, members_id)
 
         return _prepare_json_response(owner_id, 200 if result else 500)
+    elif request.method == "GET":  # pragma: no cover
+        f = BlackListForm()
 
-    # via get it resturn jut the page
-    return _prepare_black_list(owner_id)
-
-
-def _prepare_black_list(owner_id):
-    f = BlackListForm()
-
-    result = monolith.user_query.get_blacklist(owner_id)
-    black_list = [usr[1] for usr in result]
-    f.users.choices = monolith.user_query.get_blacklist_candidates(owner_id)
-    f.black_users.choices = result
-    return render_template(
-        "black_list.html", form=f, black_list=black_list, size=len(black_list)
-    )
+        result = monolith.user_query.get_blacklist(owner_id)
+        black_list = [usr[1] for usr in result]
+        f.users.choices = monolith.user_query.get_blacklist_candidates(owner_id)
+        f.black_users.choices = result
+        return render_template(
+            "black_list.html", form=f, black_list=black_list, size=len(black_list)
+        )
 
 
 def _prepare_json_response(owner_id, status):
@@ -262,7 +251,6 @@ def get_user_details(user_id):
     :return: an object containing email, first and last name
     :rtype: Markup
     """
-
     check_authenticated()
 
     q = db.session.query(User).filter(User.id == user_id)
@@ -280,21 +268,14 @@ def get_user_details(user_id):
         abort(404, "User not found")
 
 
-@users.route("/search_user")
-def _search_user():
-    return render_template("search_user.html")
-
-
 @users.route("/api/users/list")
 def get_users_list_json():
     users = monolith.user_query.get_all_users()
-    userlist = [{"email": u.email, "firstname": u.firstname, "lastname": u.lastname} for u in users]
+    userlist = [
+        {"email": u.email, "firstname": u.firstname, "lastname": u.lastname}
+        for u in users
+    ]
     return jsonify(userlist)
-
-
-@users.route("/content_filter")
-def content_filter():
-    return render_template("content_filter.html", feedback="")
 
 
 @users.route("/api/content_filter/<value>")
@@ -303,10 +284,10 @@ def set_content_filter(value):
     value = True if int(value) == 1 else False
     try:
         set = monolith.user_query.change_user_content_filter(current_user.id, value)
-    except Exception as e:
+    except Exception as e:  # pragma: no cover
         print(str(e))
         return render_template("content_filter.html", feedback="This should not happen")
-    
+
     if set == True:
         feedback = "You content filter is enabled"
     else:
