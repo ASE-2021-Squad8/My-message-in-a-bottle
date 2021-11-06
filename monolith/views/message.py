@@ -10,6 +10,8 @@ import time
 from datetime import datetime
 from datetime import datetime as d
 
+from flask_login.utils import expand_login_view
+
 import monolith.messaging
 import pytz
 from celery.utils.log import get_logger
@@ -36,12 +38,12 @@ from monolith.user_query import get_user_mail
 from werkzeug.utils import redirect, secure_filename
 
 msg = Blueprint("message", __name__)
-ERROR_PAGE = "index"
+ERROR_PAGE = "error"
 logger = get_logger(__name__)
 
 
 @msg.route("/send_message")
-def _send_message():
+def _send_message(): # pragma: no cover
     return render_template("send_message.html", form=MessageForm())
 
 
@@ -54,6 +56,7 @@ def _extension_allowed(filename):
     :rtype: bool
     """
 
+    # Of course, this is a toy, nothing stops you from sending an .exe as a .png :)
     return pathlib.Path(filename).suffix.lower() in {
         ".png",
         ".jpg",
@@ -107,10 +110,15 @@ def save_draft_message():
 
         message = None
 
-        if "draft_id" in request.form and request.form["draft_id"] != "":
+        try:
             id = request.form["draft_id"]
-            message = monolith.messaging.get_user_draft(getattr(current_user, "id"), id)
-        else:
+            try:
+                message = monolith.messaging.get_user_draft(getattr(current_user, "id"), id)
+            except:
+                return _get_result(
+                    None, ERROR_PAGE, True, 404, "Draft to edit cannot be found"
+                )
+        except KeyError:
             message = Message()
 
         message.text = text
@@ -125,14 +133,20 @@ def save_draft_message():
 
             if file.filename != "" and _extension_allowed(file.filename):
                 filename = _generate_filename(file)
-                file.save(os.path.join(app.config["UPLOAD_FOLDER"], filename))
-
+                
                 # If the draft already has a file, delete it
                 if message.media is not None and message.media != "":
-                    os.unlink(os.path.join(app.config["UPLOAD_FOLDER"], message.media))
+                    try: # pragma: no cover
+                        # Very unlikely, ignore in coverage
+                        os.unlink(os.path.join(app.config["UPLOAD_FOLDER"], message.media))
+                    except:
+                        # If we failed to delete the file from the disk then something is wrong
+                        return _get_result(None, ERROR_PAGE, True, 500, "Internal server error")
+
+                file.save(os.path.join(app.config["UPLOAD_FOLDER"], filename))
                 message.media = filename
             else:
-                _get_result(None, ERROR_PAGE, True, 400, "File extension not allowed")
+                return _get_result(None, ERROR_PAGE, True, 400, "File extension not allowed")
 
         monolith.messaging.save_message(message)
 
@@ -143,17 +157,17 @@ def save_draft_message():
 def get_user_draft(id):
     check_authenticated()
 
-    if request.method == "GET":
-        draft = monolith.messaging.get_user_draft(getattr(current_user, "id"), id)
-        return jsonify(draft)
-    elif request.method == "DELETE":
-        try:
+    try:
+        if request.method == "GET":
+            draft = monolith.messaging.get_user_draft(getattr(current_user, "id"), id)
+            return jsonify(draft)
+        elif request.method == "DELETE":
             monolith.messaging.delete_user_message(
                 getattr(current_user, "id"), id, True
             )
             return jsonify({"message_id": id})
-        except:
-            _get_result(None, ERROR_PAGE, True, 404, "Draft not found")
+    except KeyError:
+        return _get_result(None, ERROR_PAGE, True, 404, "Draft not found")
 
 
 @msg.route("/api/message/draft/<id>/attachment", methods=["DELETE"])
@@ -207,20 +221,20 @@ def send_message():
         )
 
     for recipient in recipients:
-        if request.form["draft_id"] is None or request.form["draft_id"] == "":
-            # record to insert
+        try:
+            # Attempt to retrieve the draft, if present
+            msg = monolith.messaging.unmark_draft(
+                getattr(current_user, "id"), int(request.form["draft_id"])
+            )
+        except KeyError:
+            # Otherwise build the message from scratch
             msg = Message()
-            msg.text = request.form["text"]
             msg.is_draft = False
             msg.is_delivered = False
             msg.is_read = False
             msg.delivery_date = delivery_date
 
-        else:
-            msg = monolith.messaging.unmark_draft(
-                getattr(current_user, "id"), int(request.form["draft_id"])
-            )
-
+        msg.text = request.form["text"]
         msg.sender = int(getattr(current_user, "id"))
         msg.recipient = int(recipient)
 
@@ -229,14 +243,20 @@ def send_message():
 
             if file.filename != "" and _extension_allowed(file.filename):
                 filename = _generate_filename(file)
-                file.save(os.path.join(app.config["UPLOAD_FOLDER"], filename))
-
+                
                 # If the draft already has a file, delete it
                 if msg.media is not None and msg.media != "":
-                    os.unlink(os.path.join(app.config["UPLOAD_FOLDER"], msg.media))
+                    try: # pragma: no cover
+                        # Unlikely to ever happen, don't include in coverage
+                        os.unlink(os.path.join(app.config["UPLOAD_FOLDER"], msg.media))
+                    except:
+                        # If we failed to delete the file from the disk then something is wrong
+                        return _get_result(None, ERROR_PAGE, True, 500, "Internal server error")
+
+                file.save(os.path.join(app.config["UPLOAD_FOLDER"], filename))
                 msg.media = filename
             else:
-                _get_result(None, ERROR_PAGE, True, 400, "File extension not allowed")
+                return _get_result(None, ERROR_PAGE, True, 400, "File extension not allowed")
 
         # when it will be delivered
         # delay = (delivery_date - now).total_seconds()

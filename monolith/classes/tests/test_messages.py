@@ -49,6 +49,19 @@ class TestApp(unittest.TestCase):
                 io.BytesIO(b"This is a JPG file, I swear!"),
                 "test.jpg",
             )
+            data["draft_id"] = -1
+            reply = self.client.post(
+                "/api/message/draft",
+                data=data,
+                content_type="multipart/form-data",
+            )
+            assert reply.status_code == 404
+
+            data = {"text": "Lorem ipsum dolor..."}
+            data["attachment"] = (
+                io.BytesIO(b"This is a JPG file, I swear!"),
+                "test.jpg",
+            )
             reply = self.client.post(
                 "/api/message/draft",
                 data=data,
@@ -64,10 +77,11 @@ class TestApp(unittest.TestCase):
             assert data[0]["text"] == "Lorem ipsum dolor..."
             assert data[0]["media"] != ""
 
-            reply = self.client.delete("/api/message/draft/1/attachment")
+            old_id = data[0]["message_id"]
+            reply = self.client.delete("/api/message/draft/" + str(old_id) + "/attachment")
             data = reply.get_json()
             assert reply.status_code == 200
-            assert int(data["message_id"]) == 1
+            assert str(data["message_id"]) == str(old_id)
 
             reply = self.client.get("/api/message/draft/all")
             data = reply.get_json()
@@ -84,8 +98,7 @@ class TestApp(unittest.TestCase):
             data = reply.get_json()
             assert reply.status_code == 404
 
-    def test_message(self):
-
+    def test_send_draft(self):
         reply = self.client.post(
             "/create_user",
             data=dict(
@@ -108,49 +121,39 @@ class TestApp(unittest.TestCase):
         reply = self.client.get("/user/get_recipients")
         assert reply.status_code == 200
         data = reply.get_json()
+
         now = datetime.now()
-        delivery_date = now + timedelta(seconds=4)
-
-        # test send with msg empty
+        delivery_date = now + timedelta(seconds=10)
         reply = self.client.post(
-            "/api/message/send_message",
-            data=dict(
-                {
-                    "recipient": data[0]["id"],
-                    "text": "",
-                    "delivery_date": delivery_date,
-                    "draft_id": "",
-                }
-            ),
-            follow_redirects=True,
-        )
-        assert reply.status_code == 400
-
-        delivery_date_past = now - timedelta(days=1)
-        # test send with data in the past
-        reply = self.client.post(
-            "/api/message/send_message",
-            data=dict(
-                {
-                    "recipient": data[0]["id"],
-                    "text": "",
-                    "delivery_date": delivery_date_past,
-                    "draft_id": "",
-                }
-            ),
-            follow_redirects=True,
-        )
-
-        assert reply.status_code == 400
-
-        reply = self.client.post(
-            "/api/message/send_message",
+            "/api/message/draft",
             data=dict(
                 {
                     "recipient": data[0]["id"],
                     "text": "Let's do it !",
                     "delivery_date": delivery_date,
-                    "draft_id": "",
+                    "attachment": (
+                        io.BytesIO(b"This is a JPG file, I swear!"),
+                        "test.jpg",
+                    )
+                }
+            ),
+            follow_redirects=True,
+        )
+
+        message_id = reply.get_json()["message_id"]
+        reply = self.client.get("/api/message/draft/" + str(message_id)).get_json()
+        assert reply["text"] == "Let's do it !"
+        assert reply["recipient"] == data[0]["id"]
+
+        delivery_date = now + timedelta(seconds=5)
+        reply = self.client.post(
+            "/api/message/send_message",
+            data=dict(
+                {
+                    "recipient": data[0]["id"],
+                    "text": "Let's do it now!",
+                    "delivery_date": delivery_date,
+                    "draft_id": message_id,
                 }
             ),
             follow_redirects=True,
@@ -160,7 +163,7 @@ class TestApp(unittest.TestCase):
         assert len(reply.get_json()) == 0
 
         print("Waiting for the message delivery", end=" ", flush=True)
-        time.sleep(10)
+        time.sleep(15)
 
         # get sent message
         reply = self.client.get("/api/message/sent/metadata", follow_redirects=True)
@@ -173,7 +176,7 @@ class TestApp(unittest.TestCase):
             "/api/message/sent/" + str(id_message), follow_redirects=True
         )
         msg = reply.get_json()
-        assert msg["text"] == "Let's do it !"
+        assert msg["text"] == "Let's do it now!"
 
         # logout
         reply = self.client.get("/logout", follow_redirects=True)
@@ -199,7 +202,7 @@ class TestApp(unittest.TestCase):
             "/api/message/received/" + str(id_message), follow_redirects=True
         )
         msg = reply.get_json()
-        assert msg["text"] == "Let's do it !"
+        assert msg["text"] == "Let's do it now!"
 
         # delete existing not read message
         reply = self.client.delete(
