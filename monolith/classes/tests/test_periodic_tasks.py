@@ -1,9 +1,11 @@
-import unittest
-from monolith.background import check_messages, send_notification_task, lottery
-from monolith.database import User, db, Message
-from datetime import datetime, timedelta
-from monolith.app import create_test_app
+import json
 import random
+import unittest
+from datetime import datetime, timedelta
+
+from monolith.app import create_test_app
+from monolith.background import check_messages, lottery, send_notification_task
+from monolith.database import Message, User, db
 
 
 class TestPeriodicTask(unittest.TestCase):
@@ -30,7 +32,7 @@ class TestPeriodicTask(unittest.TestCase):
             expected_result = (True, 5)
             assert check_messages(True) == expected_result
 
-    """
+    
     def test_send_notification_task(self):
         recipient_mail = (
             "pioppoj@gmail.com"  # insert here your mail to get the notification
@@ -44,7 +46,7 @@ class TestPeriodicTask(unittest.TestCase):
             }
         )
         assert send_notification_task(json_message)
-        """
+        
 
     def test_lottery(self):
         result = lottery(True)
