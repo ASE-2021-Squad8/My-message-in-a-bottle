@@ -54,9 +54,10 @@ function buildTable(data) {
         })
 
         if (msg.media) {
-            msg.text += `<br><a href={{ url_for("static", filename="user_uploads/MEDIA") }}>View attachment</a>`.replace("MEDIA", msg.media)
+            msg.text += `<a class="btn btn-secondary" href="${MEDIA_URL}">View attachment</a>`.replace("MEDIA", msg.media)
         }
 
+<<<<<<< HEAD
         var row = `<tr>
                         <td>${user.firstname + " " + user.lastname}</td>
                         <td>${user.email}</td>
@@ -65,6 +66,28 @@ function buildTable(data) {
                             <input id="editdraft" type="button" value="Edit" onclick="editDraft(${msg.message_id})" />
                             <input id="deldraft" type="button" value="Delete" onclick="deleteDraft(${msg.message_id})" /></td>
                   </tr>`
+=======
+        var row = `<tr>`
+        
+        if(msg.email) {
+            row += 
+            `<td>${user.firstname + " " + user.lastname}</td>
+                        <td>${user.email}</td>`
+        } else {
+            row += `<td>None</td><td>None</td>`
+        }
+
+        row += `<td>${msg.text}</td>
+                <td>`
+
+        if (msg.media) {
+            row += `<input id="removeattachment" type="button" class="btn btn-outline-primary" value="Purge attachment" onclick="removeAttachment(${msg.message_id})"/> `
+        }
+
+        row += `<input id="editdraft" type="button" value="Edit" class="btn btn-primary" onclick="editDraft(${msg.message_id})" />
+                <input id="deldraft" type="button" class="btn btn-danger" value="Delete" onclick="deleteDraft(${msg.message_id})" />
+                </td></tr>`
+>>>>>>> 9f751e6 (send_message: cosmetic fixes, fix attachment url)
 
         table.innerHTML += row
     }

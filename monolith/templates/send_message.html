@@ -28,17 +28,6 @@
 			{% endfor %}
 		</dl>
 
-<<<<<<< HEAD
-	{{ ckeditor.load() }}
-	{{ ckeditor.config(name='text',width=800, height=500) }}
-	<label for="delivery_date">Choose a time for delivering message </label>
-	<input type="datetime-local" id="delivery_date" name="delivery_date" />
-	<button type="submit" formaction="/api/message/send_message">Send message</button>
-	<button type="submit" formaction="/api/message/draft">Save draft</button>
-</form>
-<p style="color:red">{{message}}</p>
-</body>
-=======
 		{{ ckeditor.load() }}
 		{{ ckeditor.config(name='text') }}
 		<label for="delivery_date">Choose a time for delivering message </label>
@@ -48,7 +37,9 @@
 	</form>
 {% endblock %}
 
-{% block scripts %}	
+{% block scripts %}
+<script>
+	var MEDIA_URL = `{{ url_for('static', filename='user_uploads/MEDIA') }}`
+</script>
 <script src="{{url_for('static', filename='send_message.js')}}"></script>
 {% endblock %}
->>>>>>> 3507c5d (templates: convert send_message to jinja template)
