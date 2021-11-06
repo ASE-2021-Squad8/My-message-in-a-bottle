@@ -22,5 +22,10 @@ celery -A monolith.background worker -l INFO -Q notification --detach # for send
 celery -A monolith.background worker -l INFO --detach # for periodic tasks
 celery -A monolith.background beat -l INFO --detach # for scheduling period task 
 
-
-flask run
+if [[ $1 == "DEV" ]]
+then
+    flask run
+elif [[ $2 == "PROD" ]]
+then
+    waitress-serve --call 'monolith:create_app'
+fi
