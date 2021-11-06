@@ -1,51 +1,65 @@
 function get_day_message(day, month, year) {
   console.log(month);
-  $.get('/api/calendar/' + day + "/" + month + "/" + year , function (data) { write_message(data, day, month, year); });
+  $.get('/api/calendar/' + day + "/" + month + "/" + year, function (data) { write_message(data, day, month, year); });
 }
 
-function write_message(data, day, month, year){
-    var messages =  document.getElementById('sentmsg');
-    messages.innerHTML = ``
-    var int_month = parseInt(month, 10) + 1;
-    if(data.length == 0){
-      var display_html = `<h4 style="color:red">No messages sent for the day: ${day}/${int_month}/${year}</h4>`
-      messages.innerHTML += display_html;
-    }
-    else{
-        var display_html = `<h3 style="color:red">Your daily message</h3>`
-        for (var i = 0; i < data.length; i++) {
-        current_msg = JSON.parse(data[i]);
-        var text = current_msg.future ? "Will be sent at": "Sent at";
-        display_html += `
-              <h4 style="color:red"> ${text} ${current_msg.hour}:${current_msg.minute}</h4>
-              <h4 style="color:black"> Recipient Mail: ${current_msg.email}
-              Text message: ${current_msg.text}</h4>
+function write_message(data, day, month, year) {
+  console.log(data)
+
+  // Set model up to read message
+  var modal = document.getElementById("modal_read");
+  var modal_text = document.getElementById("modal_read_text");
+  var btn = document.getElementById("myBtn");
+  var span = document.getElementsByClassName("close")[0];
+  modal.style.display = "block";
+  modal_text.innerHTML = "";
+
+  var int_month = parseInt(month, 10) + 1;
+  if (data.length == 0) {
+    var display_html = `<h4>No messages for the day: ${day}/${int_month}/${year}</h4>`
+    modal_text.innerHTML += display_html;
+  } else {
+    var display_html = `<h3>Your daily messages</h3><hr>`
+    for (var i = 0; i < data.length; i++) {
+      current_msg = data[i];
+      var text = current_msg.future ? "Will be sent at" : "Sent at";
+      display_html += `
+              <h4> ${text} ${current_msg.delivered}</h4>
+              <h5>Recipient: ${current_msg.email}</h5><br>
+              ${current_msg.text}<br><hr>
               `;
-
-        
-        if(current_msg.candelete){
-            display_html += `<div><button onclick="delete_and_reload(${current_msg.message_id},${day}, ${month}, ${year})">Withdraw</button></div></br>`;
-        }
-        
-
+      if (current_msg.candelete) {
+        display_html += `<div><button type="button" class="btn btn-danger" onclick="delete_and_reload(${current_msg.message_id},${day}, ${month}, ${year})">Withdraw</button></div></br>`;
       }
-      messages.innerHTML += display_html;
     }
+    modal_text.innerHTML += display_html;
+  }
+
+
+  // Set up modal closing
+  span.onclick = function () {
+    modal.style.display = "none";
+  }
+  window.onclick = function (event) {
+    if (event.target == modal) {
+      modal.style.display = "none";
+    }
+  }
 }
 
-function delete_and_reload(msg_id, day, month, year){
+function delete_and_reload(msg_id, day, month, year) {
   $.ajax({
     url: '/api/lottery/message/delete/' + msg_id,
     type: 'DELETE',
     dataType: "json",
     success: function (data) {
-      var msg = data.message_id == -1 ? "Ops something went wrong, take a look at delivery date": "Message deleted!";
+      var msg = data.message_id == -1 ? "Ops something went wrong, take a look at delivery date" : "Message deleted!";
 
       alert(msg);
       get_day_message(day, month, year);
     },
   });
-  
+
 }
 
 const date = new Date();

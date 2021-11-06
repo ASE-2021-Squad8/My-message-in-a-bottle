@@ -1,30 +1,19 @@
-* {
-    margin: 0;
-    padding: 0;
-    
-    box-sizing: border-box;
-    font-family: "Quicksand", sans-serif;
-  }
-  
-  html {
-    font-size: 62.5%;
-  }
-  
-  .container {
+  .container-calendar {
     width: 100%;
     height: 100vh;
     background-color: #ffffff;
     color: #eee;
-    display: flex;
     justify-content: center;
     align-items: center;
+    font-size: 62%;
  }
   
   .calendar {
     width: 45rem;
-    height: 52rem;
+    height: 45rem;
     background-color: #222227;
     box-shadow: 0 0.5rem 3rem rgba(0, 0, 0, 0.4);
+    font-size: 62% !important;
   }
   
   .month {
