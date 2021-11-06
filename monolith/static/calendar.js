@@ -121,9 +121,9 @@ const renderCalendar = () => {
       i === new Date().getDate() &&
       date.getMonth() === new Date().getMonth()
     ) {
-      days += `<div class="today"><button id="myBtn" onclick="get_day_message('${i}', '${date.getMonth()}', '${date.getFullYear()}')">${i}</button></div>`;
+      days += `<div class="today"><button class="btn btn-outline-white" id="myBtn" onclick="get_day_message('${i}', '${date.getMonth()}', '${date.getFullYear()}')">${i}</button></div>`;
     } else {
-      days += `<div><button onclick="get_day_message('${i}', '${date.getMonth()}', '${date.getFullYear()}')">${i}</button></div>`;
+      days += `<div><button class="btn btn-outline-primary" onclick="get_day_message('${i}', '${date.getMonth()}', '${date.getFullYear()}')">${i}</button></div>`;
     }
   }
 
