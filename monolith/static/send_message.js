@@ -109,12 +109,10 @@ function editDraft(draft_id) {
         type: 'GET',
         dataType: 'json',
         success: function (response) {
-            console.log(response)
-            var text = document.getElementById('text')
             var recipient = document.getElementById('recipient')
             var draft_hidden_field = document.getElementById('draft_id')
 
-            text.value = response.text
+            CKEDITOR.instances.text.setData(response.text);
             recipient.value = response.recipient
             draft_hidden_field.value = draft_id
         }
