@@ -1,40 +1,14 @@
 {% extends "base.html" %}
 {% block title %}Edit profile{% endblock %}
 
-{% block html_head %}
-<style>
-  body  {
-    background-image: url("{{url_for('static', filename='account_datas.jpg')}}");
-    background-size: cover;
-    color:black;
-  }
-  
-  h1{
-    font-family: 'Abril Fatface', cursive;
-  }
-
-  .container-md{
-    top: 40%;
-    background-color: #F2F2F2;
-    border-radius: 3%;
-    width: 400px;
-    height: 450px;
-  }
-</style>
-{% endblock %}
-
 {% block content %}
-<a href="/" type="button" style="position: relative; left: 20px; top: 15px"
-  class="btn btn-primary">Homepage</a>
-<a href="/settings" type="button" style="position: relative; left: 20px; top:
-  15px" class="btn btn-primary">Back to settings</a>
+<h1>Edit profile</h1>
+<a href="/" type="button" class="btn btn-outline-primary">Homepage</a>
+<a href="/settings" type="button" class="btn btn-outline-primary">Back to settings</a><br><br>
 
-<div class="container-md">
-  <div class="text-center">
+  <div>
     <form action="" method="POST">
       {{ form.hidden_tag() }}
-      <br>
-      <h1>Edit profile</h1>
       <h5>First name</h5><input type="text" name="textfirstname" value=
         {{user.firstname}}>
       <h5>Last name</h5><input type="text" name="textlastname" value=
@@ -46,6 +20,5 @@
         <br>
         <input type=submit value="Submit" class="btn btn-outline-primary"><br>
         <h7 style="color: red;"> {{ error }}</h7>
-      </div>
     </div>
 {% endblock %}
