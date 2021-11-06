@@ -17,8 +17,10 @@ def index():
 
 
 @home.route("/error_page")
-def to_error_page():
-    return render_template("error_page.html", message="Fatal error")
+def to_error_page(msg):
+    return render_template(
+        "error_page.html", message="Ooops something went wrong! {0}".format(msg)
+    )
 
 
 @home.route("/settings")
