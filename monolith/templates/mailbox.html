@@ -61,12 +61,12 @@
 <h1>Mailbox</h1><br>
 <a href="/" type="button" class="btn btn-outline-primary">Homepage</a><br><br>
 
-<h3>Received messages <a type="button" href="" class="btn btn-outline-dark btn-sm">Reload</a></h3>
+<h3>Received messages</h3>
 <br>
 <table class="table table-light" id="received"></table>
 <br>
 
-<h3>Sent messages</h3>
+<h3>Delivered messages</h3>
 <table class="table table-light" id="sent"></table>
 
 <!--MODAL FOR READ MESSAGE-->
@@ -128,6 +128,9 @@
 {% endblock %}
 
 {% block scripts %}
+<script>
+	var MEDIA_URL = `{{ url_for('static', filename='user_uploads/MEDIA') }}`
+</script>
 <script src="{{ url_for('static', filename='mailbox.js') }}"></script>
 <script>
 		function refreshTables() {

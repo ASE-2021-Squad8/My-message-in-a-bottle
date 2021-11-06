@@ -76,7 +76,7 @@ function open_message_received(msg_id) {
             modal_text.innerHTML = message.text;
 
             if (message.media) {
-                modal_text.innerHTML += `<br><a href={{ url_for("static", filename="user_uploads/MEDIA") }}>View attachment</a>`.replace("MEDIA", message.media)
+                modal_text.innerHTML += `<a class="btn btn-secondary" href="${MEDIA_URL}">View attachment</a>`.replace("MEDIA", msg.media)
             }
         },
         error: function () {
@@ -123,7 +123,7 @@ function open_message_sent(msg_id) {
             modal_text.innerHTML = message.text;
 
             if (message.media) {
-                modal_text.innerHTML += `<br><a href={{ url_for("static", filename="user_uploads/MEDIA") }}>View attachment</a>`.replace("MEDIA", message.media)
+                modal_text.innerHTML += `<a class="btn btn-secondary" href="${MEDIA_URL}">View attachment</a>`.replace("MEDIA", msg.media)
             }
         },
         error: function () {
