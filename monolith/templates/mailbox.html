@@ -1,140 +1,138 @@
-<html>
+{% extends "base.html" %}
+{% block title %}Mailbox{% endblock %}
 
-<head>
-	<style>
-		/* The Modal (background) */
-		.modal {
-			display: none;
-			/* Hidden by default */
-			position: fixed;
-			/* Stay in place */
-			z-index: 1;
-			/* Sit on top */
-			left: 0;
-			top: 0;
-			width: 100%;
-			/* Full width */
-			height: 100%;
-			/* Full height */
-			overflow: auto;
-			/* Enable scroll if needed */
-			background-color: rgb(0, 0, 0);
-			/* Fallback color */
-			background-color: rgba(0, 0, 0, 0.4);
-			/* Black w/ opacity */
-		}
+{% block html_head %}
+<style>
+	/* The Modal (background) */
+	.modal {
+		display: none;
+		/* Hidden by default */
+		position: fixed;
+		/* Stay in place */
+		z-index: 1;
+		/* Sit on top */
+		left: 0;
+		top: 0;
+		width: 100%;
+		/* Full width */
+		height: 100%;
+		/* Full height */
+		overflow: auto;
+		/* Enable scroll if needed */
+		background-color: rgb(0, 0, 0);
+		/* Fallback color */
+		background-color: rgba(0, 0, 0, 0.4);
+		/* Black w/ opacity */
+	}
 
-		/* Modal Content/Box */
-		.modal-content {
-			background-color: #fefefe;
-			text-align: left;
-			margin: 15% auto;
-			/* 15% from the top and centered */
-			padding: 20px;
-			border: 1px solid #888;
-			width: 80%;
-			/* Could be more or less, depending on screen size */
-		}
+	/* Modal Content/Box */
+	.modal-content {
+		background-color: #fefefe;
+		text-align: left;
+		margin: 15% auto;
+		/* 15% from the top and centered */
+		padding: 20px;
+		border: 1px solid #888;
+		width: 80%;
+		/* Could be more or less, depending on screen size */
+	}
 
-		/* The Close Button */
-		.close {
-			color: #aaa;
-			text-align: right;
-			float: right;
-			font-size: 28px;
-			font-weight: bold;
-		}
+	/* The Close Button */
+	.close {
+		color: #aaa;
+		text-align: right;
+		float: right;
+		font-size: 28px;
+		font-weight: bold;
+	}
 
-		.close:hover,
-		.close:focus {
-			color: black;
-			text-decoration: none;
-			cursor: pointer;
-		}
-	</style>
+	.close:hover,
+	.close:focus {
+		color: black;
+		text-decoration: none;
+		cursor: pointer;
+	}
+</style>
+{% endblock %}
 
-</head>
+{% block content %}
+{{ ckeditor.load() }}
 
-<body>
-	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
-	<script src="{{ url_for('static', filename='mailbox.js')}}"></script>
+<h1>Mailbox</h1><br>
+<a href="/" type="button" class="btn btn-outline-primary">Homepage</a><br><br>
 
-	<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
-		integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
-	{{ ckeditor.load() }}
+<h3>Received messages</h3>
+<br>
+<table class="table table-light" id="received"></table>
+<br>
 
-	<h1>Mailbox</h1><br>
+<h3>Delivered messages</h3>
+<table class="table table-light" id="sent"></table>
 
-	<a href="/" type="button" class="btn btn-outline-primary">Homepage</a><br><br>
-
-	<h3>Received messages</h3>
-	<a type="button" href="" class="btn btn-outline-dark btn-sm">Reload messages</a><br><br>
-	<table class="table table-striped" id="received">
-		
-	</table><br>
-
-
-	<h3>Sent messages</h3>
-	<table class="table table-striped" id="sent">
-	</table>
-
-	<!--MODAL FOR READ MESSAGE-->
-	<div id="modal_read" class="modal">
-		<div class="modal-content">
-			<span class="close">&times;</span>
-			<div id="modal_read_text">
-				<p>ASE &lt;3 </p>
-			</div>
+<!--MODAL FOR READ MESSAGE-->
+<div id="modal_read" class="modal">
+	<div class="modal-content">
+		<span class="close">&times;</span>
+		<div id="modal_read_text">
+			<p>ASE &lt;3 </p>
 		</div>
 	</div>
+</div>
 
-	<!--MODAL FOR REPLY MESSAGE-->
-	<div id="modal_reply" class="modal">
-		<div class="modal-content">
-			<span class="close">&times;</span>
-			<h2>Reply to message</h2>
-			<form method="POST" id="reply-form" enctype="multipart/form-data">
-				<input type="hidden" id="draft_id" name="draft_id" value=''>
-				<label for="recipient">Recipient</label><br>
-				<select name="recipient">
-					<option id="recipient_reply" value="${msg.sender_id}" selected>${msg.email}</option>
-				</select><br><br>
-				<label for="text">Message text</label><br>
-				{{ ckeditor.config(name='reply_text') }}
-				{{ ckeditor.create(name='reply_text') }}<br><br>
-				<label for="attachment">Attach an image</label><br>
-				<input id="attachment" name="attachment" type="file"><br>
-				<label for="delivery_date">Choose a time for delivering message</label><br>
-				<input type="datetime-local" id="delivery_date" name="delivery_date" required /><br><br>
-				<button type="button" onclick='javascript:send_msg_reply_forward("reply-form")'
-					class="btn btn-primary">Send message</button>
-			</form>
-		</div>
+<!--MODAL FOR REPLY MESSAGE-->
+<div id="modal_reply" class="modal">
+	<div class="modal-content">
+		<span class="close">&times;</span>
+		<h2>Reply to message</h2>
+		<form method="POST" id="reply-form" enctype="multipart/form-data">
+			<input type="hidden" id="draft_id" name="draft_id" value=''>
+			<label for="recipient">Recipient</label><br>
+			<select name="recipient">
+				<option id="recipient_reply" value="${msg.sender_id}" selected>${msg.email}</option>
+			</select><br><br>
+			<label for="text">Message text</label><br>
+			{{ ckeditor.config(name='reply_text') }}
+			{{ ckeditor.create(name='reply_text') }}<br><br>
+			<label for="attachment">Attach an image</label><br>
+			<input id="attachment" name="attachment" type="file"><br>
+			<label for="delivery_date">Choose a time for delivering message</label><br>
+			<input type="datetime-local" id="delivery_date" name="delivery_date" required
+				/><br><br>
+			<button type="button" onclick='javascript:send_msg_reply_forward("reply-form" )'
+				class="btn btn-primary">Send message</button>
+		</form>
 	</div>
+</div>
 
+<!--MODAL FOR Forward-->
+<div id="modal_forward" class="modal">
+	<div class="modal-content">
+		<span class="close">&times;</span>
+		<h2>Forward message</h2>
+		<form method="POST" id="forward-form-rec">
+			<input type="hidden" name="draft_id" value=''>
+			<label for="recipient">Recipient</label><br>
+			<select id="recipient" name="recipient"></select><br><br>
+			<label for="text">Message text</label><br>
 
-	<!--MODAL FOR Forward-->
-	<div id="modal_forward" class="modal">
-		<div class="modal-content">
-			<span class="close">&times;</span>
-			<h2>Forward message</h2>
-			<form method="POST" id="forward-form-rec">
-				<input type="hidden" name="draft_id" value=''>
-				<label for="recipient">Recipient</label><br>
-				<select id="recipient" name="recipient"></select><br><br>
-				<label for="text">Message text</label><br>
-
-				{{ ckeditor.config(name='fwd_text') }}
-				{{ ckeditor.create(name='fwd_text') }}<br><br>
-				<label for="delivery_date">Choose a time for delivering message</label><br>
-				<input type="datetime-local" id="delivery_date" name="delivery_date" required /><br><br>
-				<button type="button" onclick='javascript:send_msg_reply_forward("forward-form-rec", true)'
-					class="btn btn-primary">Send message</button>
-			</form>
-		</div>
+			{{ ckeditor.config(name='fwd_text') }}
+			{{ ckeditor.create(name='fwd_text') }}<br><br>
+			<label for="delivery_date">Choose a time for delivering message</label><br>
+			<input type="datetime-local" id="delivery_date" name="delivery_date" required
+				/><br><br>
+			<button type="button" onclick='javascript:send_msg_reply_forward("forward-form-rec" , true)'
+				class="btn btn-primary">Send message</button>
+		</form>
 	</div>
+</div>
+{% endblock %}
 
-	<script>
+{% block scripts %}
+<script>
+	var MEDIA_URL = `{{ url_for('static', filename='user_uploads/MEDIA') }}`
+</script>
+<script src="{{ url_for('static', filename='mailbox.js') }}"></script>
+<script>
 		function refreshTables() {
 			$.get('/api/message/received/metadata', function (data) { buildTableReceived(data); });
 			$.get('/api/message/sent/metadata', function (data) { buildTableSent(data) });
@@ -142,5 +140,5 @@
 		
 		refreshTables();
 		setInterval(refreshTables, 10 * 1000);
-	</script>
-</html>
+</script>
+{% endblock %}

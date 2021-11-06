@@ -1,146 +1,45 @@
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-<script type="application/javascript">
-	function get_recipient() {
-		$.ajax({
-			url: "/user/get_recipients",
-			contentType: "application/json",
-			dataType: "json",
-			success: function (data, status) {
-				console.log("status " + status);
-				items = data;
-				$.each(items, function (i, item) {
-					$('#recipient').append($('<option>', {
-						value: item.id,
-						text: item.email
-					}));
-				});
-				loaded = true;
-			},
-			error: function (a, b, c) {
-				console.log(a + " " + b + " " + c)
-			}
-		});
-	}
+{% extends "base.html" %}
+{% block title %}Send or draft message{% endblock %}
 
-	$(document).ready(function () {
-		get_recipient();
-		$.get('/api/message/draft/all', buildTable);
-	});
-
-	function buildTable(data) {
-		var table = document.getElementById('draftsTable')
-
-		if (data.length == 0) {
-			table.innerHTML = "No drafts!"
-			return
-		}
-
-		table.innerHTML = `<tr class="bg-info">
-            <th>Recipient</th>
-            <th>E-mail</th>
-            <th>Text</th>
-            <th>Actions</th>
-        </tr>`
-
-		for (var i = 0; i < data.length; i++) {
-			msg = data[i]
-			user = ""
-			$.ajax({
-				url: '/api/user/' + msg.recipient,
-				type: 'GET',
-				async: false,
-				dataType: 'json',
-				success: function (response) { user = response }
-			})
-
-			if (msg.media) {
-				msg.text += `<br><a href={{ url_for("static", filename="user_uploads/MEDIA") }}>View attachment</a>`.replace("MEDIA", msg.media)
-			}
-
-			var row = `<tr>
-							<td>${user.firstname + " " + user.lastname}</td>
-                            <td>${user.email}</td>
-							<td>${msg.text}</td>
-                            <td><input id="removeattachment" type="button" value="Purge attachment" onclick="removeAttachment(${msg.message_id})" />
-								<input id="editdraft" type="button" value="Edit" onclick="editDraft(${msg.message_id})" />
-                                <input id="deldraft" type="button" value="Delete" onclick="deleteDraft(${msg.message_id})" /></td>
-					  </tr>`
-			
-			table.innerHTML += row
-		}
-	}
-
-	function deleteDraft(draft_id) {
-		$.ajax({
-			url: '/api/message/draft/' + draft_id,
-			type: 'DELETE',
-			success: function () {
-				alert("Draft deleted")
-				location.reload(true)
-			},
-		})
-	}
-
-	function removeAttachment(draft_id) {
-		$.ajax({
-			url: '/api/message/draft/' + draft_id + '/attachment',
-			type: 'DELETE',
-			success: function () {
-				location.reload(true)
-			},
-		})
-	}
-
-	function editDraft(draft_id) {
-		$.ajax({
-			url: '/api/message/draft/' + draft_id,
-			type: 'GET',
-			dataType: 'json',
-			success: function (response) {
-				console.log(response)
-				var text = document.getElementById('text')
-				var recipient = document.getElementById('recipient')
-				var draft_hidden_field = document.getElementById('draft_id')
-
-				text.value = response.text
-				recipient.value = response.recipient
-				draft_hidden_field.value = draft_id
-			}
-		})
-	}
-</script>
-
+{% block content %}
 <h1>Send a message</h1>
-<a href="/">Home</a><br>
+	<a href="/" type="button" class="btn btn-outline-primary">Homepage</a><br><br>
+	<h3>Drafted messages</h3>
 
-<table class="table table-striped">
-	<tbody id="draftsTable">
-		<h2>Drafted messages</h2>
-	</tbody>
-</table>
+	<!-- This gets filled by JS -->
+	<table class="table table-light" id="draftsTable">
+	</table>
 
-<h2>Compose message</h2>
-<form method="POST" enctype="multipart/form-data">
-	{{ form.hidden_tag() }}
-	<dl>
-		<dt><label>Choose recipients </label></dt>
-		<dt><select multiple name="recipient" required id="recipient"></dt></select>
-		{% for field in form.display %}
-		<dt>{{ form[field].label }}</dt>
-		<dd>{{ form[field]() }}</dd><br>
-		{% if form[field].errors %}
-		{% for e in form[field].errors %}
-		<p class="help-block">{{ e }}</p>
-		{% endfor %}
-		{% endif %}
-		{% endfor %}
-	</dl>
+	<h2>Compose message</h2>
+	<p style="color:red">{{message}}</p>
+	<form method="POST" enctype="multipart/form-data">
+		{{ form.hidden_tag() }}
+		<dl>
+			<dt><label>Choose recipients </label></dt>
+			<p>(<i>Hint: use Ctrl or Cmd to select multiple users</i>)</p>
+			<dt><select multiple name="recipient" id="recipient"></dt></select><br><br>
+			{% for field in form.display %}
+			<dt>{{ form[field].label }}</dt>
+			<dd>{{ form[field]() }}</dd><br>
+			{% if form[field].errors %}
+			{% for e in form[field].errors %}
+			<p class="help-block">{{ e }}</p>
+			{% endfor %}
+			{% endif %}
+			{% endfor %}
+		</dl>
+		{{ ckeditor.load() }}
+		{{ ckeditor.config(name='text') }}
+		<label for="delivery_date"><b>Choose a time for delivering message </b></label><br>
+		<input type="datetime-local" id="delivery_date" name="delivery_date" /><br><br><br>
+		<button type="submit" formaction="/api/message/draft" class="btn btn-primary">Save draft</button>
+		<button type="submit" formaction="/api/message/send_message" class="btn btn-primary">Send message</button>
+	</form>
+{% endblock %}
 
-	{{ ckeditor.load() }}
-	{{ ckeditor.config(name='text',width=800, height=500) }}
-	<label for="delivery_date">Choose a time for delivering message </label>
-	<input type="datetime-local" id="delivery_date" name="delivery_date" />
-	<button type="submit" formaction="/api/message/send_message">Send message</button>
-	<button type="submit" formaction="/api/message/draft">Save draft</button>
-</form>
-<p style="color:red">{{message}}</p>
+{% block scripts %}
+<script>
+	var MEDIA_URL = `{{ url_for('static', filename='user_uploads/MEDIA') }}`
+</script>
+<script src="{{url_for('static', filename='send_message.js')}}"></script>
+{% endblock %}

@@ -1,11 +1,17 @@
+{% extends "base.html" %}
+{% block title %}Report a user{% endblock %}
+
+{% block content %}
 <h1>Report a user</h1>
+
+<a href="/" type="button" class="btn btn-outline-primary">Homepage</a> 
+<a href="/settings" type="button" class="btn btn-outline-primary">Back to settings</a><br><br>
 
 <h4>Insert the email of the user you want to report</h4>
 
 <form method="POST">
-	<label for="useremail">Email:</label>
 	<input type="text" id="useremail" name="useremail"><br><br>
-	<button type="submit" formaction="/report_user">Submit</button>
+	<button type="submit" class="btn btn-danger"formaction="/report_user">Report</button>
 </form>
 
 {% if error != "" %}
@@ -14,5 +20,5 @@
 {% if reported != "" %}
 	{{ reported }}
 {% endif %}
-
-<br><a href="/settings">Back to settings</a>
+{{feedback}}
+{% endblock %}

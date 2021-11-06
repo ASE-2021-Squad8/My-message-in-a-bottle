@@ -1,8 +1,8 @@
 
 function buildTableReceived(data) {
     var table = document.getElementById('received');
-    table.innerHTML = `<thead class="thead-dark">
-    <tr class="bg-info">
+    table.innerHTML = `<thead class="thead-light">
+    <tr>
         <th class="text-center" scope="col">Sender</th>
         <th class="text-center" scope="col">E-mail</th>
         <th class="text-center" scope="col">Open message</th>
@@ -29,7 +29,7 @@ function buildTableReceived(data) {
 
 function buildTableSent(data) {
     var table = document.getElementById('sent');
-    table.innerHTML = `		<thead class="thead-dark">
+    table.innerHTML = `<thead class="thead-light">
     <tr class="bg-info"></tr>
     <th class="text-center">Receiver</th>
     <th class="text-center">E-mail</th>
@@ -76,7 +76,7 @@ function open_message_received(msg_id) {
             modal_text.innerHTML = message.text;
 
             if (message.media) {
-                modal_text.innerHTML += `<br><a href={{ url_for("static", filename="user_uploads/MEDIA") }}>View attachment</a>`.replace("MEDIA", message.media)
+                modal_text.innerHTML += `<a class="btn btn-secondary" href="${MEDIA_URL}">View attachment</a>`.replace("MEDIA", msg.media)
             }
         },
         error: function () {
@@ -123,7 +123,7 @@ function open_message_sent(msg_id) {
             modal_text.innerHTML = message.text;
 
             if (message.media) {
-                modal_text.innerHTML += `<br><a href={{ url_for("static", filename="user_uploads/MEDIA") }}>View attachment</a>`.replace("MEDIA", message.media)
+                modal_text.innerHTML += `<a class="btn btn-secondary" href="${MEDIA_URL}">View attachment</a>`.replace("MEDIA", msg.media)
             }
         },
         error: function () {

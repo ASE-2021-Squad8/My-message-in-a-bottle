@@ -1,7 +1,8 @@
-<html>
-    <head>
-        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-        <script type="application/javascript">
+{% extends "base.html" %}
+{% block title %}Blacklist{% endblock %}
+
+{% block scripts %}
+<script type="application/javascript">
             function get_users_id(form,operation){ 
                 let name = operation === "add" ? "users" : "black_users";
                 let arr = $(form).serializeArray(); 
@@ -45,39 +46,42 @@
                 });
             }
         </script>
-    </head>
-        <body>
-            </div>
-            <form>
-                {{ form.hidden_tag() }}
-                <label for="users">Users non-present in your black list</label>
-                <br>
-                <select multiple name="users" required id="users">
-                    {% for i in form.users %}
-                        {{i}}
-                    {%endfor%}
-                </select>
-                <br>
-                <br>
-                <button type="button" onclick="javascript : update_black_list(document.forms[0],'add')"> Add users</button>
-            </form>
-            <!--TODO delete in ajax-->
-            <form>
-                {{ form.hidden_tag() }}
-                <label for="users">Users present in your black list</label>
-                <br>
-                <select multiple name="black_users" required id="black_users">
-                    {% for i in form.black_users %}
-                        {{i}}
-                    {%endfor%}
-                </select>
-                <br>
-                <br>
-                <button type="button" onclick="javascript : update_black_list(document.forms[1],'delete')">Delete users</button>
-            </form>
-            <p>Hold down the Ctrl or Command (Mac) button to select multiple options.</p>
-            <br>
-            <br>
-            <a href="/">Homepage</a>
-        </body>
-</html>
+{% endblock %}
+
+{% block content %}
+<h1>Blacklist</h1>
+<a href="/" type="button" class="btn btn-outline-primary">Homepage</a>
+<a href="/settings" type="button" class="btn btn-outline-primary">Back to settings</a><br><br>
+<form>
+    {{ form.hidden_tag() }}
+    <label for="users">Users non-present in your black list</label>
+    <br>
+    <select multiple name="users" required id="users">
+        {% for i in form.users %}
+        {{i}}
+        {%endfor%}
+    </select>
+    <br>
+    <br>
+    <button type="button" class="btn btn-primary"
+        onclick="javascript:update_black_list(document.forms[0],'add')"> Add
+        users</button>
+</form>
+<!--TODO delete in ajax-->
+<form>
+    {{ form.hidden_tag() }}
+    <label for="users">Users present in your black list</label>
+    <br>
+    <select multiple name="black_users" required id="black_users">
+        {% for i in form.black_users %}
+        {{i}}
+        {%endfor%}
+    </select>
+    <br>
+    <br>
+    <button type="button" class="btn btn-danger" onclick="javascript :
+        update_black_list(document.forms[1],'delete')">Delete users</button>
+</form>
+<br>
+<p>Hint: hold down the Ctrl or Command (Mac) button to select multiple options.</p>
+{% endblock %}

@@ -1,25 +1,23 @@
-<html>
+{% extends "base.html" %}
+{% block title %}Index{% endblock %}
 
-<body>
-	<h1>Create a new user</h1>
-	<a href="/">Home</a><br><br>
-	<form action="" method="POST">
-		{{ form.hidden_tag() }}
-		<dl>
-			{% for field in form.display %}
-			<dt>{{ form[field].label }}</dt>
-			<dd>{{ form[field]() }}</dd><br>
-			{% if form[field].errors %}
-			{% for e in form[field].errors %}
-			<p class="help-block">{{ e }}</p>
-			{% endfor %}
-			{% endif %}
-			{% endfor %}
-		</dl>
-		<p>
-			<input type=submit value="Submit">
-	</form>
-	<p style="color:red">{{error}}</p>
-</body>
-
-</html>
+{% block content %}
+<h1>Create a new user</h1>
+<a href="/" type="button" class="btn btn-outline-primary">Homepage</a><br><br>
+<p style="color:red">{{error}}</p>
+<form action="" method="POST">
+	{{ form.hidden_tag() }}
+	<dl>
+		{% for field in form.display %}
+		<dt>{{ form[field].label }}</dt>
+		<dd>{{ form[field]() }}</dd><br>
+		{% if form[field].errors %}
+		{% for e in form[field].errors %}
+		<p class="help-block">{{ e }}</p>
+		{% endfor %}
+		{% endif %}
+		{% endfor %}
+	</dl>
+	<p><input type=submit value="Submit"></p>
+</form>
+{% endblock %}
