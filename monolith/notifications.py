@@ -14,6 +14,18 @@ DefaultEmailConfig = EmailConfig(
 
 
 def send_notification(msg_sender, receiver, msg_body, config=DefaultEmailConfig):
+    """Sends an email from a specific sender to a certain recipient.
+
+    :param msg_sender: sender email address
+    :type msg_sender: str
+    :param receiver: recipient email address
+    :type receiver: str
+    :param msg_body: contents of the message
+    :type msg_body: str
+    :param config: email configuration settings, defaults to DefaultEmailConfig
+    :type config: EmailConfig, optional
+    :raises e: if SMTP connection times out
+    """
 
     try:
         with smtplib.SMTP(config.server, config.port, timeout=10) as server:
@@ -26,5 +38,5 @@ def send_notification(msg_sender, receiver, msg_body, config=DefaultEmailConfig)
             mail.set_content(msg_body)
 
             server.sendmail(config.email, receiver, mail.as_string())
-    except socket.timeout as e:
+    except socket.timeout as e: # pragma: no cover
         raise e

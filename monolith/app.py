@@ -47,8 +47,10 @@ def create_app(test_mode=False):
     app.register_error_handler(TemplateError, to_error_page)
 
     app.config["UPLOAD_FOLDER"] = os.path.join(app.root_path, "static", "user_uploads")
-    if not os.path.exists(app.config["UPLOAD_FOLDER"]):
+    try:
         os.makedirs(app.config["UPLOAD_FOLDER"])
+    except OSError as e:
+        pass
 
     for bp in blueprints:
         app.register_blueprint(bp)
@@ -58,7 +60,7 @@ def create_app(test_mode=False):
     login_manager.init_app(app)
     db.create_all(app=app)
 
-    ckeditor = CKEditor(app)
+    _ = CKEditor(app)
 
     # create a first admin user
     with app.app_context():
@@ -77,6 +79,6 @@ def create_app(test_mode=False):
     return app
 
 
-if __name__ == "__main__":
+if __name__ == "__main__": # pragma: no cover
     app = create_app()
     app.run()

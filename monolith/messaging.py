@@ -28,13 +28,40 @@ def get_user_drafts(user_id):
 
 
 def get_user_draft(user_id, draft_id):
+    """Returns a specific draft for a user
+
+    :param user_id: user id
+    :type user_id: int
+    :param draft_id: draft id
+    :type draft_id: id
+    :raises KeyError: if the draft cannot be found
+    :return: the draft message object
+    :rtype: Message
+    """
+
     q = db.session.query(Message).filter(
         Message.sender == user_id, Message.is_draft, Message.message_id == draft_id
     )
-    return q.first()
+
+    draft = q.first()
+    if draft is None:
+        raise KeyError()
+    
+    return draft
 
 
 def unmark_draft(user_id, draft_id):
+    """Sets a message as 'not a draft'
+
+    :param user_id: id of the draft owner
+    :type user_id: int
+    :param draft_id: id of the draft
+    :type draft_id: int
+    :raises KeyError: if the draft was not found
+    :return: the message object, no longer a draft
+    :rtype: Message
+    """
+
     message = (
         db.session.query(Message)
         .filter(
@@ -58,18 +85,24 @@ def delete_draft_attachment(user_id, message_id):
     :type user_id: int
     :param message_id: id of the drafted message
     :type message_id: int
+    :raises KeyError: if the draft is not found
     :return: True the attachment was removed, False otherwise
     :rtype: bool
     """
 
     draft = get_user_draft(user_id, message_id)
-    if draft.media is not None or draft.media != "":
+    if draft.media == "":
+        # No attachment to remove
+        return False
+
+    try:
         os.unlink(os.path.join(current_app.config["UPLOAD_FOLDER"], draft.media))
         draft.media = ""
         db.session.commit()
-        return True
+    except FileNotFoundError:
+        return False
 
-    return False
+    return True
 
 
 def delete_user_message(user_id, message_id, is_draft=False):
@@ -78,7 +111,7 @@ def delete_user_message(user_id, message_id, is_draft=False):
     )
     message = q.first()
     if message is None:
-        raise ValueError()
+        raise KeyError()
 
     db.session.delete(message)
     db.session.commit()
