@@ -412,7 +412,7 @@ def calendar():
 
 
 @msg.route("/api/calendar/<int:day>/<int:month>/<int:year>")
-def calendar_sed_message(day, month, year):
+def sent_messages_by_day(day, month, year):
     check_authenticated()
     if day > 31 and month + 1 > 12:
         return _get_result(None, ERROR_PAGE, True, 404, "Invalid date")
@@ -427,6 +427,5 @@ def calendar_sed_message(day, month, year):
                 upperdate = date(year, month + 2, 1)
         userid = getattr(current_user, "id")
 
-        # Per ora lascio come ultimo parametro passato True, dovrà essere sostituito con canDelete
-        message = monolith.messaging.get_day_message(userid, basedate, upperdate)
-        return jsonify(message)
+        messages = monolith.messaging.get_day_message(userid, basedate, upperdate)
+        return jsonify(messages)
