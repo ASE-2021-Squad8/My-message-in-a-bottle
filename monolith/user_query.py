@@ -3,7 +3,7 @@ from monolith.database import User, db, BlackList
 
 def get_recipients(sender_id):
     """Gets the list of possible recipients for a specific user,
-    accounting for the blasklist
+    accounting for the blacklist
 
     :param sender_id: user id of the sender
     :type sender_id: int
@@ -33,16 +33,12 @@ def get_blacklist(owner_id):
     :rtype: list[User]
     """
 
-    result = []
-    try:
-        result = (
-            db.session.query(BlackList.member, User.email)
-            .filter(BlackList.owner == owner_id)
-            .filter(BlackList.member == User.id)
-            .all()
-        )
-    except Exception as e:
-        print("Exception in get_black_list %r", e)
+    result = (
+        db.session.query(BlackList.member, User.email)
+        .filter(BlackList.owner == owner_id)
+        .filter(BlackList.member == User.id)
+        .all()
+    )
 
     return result
 
@@ -68,7 +64,7 @@ def add_to_blacklist(owner_id, members_id):
         result = True
     except Exception as e:
         db.session.rollback()
-        print("Exception in add_user_to_black_list %r", e)
+        print("Exception in add_user_to_black_list:", e)
 
     return result
 
@@ -82,23 +78,17 @@ def get_blacklist_candidates(owner_id):
     :rtype: list[User]
     """
 
-    result = []
-    try:
-        result = (
-            db.session.query(User.id, User.email)
-            .filter(User.id != owner_id)
-            .filter(
-                User.id.not_in(
-                    db.session.query(BlackList.member).filter(
-                        BlackList.owner == owner_id
-                    )
-                )
+    result = (
+        db.session.query(User.id, User.email)
+        .filter(User.id != owner_id)
+        .filter(
+            User.id.not_in(
+                db.session.query(BlackList.member).filter(BlackList.owner == owner_id)
             )
-            .all()
         )
-        result = [(usr.id, usr.email) for usr in result]
-    except Exception as e:
-        print("Exception in get_choices %r", e)
+        .all()
+    )
+    result = [(usr.id, usr.email) for usr in result]
 
     return result
 
@@ -125,7 +115,7 @@ def remove_from_blacklist(owner_id, members_id):
         result = True
     except Exception as e:
         db.session.rollback()
-        print("Exception in delete_user_black_list %r", e)
+        print("Exception in delete_user_black_list:", e)
 
     return result
 
@@ -144,7 +134,7 @@ def get_user_mail(user_id):
         tmp = db.session.query(User.email).filter(User.id == user_id).first()
         result = tmp[0]
     except Exception as e:
-        print("Exception in get_user_mail %r", e)
+        print("Exception in get_user_mail:", e)
 
     return result
 
@@ -167,21 +157,20 @@ def get_user_by_email(user_email):
 
 def get_lottery_participants():
     """Returns all participants to monthly lottery
+
     :param: no pramars
     :return: empty list in case an exception occurs otherwise users list
     :rtype: Users []
     """
-    result = []
-    try:
-        result = db.session.query(User).filter(User.is_active).all()
-    except Exception as e:
-        print("Exception in get_lottery_participants %r", e)
+
+    result = db.session.query(User).filter(User.is_active).all()
 
     return result
 
 
 def add_points(points, usr_id):
     """Adds lottery points to an user
+
     :param points: how many points to add
     :param usr_id: id of the user
     :return: True on success, False otherwise
@@ -195,7 +184,7 @@ def add_points(points, usr_id):
         result = True
     except Exception as e:
         db.session.rollback()
-        print("Exception in add_points ", e)
+        print("Exception in add_points:", e)
     return result
 
 

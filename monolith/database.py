@@ -61,9 +61,6 @@ class User(db.Model):
     def get_id(self):
         return self.id
 
-    def as_dict(self):
-        return {c.name: getattr(self, c.name) for c in self.__table__.columns}
-
     def get_isactive(self):
         return self.is_active
 
@@ -106,20 +103,8 @@ class Message(db.Model):
     def __init__(self, *args, **kw):
         super(Message, self).__init__(*args, **kw)
 
-    def as_dict(self):
-        return {c.name: getattr(self, c.name) for c in self.__table__.columns}
-
     def get_recipient(self):
         return self.recipient
-
-    def get_sender(self):
-        return self.sender
-
-    def get_id(self):
-        return self.message_id
-
-    def get_text(self):
-        return self.text
 
 
 @dataclass

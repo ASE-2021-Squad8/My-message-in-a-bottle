@@ -3,6 +3,7 @@ import unittest
 from monolith.app import create_test_app
 from monolith.database import User, db
 from monolith.auth import current_user
+from flask import jsonify
 import monolith.user_query
 import datetime
 import json
@@ -14,6 +15,31 @@ class TestApp(unittest.TestCase):
         self.client = self.app.test_client()
         self._ctx = self.app.test_request_context()
         self._ctx.push()
+
+    def test_wrong_login(self):
+        # Test email does not exist
+        reply = self.client.post(
+            "/login",
+            data=dict(
+                email="test_user_not_exists@test.com",
+                password="test",
+            ),
+            follow_redirects=True,
+        )
+        assert reply.status_code == 200
+        assert not current_user.is_authenticated
+
+        # Test wrong password
+        reply = self.client.post(
+            "/login",
+            data=dict(
+                email="example@example.com",
+                password="WRONGPW",
+            ),
+            follow_redirects=True,
+        )
+        assert reply.status_code == 200
+        assert not current_user.is_authenticated
 
     def test_unregister_not_authenticated(self):
         reply = self.client.get("/unregister")
@@ -50,6 +76,18 @@ class TestApp(unittest.TestCase):
         user = User.query.filter(User.email == "test_unregister@test.com").first()
         assert not user.get_isactive()
 
+        # Try logging in with the unregistered user
+        reply = self.client.post(
+            "/login",
+            data=dict(
+                email="test_unregister@test.com",
+                password="test",
+            ),
+            follow_redirects=True,
+        )
+        assert reply.status_code == 200
+        assert not current_user.is_authenticated
+
     def test_report_ban_dummy_user(self):
         reply = self.client.post(
             "/create_user",
@@ -74,6 +112,17 @@ class TestApp(unittest.TestCase):
         )
         assert reply.status_code == 200
 
+        # test reporting a user that does not exist
+        reply = self.client.post(
+            "/report_user",
+            data=dict(
+                useremail="test_user_not_exists@test.com",
+            ),
+        )
+        assert reply.status_code == 200
+        user = User.query.filter(User.email == "test_user_not_exists@test.com").first()
+        assert user is None
+
         for i in range(1, 4):
             reply = self.client.post(
                 "/report_user",
@@ -89,6 +138,18 @@ class TestApp(unittest.TestCase):
         # Check the user in the db has been banned (is_active=False)
         user = User.query.filter(User.email == "test_ban@test.com").first()
         assert not user.get_isactive()
+
+        # Try logging in with banned account
+        reply = self.client.post(
+            "/login",
+            data=dict(
+                email="test_ban@test.com",
+                password="test",
+            ),
+            follow_redirects=True,
+        )
+        assert reply.status_code == 200
+        assert not current_user.is_authenticated
 
     def test_get_recipients(self):
         reply = self.client.post(
@@ -194,6 +255,21 @@ class TestApp(unittest.TestCase):
             follow_redirects=True,
         )
         assert reply.status_code == 200
+
+        reply = self.client.post(
+            "/update_data",
+            data=dict(
+                textfirstname="",
+                textlastname="test_new",
+                textbirth="2222-2-2",
+                textemail="test_new@test.com",
+            ),
+            follow_redirects=True,
+        )
+        assert reply.status_code == 200
+        user = User.query.filter(User.email == "test_update@test.com").first()
+        assert user.firstname == "test"
+
         reply = self.client.post(
             "/update_data",
             data=dict(
@@ -205,6 +281,7 @@ class TestApp(unittest.TestCase):
             follow_redirects=True,
         )
         assert reply.status_code == 200
+
         user = User.query.filter(User.email == "test_new@test.com").first()
         assert user is not None
         assert user.firstname == "test_new"
@@ -238,6 +315,33 @@ class TestApp(unittest.TestCase):
             follow_redirects=True,
         )
         assert reply.status_code == 200
+
+        reply = self.client.post(
+            "/reset_password",
+            data=dict(
+                currentpassword="WRONGPW",
+                newpassword="test_new",
+                confirmpassword="test_new",
+            ),
+            follow_redirects=True,
+        )
+        assert reply.status_code == 200
+        user = User.query.filter(User.email == "pass_update@test.com").first()  
+        assert user.authenticate("test")
+
+        reply = self.client.post(
+            "/reset_password",
+            data=dict(
+                currentpassword="test",
+                newpassword="test_new",
+                confirmpassword="WRONGPW",
+            ),
+            follow_redirects=True,
+        )
+        assert reply.status_code == 200
+        user = User.query.filter(User.email == "pass_update@test.com").first()  
+        assert user.authenticate("test")
+
         reply = self.client.post(
             "/reset_password",
             data=dict(
@@ -248,8 +352,8 @@ class TestApp(unittest.TestCase):
             follow_redirects=True,
         )
         assert reply.status_code == 200
+
         user = User.query.filter(User.email == "pass_update@test.com").first()
-        assert user is not None
         assert user.authenticate("test_new")
 
     def test_create_user_future_dateofbirth(self):
@@ -289,6 +393,22 @@ class TestApp(unittest.TestCase):
         assert len(user) == 1
 
     def test_content_filter(self):
+        # test filter enable/disable on a non existent user
+        self.assertRaises(
+            Exception,
+            monolith.user_query.change_user_content_filter,
+            9999,
+            True
+        )
+
+        # test filter activation function
+        filter = monolith.user_query.change_user_content_filter(1, True)
+        assert filter == True
+
+        # test filter deactivation function
+        filter = monolith.user_query.change_user_content_filter(1, False)
+        assert filter == False
+
         reply = self.client.post(
             "/login",
             data=dict(
@@ -299,10 +419,47 @@ class TestApp(unittest.TestCase):
         )
         assert reply.status_code == 200
 
-        # test filter activation
-        filter = monolith.user_query.change_user_content_filter(1, True)
-        assert filter == True
+        # test filter activation api
+        reply = self.client.get("/api/content_filter/1")
+        assert reply.status_code == 200
+        user = db.session.query(User).filter(User.id == 1).first()
+        assert user.content_filter
 
-        # test filter deactivation
-        filter = monolith.user_query.change_user_content_filter(1, False)
-        assert filter == False
+        # test filter deactivation api
+        reply = self.client.get("/api/content_filter/0")
+        assert reply.status_code == 200
+        user = db.session.query(User).filter(User.id == 1).first()
+        assert not user.content_filter
+
+    def test_get_user_details(self):
+        reply = self.client.post(
+            "/login",
+            data=dict(
+                email="example@example.com",
+                password="admin",
+            ),
+            follow_redirects=True,
+        )
+        assert reply.status_code == 200
+
+        reply = self.client.get("/api/user/1")
+        assert reply.status_code
+        data = reply.get_json()
+        assert data["email"] == "example@example.com"
+        assert data["firstname"] == "Admin"
+        assert data["lastname"] == "Admin"
+
+        reply = self.client.get("/api/user/999999")
+        assert reply.status_code == 404
+
+    def test_get_users_list(self):
+        reply = self.client.get("/api/users/list")
+        data = reply.get_json()
+        users = db.session.query(User)
+        userlist = [
+            {"email": u.email, "firstname": u.firstname, "lastname": u.lastname}
+            for u in users
+        ]
+        assert userlist == data
+
+    

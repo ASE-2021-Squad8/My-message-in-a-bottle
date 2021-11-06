@@ -82,10 +82,6 @@ def create_user():
             db.session.add(new_user)
             db.session.commit()
             return redirect("/login")
-        else:
-            return render_template(
-                "create_user.html", form=form, error="An error occurred"
-            )
     elif request.method == "GET":  # pragma: no cover
         return render_template("create_user.html", form=form, error="")
 
@@ -114,6 +110,19 @@ def change_data_user():
     form = UserForm()
 
     if request.method == "POST":
+        if (
+            request.form["textfirstname"] == ""
+            or request.form["textlastname"] == ""
+            or request.form["textemail"] == ""
+            or request.form["textbirth"] == ""
+        ):
+            return render_template(
+                "edit_profile.html",
+                form=form,
+                user=current_user,
+                error="All fields must be completed!",
+            )
+
         userid = getattr(current_user, "id")
         user = User.query.filter(User.id == userid).first()
         user.firstname = request.form["textfirstname"]
@@ -122,19 +131,6 @@ def change_data_user():
         data = request.form["textbirth"]
         date_as_datetime = datetime.datetime.strptime(data, "%Y-%m-%d")
         user.dateofbirth = date_as_datetime
-
-        if (
-            user.firstname == ""
-            or user.lastname == ""
-            or user.email == ""
-            or user.dateofbirth == ""
-        ):
-            return render_template(
-                "edit_profile.html",
-                form=form,
-                user=current_user,
-                error="All fields must be completed!",
-            )
 
         db.session.commit()
         return redirect("/account_data")
@@ -202,7 +198,7 @@ def report():
                 error="",
                 reported=mail + " has been reported" + banned + ".",
             )
-        else:
+        else:  # pragma: no cover
             return render_template(
                 "report_user.html",
                 error="You have to specify an email to report a user.",
@@ -225,21 +221,16 @@ def display_black_list():
             result = monolith.user_query.add_to_blacklist(owner_id, members_id)
 
         return _prepare_json_response(owner_id, 200 if result else 500)
+    elif request.method == "GET":  # pragma: no cover
+        f = BlackListForm()
 
-    # via get it resturn jut the page
-    return _prepare_black_list(owner_id)
-
-
-def _prepare_black_list(owner_id):
-    f = BlackListForm()
-
-    result = monolith.user_query.get_blacklist(owner_id)
-    black_list = [usr[1] for usr in result]
-    f.users.choices = monolith.user_query.get_blacklist_candidates(owner_id)
-    f.black_users.choices = result
-    return render_template(
-        "black_list.html", form=f, black_list=black_list, size=len(black_list)
-    )
+        result = monolith.user_query.get_blacklist(owner_id)
+        black_list = [usr[1] for usr in result]
+        f.users.choices = monolith.user_query.get_blacklist_candidates(owner_id)
+        f.black_users.choices = result
+        return render_template(
+            "black_list.html", form=f, black_list=black_list, size=len(black_list)
+        )
 
 
 def _prepare_json_response(owner_id, status):
@@ -260,7 +251,6 @@ def get_user_details(user_id):
     :return: an object containing email, first and last name
     :rtype: Markup
     """
-
     check_authenticated()
 
     q = db.session.query(User).filter(User.id == user_id)
@@ -294,7 +284,7 @@ def set_content_filter(value):
     value = True if int(value) == 1 else False
     try:
         set = monolith.user_query.change_user_content_filter(current_user.id, value)
-    except Exception as e:
+    except Exception as e:  # pragma: no cover
         print(str(e))
         return render_template("content_filter.html", feedback="This should not happen")
 

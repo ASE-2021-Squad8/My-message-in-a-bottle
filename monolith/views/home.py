@@ -17,12 +17,12 @@ def index():
 
 
 @home.route("/error_page")
-def to_error_page(msg):
+def to_error_page(msg):  # pragma: no cover
     return render_template(
         "error_page.html", message="Ooops something went wrong! {0}".format(msg)
     )
 
 
 @home.route("/settings")
-def settings():
+def settings():  # pragma: no cover
     return render_template("settings.html")
