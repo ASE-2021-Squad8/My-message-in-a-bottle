@@ -289,6 +289,18 @@ def check_message_to_send():
 
 
 def get_day_message(userid, baseDate, upperDate):
+    """Gets the outgoing messages in a time interval for a specific user
+
+    :param userid: user id
+    :type userid: int
+    :param baseDate: start date
+    :type baseDate: datetime
+    :param upperDate: end date
+    :type upperDate: datetime
+    :return: a list of messages
+    :rtype: list[dict]
+    """
+
     check_authenticated()
     q = db.session.query(Message).filter(
         Message.sender == userid,
@@ -300,28 +312,23 @@ def get_day_message(userid, baseDate, upperDate):
     list = []
 
     for msg in q:
-
         recipient = db.session.query(User).filter(User.id == msg.recipient).first()
         sender = db.session.query(User).filter(User.id == msg.sender).first()
         delivery_date = msg.delivery_date
-        hour_deliver = delivery_date.hour
-        minute_deliver = delivery_date.minute
         now = datetime.now()
 
         canDelete = delivery_date > now and sender.points >= 60
         future = delivery_date > now
-        json_msg = json.dumps(
-            {
+        msg = {
                 "message_id": msg.message_id,
                 "firstname": recipient.firstname,
                 "email": recipient.email,
                 "text": msg.text,
-                "hour": hour_deliver,
-                "minute": minute_deliver,
+                "delivered": delivery_date,
                 "candelete": canDelete,
                 "future": future,
-            }
-        )
+        }
 
-        list.append(json_msg)
+        list.append(msg)
+
     return list
