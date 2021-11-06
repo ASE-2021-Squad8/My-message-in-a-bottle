@@ -8,7 +8,7 @@ from monolith.app import create_test_app
 import time
 import json
 
-from monolith.database import Message
+from monolith.database import Message ,db
 
 
 class TestApp(unittest.TestCase):
@@ -230,3 +230,38 @@ class TestApp(unittest.TestCase):
 
         reply = self.client.get("/unregister", follow_redirects=True)
         assert reply.status_code == 200
+
+    def test_delete_message(self):
+        #inserting a test message in the db that must be deleted to test 
+        #the functionality of delete message
+        test_msg = Message()
+        test_msg.sender = 2
+        test_msg.recipient = 1
+        test_msg.text = "test_delete"
+        test_msg.is_draft = False
+        test_msg.is_delivered = True
+        test_msg.is_read = True
+        test_msg.is_deleted = False
+        db.session.add(test_msg)
+        db.session.commit()
+        message_id = test_msg.message_id
+        with self.client:
+            reply = self.client.post(
+            "/login",
+            data=dict(email="example@example.com", password="admin"),
+            follow_redirects=True,
+            )
+            assert reply.status_code == 200
+
+            end_point = "/api/message/delete/" + str(message_id)
+            print(end_point)
+            reply = self.client.delete(end_point)
+            data = reply.get_json()
+            assert reply.status_code == 200
+            assert int(data["message_id"]) == message_id
+            reply = self.client.delete("/api/message/delete/-1")
+            data = reply.get_json()
+            assert reply.status_code == 404
+
+        db.session.query(Message).filter(Message.message_id == message_id).delete()
+        db.session.commit()

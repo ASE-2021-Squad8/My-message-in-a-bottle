@@ -2,6 +2,8 @@ import json
 import os
 from datetime import datetime
 from datetime import date, datetime
+
+from flask.helpers import get_template_attribute
 from monolith.auth import check_authenticated
 from monolith.database import Message, db, User
 import json
@@ -214,6 +216,7 @@ def get_sent_messages_metadata(user_id):
 
 
 def set_message_is_deleted(message_id):
+ 
     msg = (
         db.session.query(Message)
         .filter(
@@ -222,7 +225,9 @@ def set_message_is_deleted(message_id):
         )
         .first()
     )
-
+    if msg is None:
+        return False
+        
     # only delete read messages
     if msg.is_read:
         setattr(msg, "is_deleted", True)
