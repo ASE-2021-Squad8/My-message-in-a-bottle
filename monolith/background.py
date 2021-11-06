@@ -16,7 +16,7 @@ logger = get_logger(__name__)
 BACKEND = BROKER = "redis://localhost:6379"
 # create celery instance
 celery = Celery(__name__, backend=BACKEND, broker=BROKER)
-# route tasks on theier queue
+# route tasks on their queue
 celery.conf.task_route = {
     "monolith.background.send_message": {"queue": "message"},  # key message
     "monolith.background.send_notification_task": {
