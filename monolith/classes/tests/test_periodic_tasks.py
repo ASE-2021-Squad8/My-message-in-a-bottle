@@ -54,11 +54,13 @@ class TestPeriodicTask(unittest.TestCase):
     def test_login_fail(self):
         os.environ["MAIL_SERVER"] = "smtp.gmail.com"
         os.environ["MAIL_SERVER_PASSWORD"] = "WRONGPASSWORD"
-        print("Waiting for socket timeout, go grab a coffee")
+        print("Waiting for socket timeout, go grab a coffee", end=" ")
         self.assertRaises(
             Exception,
             send_notification,
-            "squad 8", "example@example.com", "This should fail"
+            "squad 8",
+            "example@example.com",
+            "This should fail",
         )
 
     def test_lottery(self):

@@ -8,7 +8,7 @@ from monolith.app import create_test_app
 import time
 import json
 
-from monolith.database import Message ,db
+from monolith.database import Message, db
 
 
 class TestApp(unittest.TestCase):
@@ -159,7 +159,7 @@ class TestApp(unittest.TestCase):
         reply = self.client.get("/api/message/sent/metadata", follow_redirects=True)
         assert len(reply.get_json()) == 0
 
-        print("Waiting for the message delivery", end="")
+        print("Waiting for the message delivery", end=" ")
         time.sleep(10)
 
         # get sent message
@@ -232,8 +232,8 @@ class TestApp(unittest.TestCase):
         assert reply.status_code == 200
 
     def test_delete_message(self):
-        #inserting a test message in the db that must be deleted to test 
-        #the functionality of delete message
+        # inserting a test message in the db that must be deleted to test
+        # the functionality of delete message
         test_msg = Message()
         test_msg.sender = 2
         test_msg.recipient = 1
@@ -247,14 +247,13 @@ class TestApp(unittest.TestCase):
         message_id = test_msg.message_id
         with self.client:
             reply = self.client.post(
-            "/login",
-            data=dict(email="example@example.com", password="admin"),
-            follow_redirects=True,
+                "/login",
+                data=dict(email="example@example.com", password="admin"),
+                follow_redirects=True,
             )
             assert reply.status_code == 200
 
             end_point = "/api/message/delete/" + str(message_id)
-            print(end_point)
             reply = self.client.delete(end_point)
             data = reply.get_json()
             assert reply.status_code == 200
