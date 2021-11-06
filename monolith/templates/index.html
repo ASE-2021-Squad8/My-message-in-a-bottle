@@ -4,12 +4,13 @@
 {% block content %}
 <h1>My Message in a Bottle</h1>
 {% if current_user.is_authenticated %}
-Hi!<br>
+<br>Hi!<br>
 You're now logged in as <b>{{ current_user.firstname }} {{current_user.lastname }}</b> ({{current_user.email}})<br><br>
 <a href="/search_user">Search a user</a><br>
 <a href="/mailbox">Mailbox</a><br>
 <a href="/send_message">Send or draft a message</a><br>
-<br><hr><br>
+<a href="/calendar">Calendar of sent messages</a>
+<hr>
 <a href="/settings">Settings</a><br>
 <a href="/logout">Logout</a>
 <h2>{{welcome}}</h2>
