@@ -326,7 +326,7 @@ class TestApp(unittest.TestCase):
             follow_redirects=True,
         )
         assert reply.status_code == 200
-        user = User.query.filter(User.email == "pass_update@test.com").first()  
+        user = User.query.filter(User.email == "pass_update@test.com").first()
         assert user.authenticate("test")
 
         reply = self.client.post(
@@ -339,7 +339,7 @@ class TestApp(unittest.TestCase):
             follow_redirects=True,
         )
         assert reply.status_code == 200
-        user = User.query.filter(User.email == "pass_update@test.com").first()  
+        user = User.query.filter(User.email == "pass_update@test.com").first()
         assert user.authenticate("test")
 
         reply = self.client.post(
@@ -395,10 +395,7 @@ class TestApp(unittest.TestCase):
     def test_content_filter(self):
         # test filter enable/disable on a non existent user
         self.assertRaises(
-            Exception,
-            monolith.user_query.change_user_content_filter,
-            9999,
-            True
+            Exception, monolith.user_query.change_user_content_filter, 9999, True
         )
 
         # test filter activation function
@@ -462,4 +459,8 @@ class TestApp(unittest.TestCase):
         ]
         assert userlist == data
 
-    
+    def test_exception_user_query(self):
+        assert not monolith.user_query.add_to_blacklist(None, None)
+        assert not monolith.user_query.remove_from_blacklist(None, None)
+        assert not monolith.user_query.add_points(0, None)
+        assert monolith.user_query.get_user_mail(None) == ""
