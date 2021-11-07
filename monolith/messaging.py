@@ -46,7 +46,7 @@ def get_user_draft(user_id, draft_id):
     draft = q.first()
     if draft is None:
         raise KeyError()
-    
+
     return draft
 
 
@@ -249,7 +249,7 @@ def get_sent_messages_metadata(user_id):
 
 
 def set_message_is_deleted(message_id):
- 
+
     msg = (
         db.session.query(Message)
         .filter(
@@ -260,7 +260,7 @@ def set_message_is_deleted(message_id):
     )
     if msg is None:
         return False
-        
+
     # only delete read messages
     if msg.is_read:
         setattr(msg, "is_deleted", True)
@@ -270,7 +270,6 @@ def set_message_is_deleted(message_id):
 
 
 def set_message_is_deleted_lottery(message_id):
-
     try:
         msg = db.session.query(Message).filter(Message.message_id == message_id).first()
         if msg.delivery_date > datetime.now():
@@ -339,7 +338,6 @@ def get_day_message(userid, baseDate, upperDate):
     :rtype: list[dict]
     """
 
-    check_authenticated()
     q = db.session.query(Message).filter(
         Message.sender == userid,
         Message.delivery_date >= baseDate,
@@ -358,13 +356,13 @@ def get_day_message(userid, baseDate, upperDate):
         canDelete = delivery_date > now and sender.points >= 60
         future = delivery_date > now
         msg = {
-                "message_id": msg.message_id,
-                "firstname": recipient.firstname,
-                "email": recipient.email,
-                "text": msg.text,
-                "delivered": delivery_date,
-                "candelete": canDelete,
-                "future": future,
+            "message_id": msg.message_id,
+            "firstname": recipient.firstname,
+            "email": recipient.email,
+            "text": msg.text,
+            "delivered": delivery_date,
+            "candelete": canDelete,
+            "future": future,
         }
 
         list.append(msg)

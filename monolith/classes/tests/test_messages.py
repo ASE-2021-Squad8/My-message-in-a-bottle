@@ -9,6 +9,15 @@ import time
 import json
 
 from monolith.database import Message, db
+from monolith.auth import current_user
+from monolith.messaging import (
+    get_day_message,
+    get_received_message,
+    get_sent_message,
+    set_message_is_deleted_lottery,
+    unmark_draft,
+    update_message_state,
+)
 
 
 class TestApp(unittest.TestCase):
@@ -78,7 +87,9 @@ class TestApp(unittest.TestCase):
             assert data[0]["media"] != ""
 
             old_id = data[0]["message_id"]
-            reply = self.client.delete("/api/message/draft/" + str(old_id) + "/attachment")
+            reply = self.client.delete(
+                "/api/message/draft/" + str(old_id) + "/attachment"
+            )
             data = reply.get_json()
             assert reply.status_code == 200
             assert str(data["message_id"]) == str(old_id)
@@ -134,7 +145,7 @@ class TestApp(unittest.TestCase):
                     "attachment": (
                         io.BytesIO(b"This is a JPG file, I swear!"),
                         "test.jpg",
-                    )
+                    ),
                 }
             ),
             follow_redirects=True,
@@ -267,3 +278,71 @@ class TestApp(unittest.TestCase):
 
         db.session.query(Message).filter(Message.message_id == message_id).delete()
         db.session.commit()
+
+    def test_fault_send_message(self):
+        reply = self.client.post(
+            "/login",
+            data=dict(email="example@example.com", password="admin"),
+            follow_redirects=True,
+        )
+        assert reply.status_code == 200
+
+        # msg with recipients=[]
+        reply = self.client.post(
+            "/api/message/send_message",
+            data=dict(
+                {
+                    "recipient": [],
+                    "text": "text",
+                    "delivery_date": datetime.now() + timedelta(seconds=5),
+                    "draft_id": "",
+                }
+            ),
+            follow_redirects=True,
+        )
+        assert reply.status_code == 400
+
+        # msg with text=""
+        reply = self.client.post(
+            "/api/message/send_message",
+            data=dict(
+                {
+                    "recipient": [1],
+                    "text": "",
+                    "delivery_date": datetime.now() + timedelta(seconds=5),
+                    "draft_id": "",
+                }
+            ),
+            follow_redirects=True,
+        )
+        assert reply.status_code == 400
+
+        # msg with delivery_date in the past
+        reply = self.client.post(
+            "/api/message/send_message",
+            data=dict(
+                {
+                    "recipient": [1],
+                    "text": "text",
+                    "delivery_date": datetime.now() - timedelta(seconds=5),
+                    "draft_id": "",
+                }
+            ),
+            follow_redirects=True,
+        )
+        assert reply.status_code == 400
+
+    def test_messaging(self):
+        assert (
+            get_day_message(
+                1,
+                datetime.now() + timedelta(hours=1000),
+                datetime.now() + timedelta(hours=5000),
+            )
+            == []
+        )
+        assert not update_message_state(None, None, None)
+        assert not set_message_is_deleted_lottery(None)
+        self.assertRaises(KeyError, get_sent_message, 1, 1000)
+        self.assertRaises(KeyError, get_received_message, 1, 1000)
+        self.assertRaises(KeyError, unmark_draft, 1, 1000)

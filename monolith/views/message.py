@@ -43,7 +43,7 @@ logger = get_logger(__name__)
 
 
 @msg.route("/send_message")
-def _send_message(): # pragma: no cover
+def _send_message():  # pragma: no cover
     return render_template("send_message.html", form=MessageForm())
 
 
@@ -113,7 +113,9 @@ def save_draft_message():
         try:
             id = request.form["draft_id"]
             try:
-                message = monolith.messaging.get_user_draft(getattr(current_user, "id"), id)
+                message = monolith.messaging.get_user_draft(
+                    getattr(current_user, "id"), id
+                )
             except:
                 return _get_result(
                     None, ERROR_PAGE, True, 404, "Draft to edit cannot be found"
@@ -133,20 +135,26 @@ def save_draft_message():
 
             if file.filename != "" and _extension_allowed(file.filename):
                 filename = _generate_filename(file)
-                
+
                 # If the draft already has a file, delete it
                 if message.media is not None and message.media != "":
-                    try: # pragma: no cover
+                    try:  # pragma: no cover
                         # Very unlikely, ignore in coverage
-                        os.unlink(os.path.join(app.config["UPLOAD_FOLDER"], message.media))
+                        os.unlink(
+                            os.path.join(app.config["UPLOAD_FOLDER"], message.media)
+                        )
                     except:
                         # If we failed to delete the file from the disk then something is wrong
-                        return _get_result(None, ERROR_PAGE, True, 500, "Internal server error")
+                        return _get_result(
+                            None, ERROR_PAGE, True, 500, "Internal server error"
+                        )
 
                 file.save(os.path.join(app.config["UPLOAD_FOLDER"], filename))
                 message.media = filename
             else:
-                return _get_result(None, ERROR_PAGE, True, 400, "File extension not allowed")
+                return _get_result(
+                    None, ERROR_PAGE, True, 400, "File extension not allowed"
+                )
 
         monolith.messaging.save_message(message)
 
@@ -189,7 +197,7 @@ def get_user_drafts():
 
 
 @msg.route("/manage_drafts")
-def _manage_drafts():
+def _manage_drafts():  # pragma: no cover
     check_authenticated()
 
     return render_template("manage_drafts.html", user=getattr(current_user, "id"))
@@ -243,20 +251,24 @@ def send_message():
 
             if file.filename != "" and _extension_allowed(file.filename):
                 filename = _generate_filename(file)
-                
+
                 # If the draft already has a file, delete it
                 if msg.media is not None and msg.media != "":
-                    try: # pragma: no cover
+                    try:  # pragma: no cover
                         # Unlikely to ever happen, don't include in coverage
                         os.unlink(os.path.join(app.config["UPLOAD_FOLDER"], msg.media))
                     except:
                         # If we failed to delete the file from the disk then something is wrong
-                        return _get_result(None, ERROR_PAGE, True, 500, "Internal server error")
+                        return _get_result(
+                            None, ERROR_PAGE, True, 500, "Internal server error"
+                        )
 
                 file.save(os.path.join(app.config["UPLOAD_FOLDER"], filename))
                 msg.media = filename
             else:
-                return _get_result(None, ERROR_PAGE, True, 400, "File extension not allowed")
+                return _get_result(
+                    None, ERROR_PAGE, True, 400, "File extension not allowed"
+                )
 
         # when it will be delivered
         # delay = (delivery_date - now).total_seconds()
@@ -291,7 +303,7 @@ def _get_result(json_object, page, error=False, status=200, error_message=""):
     testing = app.config["TESTING"]
     if error and testing:
         abort(status, error_message)
-    elif error:
+    elif error:  # pragma: no cover
         return render_template(
             page + ".html", message=error_message, form=MessageForm()
         )
@@ -368,7 +380,7 @@ def _get_sent_message(message_id):
 
 
 @msg.route("/mailbox")
-def mailbox():
+def mailbox():  # pragma: no cover
     return render_template("mailbox.html")
 
 
@@ -427,7 +439,7 @@ def read_msg(id):
 
 
 @msg.route("/calendar")
-def calendar():
+def calendar():  # pragma: no cover
     return render_template("calendar.html")
 
 
