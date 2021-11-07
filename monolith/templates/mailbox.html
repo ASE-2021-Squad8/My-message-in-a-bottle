@@ -96,8 +96,7 @@
 			<label for="attachment">Attach an image</label><br>
 			<input id="attachment" name="attachment" type="file"><br>
 			<label for="delivery_date">Choose a time for delivering message</label><br>
-			<input type="datetime-local" id="delivery_date" name="delivery_date" required
-				/><br><br>
+			<input type="datetime-local" id="delivery_date" name="delivery_date" required /><br><br>
 			<button type="button" onclick='javascript:send_msg_reply_forward("reply-form" )'
 				class="btn btn-primary">Send message</button>
 		</form>
@@ -118,8 +117,7 @@
 			{{ ckeditor.config(name='fwd_text') }}
 			{{ ckeditor.create(name='fwd_text') }}<br><br>
 			<label for="delivery_date">Choose a time for delivering message</label><br>
-			<input type="datetime-local" id="delivery_date" name="delivery_date" required
-				/><br><br>
+			<input type="datetime-local" id="delivery_date" name="delivery_date" required /><br><br>
 			<button type="button" onclick='javascript:send_msg_reply_forward("forward-form-rec" , true)'
 				class="btn btn-primary">Send message</button>
 		</form>
@@ -133,12 +131,12 @@
 </script>
 <script src="{{ url_for('static', filename='mailbox.js') }}"></script>
 <script>
-		function refreshTables() {
-			$.get('/api/message/received/metadata', function (data) { buildTableReceived(data); });
-			$.get('/api/message/sent/metadata', function (data) { buildTableSent(data) });
-		}
-		
-		refreshTables();
-		setInterval(refreshTables, 10 * 1000);
+	function refreshTables() {
+		$.get('/api/message/received/metadata', function (data) { buildTableReceived(data); });
+		$.get('/api/message/sent/metadata', function (data) { buildTableSent(data) });
+	}
+
+	refreshTables();
+	setInterval(refreshTables, 10 * 1000);
 </script>
 {% endblock %}

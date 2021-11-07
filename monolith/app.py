@@ -79,6 +79,6 @@ def create_app(test_mode=False):
     return app
 
 
-if __name__ == "__main__": # pragma: no cover
+if __name__ == "__main__":  # pragma: no cover
     app = create_app()
     app.run()

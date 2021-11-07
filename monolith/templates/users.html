@@ -1,13 +1,15 @@
 <html>
-  <body>
-    <h1>User List</h1>
-    <ul>
-      {% for user in users: %}
-      <li>
-      {{user.firstname}} {{user.lastname}}, {{user.email}}
-      </li>
-      {% endfor %}
-    </ul><br>
+
+<body>
+	<h1>User List</h1>
+	<ul>
+		{% for user in users: %}
+		<li>
+			{{user.firstname}} {{user.lastname}}, {{user.email}}
+		</li>
+		{% endfor %}
+	</ul><br>
 	<a href="/">Home</a>
-  </body>
+</body>
+
 </html>

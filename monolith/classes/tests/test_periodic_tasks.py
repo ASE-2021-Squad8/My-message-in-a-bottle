@@ -1,7 +1,6 @@
 import json
 import random
 import unittest
-import os
 from datetime import datetime, timedelta
 
 from monolith.app import create_test_app
@@ -48,7 +47,7 @@ class TestPeriodicTask(unittest.TestCase):
         )
         assert send_notification_task(json_message)
 
-    def test_login_fail(self):
+    def test_email_login_fail(self):
         print("Waiting for socket timeout, go grab a coffee", end=" ", flush=True)
         self.assertRaises(
             Exception,
@@ -56,12 +55,13 @@ class TestPeriodicTask(unittest.TestCase):
             "squad 8",
             "example@example.com",
             "This should fail",
-            EmailConfig("smtp.gmail.com", 587, "mmiab.notifications@gmail.com", "WRONGPASSWORD")
+            EmailConfig(
+                "smtp.gmail.com", 587, "mmiab.notifications@gmail.com", "WRONGPASSWORD"
+            ),
         )
 
     def test_lottery(self):
         result = lottery(True)
         assert result[0]
-        with self.app.app_context():
-            winner = db.session.query(User).filter(User.id == result[1]).first()
-            assert winner.points == 20
+        winner = db.session.query(User).filter(User.id == result[1]).first()
+        assert winner.points == 20

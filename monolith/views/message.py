@@ -5,37 +5,24 @@ import traceback
 import hashlib
 import pathlib
 import time
-
-# utility import
-from datetime import datetime
-from datetime import datetime as d
-
-from flask_login.utils import expand_login_view
-
-import monolith.messaging
 import pytz
+
 from celery.utils.log import get_logger
 from flask import Blueprint, abort
 from flask import current_app as app
 from flask import jsonify, render_template, request
+from werkzeug.utils import redirect
+
+import monolith.messaging
 from monolith.auth import check_authenticated, current_user
-
-# import queue task
-
+from monolith.user_query import get_user_mail
+from monolith.forms import MessageForm
+from monolith.database import Message
 from monolith.background import (
     send_message as put_message_in_queue,
     send_notification_task as put_email_in_queue,
 )
 
-# utility import
-from datetime import datetime as d
-
-
-from monolith.database import Message, db
-from monolith.forms import MessageForm
-
-from monolith.user_query import get_user_mail
-from werkzeug.utils import redirect, secure_filename
 
 msg = Blueprint("message", __name__)
 ERROR_PAGE = "error"
@@ -45,6 +32,23 @@ logger = get_logger(__name__)
 @msg.route("/send_message")
 def _send_message():  # pragma: no cover
     return render_template("send_message.html", form=MessageForm())
+
+
+@msg.route("/manage_drafts")
+def _manage_drafts():  # pragma: no cover
+    check_authenticated()
+
+    return render_template("manage_drafts.html", user=getattr(current_user, "id"))
+
+
+@msg.route("/mailbox")
+def mailbox():  # pragma: no cover
+    return render_template("mailbox.html")
+
+
+@msg.route("/calendar")
+def calendar():  # pragma: no cover
+    return render_template("calendar.html")
 
 
 def _extension_allowed(filename):
@@ -130,21 +134,22 @@ def save_draft_message():
         if "recipient" in request.form and request.form["recipient"] != "":
             message.recipient = request.form["recipient"]
 
+        # check the attachment
         if "attachment" in request.files:
             file = request.files["attachment"]
 
             if file.filename != "" and _extension_allowed(file.filename):
                 filename = _generate_filename(file)
 
-                # If the draft already has a file, delete it
+                # if the draft already has a file, delete it
                 if message.media is not None and message.media != "":
                     try:  # pragma: no cover
-                        # Very unlikely, ignore in coverage
+                        # very unlikely, ignore in coverage
                         os.unlink(
                             os.path.join(app.config["UPLOAD_FOLDER"], message.media)
                         )
                     except:
-                        # If we failed to delete the file from the disk then something is wrong
+                        # if we failed to delete the file from the disk then something is wrong
                         return _get_result(
                             None, ERROR_PAGE, True, 500, "Internal server error"
                         )
@@ -163,6 +168,13 @@ def save_draft_message():
 
 @msg.route("/api/message/draft/<id>", methods=["GET", "DELETE"])
 def get_user_draft(id):
+    """Get the draft #<id> from the current user
+
+    :param id: the draft id to search
+    :type id: int
+    :return: message id
+    :rtype: json
+    """
     check_authenticated()
 
     try:
@@ -170,9 +182,7 @@ def get_user_draft(id):
             draft = monolith.messaging.get_user_draft(getattr(current_user, "id"), id)
             return jsonify(draft)
         elif request.method == "DELETE":
-            monolith.messaging.delete_user_message(
-                getattr(current_user, "id"), id, True
-            )
+            monolith.messaging.delete_user_message(getattr(current_user, "id"), id)
             return jsonify({"message_id": id})
     except KeyError:
         return _get_result(None, ERROR_PAGE, True, 404, "Draft not found")
@@ -180,6 +190,13 @@ def get_user_draft(id):
 
 @msg.route("/api/message/draft/<id>/attachment", methods=["DELETE"])
 def get_user_draft_attachment(id):
+    """Delete the attachment of the draft #<id> from the current user
+
+    :param id: the draft id to search
+    :type id: int
+    :return: message id
+    :rtype: json
+    """
     check_authenticated()
 
     if monolith.messaging.delete_draft_attachment(getattr(current_user, "id"), id):
@@ -190,24 +207,27 @@ def get_user_draft_attachment(id):
 
 @msg.route("/api/message/draft/all", methods=["GET"])
 def get_user_drafts():
+    """Get all the draft from the current user
+
+    :return: all the drafts
+    :rtype: json
+    """
     check_authenticated()
 
     drafts = monolith.messaging.get_user_drafts(getattr(current_user, "id"))
     return jsonify(drafts)
 
 
-@msg.route("/manage_drafts")
-def _manage_drafts():  # pragma: no cover
-    check_authenticated()
-
-    return render_template("manage_drafts.html", user=getattr(current_user, "id"))
-
-
 @msg.route("/api/message/send_message", methods=["POST"])
 def send_message():
+    """Send a message from the current user
+
+    :return: json of the message in test mode, otherwise the page
+    :rtype: json
+    """
     check_authenticated()
 
-    now = d.now()
+    now = datetime.now()
     s_date = request.form["delivery_date"]
     delivery_date = (
         datetime.fromisoformat(s_date) if not _not_valid_string(s_date) else None
@@ -230,12 +250,12 @@ def send_message():
 
     for recipient in recipients:
         try:
-            # Attempt to retrieve the draft, if present
+            # attempt to retrieve the draft, if present
             msg = monolith.messaging.unmark_draft(
                 getattr(current_user, "id"), int(request.form["draft_id"])
             )
         except KeyError:
-            # Otherwise build the message from scratch
+            # otherwise build the message from scratch
             msg = Message()
             msg.is_draft = False
             msg.is_delivered = False
@@ -252,13 +272,13 @@ def send_message():
             if file.filename != "" and _extension_allowed(file.filename):
                 filename = _generate_filename(file)
 
-                # If the draft already has a file, delete it
+                # if the draft already has a file, delete it
                 if msg.media is not None and msg.media != "":
                     try:  # pragma: no cover
-                        # Unlikely to ever happen, don't include in coverage
+                        # unlikely to ever happen, don't include in coverage
                         os.unlink(os.path.join(app.config["UPLOAD_FOLDER"], msg.media))
                     except:
-                        # If we failed to delete the file from the disk then something is wrong
+                        # if we failed to delete the file from the disk then something is wrong
                         return _get_result(
                             None, ERROR_PAGE, True, 500, "Internal server error"
                         )
@@ -298,8 +318,23 @@ def send_message():
     return _get_result(jsonify({"message sent": True}), "/send_message")
 
 
-# json object in test mode otherwise page pinted from page
+# json object in test mode otherwise a rendered template
 def _get_result(json_object, page, error=False, status=200, error_message=""):
+    """Return the result of a function (a json in test mode or a rendered template)
+
+    :param json_object: the json to be returned in test mode
+    :type json_object: json
+    :param page: the name of the page to be rendered
+    :type page: text
+    :param error: if an error has happened in the function (default=False)
+    :type error: bool
+    :param status: the status code to be returned (default=200)
+    :type status: int
+    :param error_message: the error message to be displayed (default="")
+    :type error_message: text
+    :return: json in test mode or rendered template
+    :rtype: json
+    """
     testing = app.config["TESTING"]
     if error and testing:
         abort(status, error_message)
@@ -317,6 +352,11 @@ def _not_valid_string(text):
 
 @msg.route("/api/message/received/metadata", methods=["GET"])
 def _get_received_messages_metadata():
+    """Get all the messages received by the current user
+
+    :return: json of all the messages, 404 page if an exception happened
+    :rtype: json
+    """
     check_authenticated()
 
     try:
@@ -333,6 +373,13 @@ def _get_received_messages_metadata():
 
 @msg.route("/api/message/received/<message_id>", methods=["GET"])
 def _get_received_message(message_id):
+    """Get the received message of id = <id>
+
+    :param message_id: the id of the message to be returned
+    :type message_id: int
+    :return: json of the message, 404 page if an exception happened
+    :rtype: json
+    """
     check_authenticated()
 
     try:
@@ -349,6 +396,11 @@ def _get_received_message(message_id):
 
 @msg.route("/api/message/sent/metadata", methods=["GET"])
 def _get_sent_messages():
+    """Get all the messages sent by the current user
+
+    :return: json of all the messages, 404 page if an exception happened
+    :rtype: json
+    """
     check_authenticated()
 
     try:
@@ -365,6 +417,13 @@ def _get_sent_messages():
 
 @msg.route("/api/message/sent/<message_id>", methods=["GET"])
 def _get_sent_message(message_id):
+    """Get the sent message of id = <id>
+
+    :param message_id: the id of the message to be returned
+    :type message_id: int
+    :return: json of the message, 404 page if an exception happened
+    :rtype: json
+    """
     check_authenticated()
 
     try:
@@ -379,15 +438,15 @@ def _get_sent_message(message_id):
         abort(404, "Message not found")
 
 
-@msg.route("/mailbox")
-def mailbox():  # pragma: no cover
-    return render_template("mailbox.html")
-
-
-# Il tasto di elimina deve apparire solo nella sezione dei messaggi ricevuti, è possibile eliminare
-# solo i messaggi che sono stati letti
 @msg.route("/api/message/delete/<message_id>", methods=["DELETE"])
 def delete_msg(message_id):
+    """Delete a message of id = <id>
+
+    :param message_id: the id of the message to be deleted
+    :type message_id: int
+    :return: json of the deleted message id, 404 page if an exception happened
+    :rtype: json
+    """
     check_authenticated()
     if monolith.messaging.set_message_is_deleted(message_id):
         return jsonify({"message_id": message_id})
@@ -397,6 +456,13 @@ def delete_msg(message_id):
 
 @msg.route("/api/lottery/message/delete/<message_id>", methods=["DELETE"])
 def lottery_delete_msg(message_id):
+    """Delete a scheduled message of id = <id>
+
+    :param message_id: the id of the message to be deleted
+    :type message_id: int
+    :return: json of the deleted message id, otherwise -1
+    :rtype: json
+    """
     check_authenticated()
     result = monolith.messaging.set_message_is_deleted_lottery(message_id)
 
@@ -407,6 +473,13 @@ def lottery_delete_msg(message_id):
 
 @msg.route("/api/message/read_message/<id>")
 def read_msg(id):
+    """Get a message of id = <id>
+
+    :param message_id: the id of the message to be returned
+    :type message_id: int
+    :return: True if the message has been correctly read, 404 page if the message has been deleted or does not exist
+    :rtype: json
+    """
     check_authenticated()
     msg = monolith.messaging.get_message(id)
 
@@ -418,7 +491,7 @@ def read_msg(id):
         # updata msg.is_read
         monolith.messaging.update_message_state(msg.message_id, "is_read", True)
 
-        # Retrieve email of receiver and sender
+        # retrieve email of receiver and sender
         email_r = get_user_mail(msg.sender)
         email_s = get_user_mail(msg.recipient)
         json_message = json.dumps(
@@ -438,13 +511,19 @@ def read_msg(id):
     return jsonify({"msg_read": True})
 
 
-@msg.route("/calendar")
-def calendar():  # pragma: no cover
-    return render_template("calendar.html")
-
-
 @msg.route("/api/calendar/<int:day>/<int:month>/<int:year>")
 def sent_messages_by_day(day, month, year):
+    """Get all the messages for a specific date
+
+    :param day: day
+    :type day: int
+    :param month: month
+    :type month: int
+    :param year: year
+    :type year: int
+    :return: json of all the found messages id, 404 page if the date is invalid
+    :rtype: json
+    """
     check_authenticated()
     if day > 31 and month + 1 > 12:
         return _get_result(None, ERROR_PAGE, True, 404, "Invalid date")

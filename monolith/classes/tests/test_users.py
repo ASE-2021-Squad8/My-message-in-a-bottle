@@ -1,12 +1,11 @@
 import unittest
+import datetime
+import json
 
+import monolith.user_query
 from monolith.app import create_test_app
 from monolith.database import User, db
 from monolith.auth import current_user
-from flask import jsonify
-import monolith.user_query
-import datetime
-import json
 
 
 class TestApp(unittest.TestCase):
@@ -17,7 +16,7 @@ class TestApp(unittest.TestCase):
         self._ctx.push()
 
     def test_wrong_login(self):
-        # Test email does not exist
+        # test email does not exist
         reply = self.client.post(
             "/login",
             data=dict(
@@ -29,7 +28,7 @@ class TestApp(unittest.TestCase):
         assert reply.status_code == 200
         assert not current_user.is_authenticated
 
-        # Test wrong password
+        # test wrong password
         reply = self.client.post(
             "/login",
             data=dict(
@@ -45,7 +44,8 @@ class TestApp(unittest.TestCase):
         reply = self.client.get("/unregister")
         assert reply.status_code == 401
 
-    def test_unregister_dummy_user(self):
+    def test_unregister(self):
+        # create a dummy user to unregister and login with it
         reply = self.client.post(
             "/create_user",
             data=dict(
@@ -88,7 +88,8 @@ class TestApp(unittest.TestCase):
         assert reply.status_code == 200
         assert not current_user.is_authenticated
 
-    def test_report_ban_dummy_user(self):
+    def test_report_ban(self):
+        # create a dummy user to be reported and banned
         reply = self.client.post(
             "/create_user",
             data=dict(
@@ -123,6 +124,7 @@ class TestApp(unittest.TestCase):
         user = User.query.filter(User.email == "test_user_not_exists@test.com").first()
         assert user is None
 
+        # report the dummy user 3 times to ban it
         for i in range(1, 4):
             reply = self.client.post(
                 "/report_user",
@@ -131,15 +133,15 @@ class TestApp(unittest.TestCase):
                 ),
             )
             assert reply.status_code == 200
-            # Check the user in the db has reports = i
+            # check the user in the db has reports = i
             user = User.query.filter(User.email == "test_ban@test.com").first()
             assert user.reports == i
 
-        # Check the user in the db has been banned (is_active=False)
+        # check the user in the db has been banned (is_active=False)
         user = User.query.filter(User.email == "test_ban@test.com").first()
         assert not user.get_isactive()
 
-        # Try logging in with banned account
+        # try logging in with banned account
         reply = self.client.post(
             "/login",
             data=dict(
@@ -213,7 +215,7 @@ class TestApp(unittest.TestCase):
         # now expect only user 1
         assert body[0] == {"email": "example@example.com", "id": 1}
 
-        # delete user 4 into black list
+        # delete user 4 from black list
         reply = self.client.post(
             "/user/black_list",
             data=json.dumps({"op": "delete", "users": [4]}),
@@ -233,6 +235,7 @@ class TestApp(unittest.TestCase):
         assert reply.status_code == 401
 
     def test_update_data(self):
+        # create a user to update its data
         reply = self.client.post(
             "/create_user",
             data=dict(
@@ -256,6 +259,7 @@ class TestApp(unittest.TestCase):
         )
         assert reply.status_code == 200
 
+        # try updating the user's data with invalid fields
         reply = self.client.post(
             "/update_data",
             data=dict(
@@ -270,6 +274,7 @@ class TestApp(unittest.TestCase):
         user = User.query.filter(User.email == "test_update@test.com").first()
         assert user.firstname == "test"
 
+        # update the user's data
         reply = self.client.post(
             "/update_data",
             data=dict(
@@ -293,6 +298,7 @@ class TestApp(unittest.TestCase):
         assert reply.status_code == 401
 
     def test_update_password(self):
+        # create a user to change its password
         reply = self.client.post(
             "/create_user",
             data=dict(
@@ -316,6 +322,7 @@ class TestApp(unittest.TestCase):
         )
         assert reply.status_code == 200
 
+        # try updating the user's password writing incorrect current password
         reply = self.client.post(
             "/reset_password",
             data=dict(
@@ -329,6 +336,7 @@ class TestApp(unittest.TestCase):
         user = User.query.filter(User.email == "pass_update@test.com").first()
         assert user.authenticate("test")
 
+        # try updating the user's password writing incorrect new password confirmation
         reply = self.client.post(
             "/reset_password",
             data=dict(
@@ -342,6 +350,7 @@ class TestApp(unittest.TestCase):
         user = User.query.filter(User.email == "pass_update@test.com").first()
         assert user.authenticate("test")
 
+        # update the user's password correctly
         reply = self.client.post(
             "/reset_password",
             data=dict(
@@ -357,6 +366,7 @@ class TestApp(unittest.TestCase):
         assert user.authenticate("test_new")
 
     def test_create_user_future_dateofbirth(self):
+        # try to create a user with a date of birth in the future
         reply = self.client.post(
             "/create_user",
             data=dict(
@@ -376,6 +386,7 @@ class TestApp(unittest.TestCase):
         assert user is None
 
     def test_create_user_used_email(self):
+        # try to create a user with an alreay used email
         reply = self.client.post(
             "/create_user",
             data=dict(
@@ -429,6 +440,7 @@ class TestApp(unittest.TestCase):
         assert not user.content_filter
 
     def test_get_user_details(self):
+        # test that get_user_details works correctly
         reply = self.client.post(
             "/login",
             data=dict(
@@ -446,10 +458,12 @@ class TestApp(unittest.TestCase):
         assert data["firstname"] == "Admin"
         assert data["lastname"] == "Admin"
 
+        # try getting the data of a user that does not exist
         reply = self.client.get("/api/user/999999")
         assert reply.status_code == 404
 
     def test_get_users_list(self):
+        # try getting all the users registered to the service
         reply = self.client.get("/api/users/list")
         data = reply.get_json()
         users = db.session.query(User)
@@ -460,6 +474,7 @@ class TestApp(unittest.TestCase):
         assert userlist == data
 
     def test_exception_user_query(self):
+        # assert errors in some user_query functions
         assert not monolith.user_query.add_to_blacklist(None, None)
         assert not monolith.user_query.remove_from_blacklist(None, None)
         assert not monolith.user_query.add_points(0, None)

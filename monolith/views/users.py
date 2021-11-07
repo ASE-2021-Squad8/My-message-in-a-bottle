@@ -1,3 +1,4 @@
+import datetime
 from flask import (
     Blueprint,
     json,
@@ -8,16 +9,12 @@ from flask import (
     make_response,
     abort,
 )
-
 from flask_login import logout_user
-
 
 from monolith.database import User, db
 from monolith.forms import BlackListForm, UserForm, ChangePassForm
 from monolith.auth import check_authenticated, current_user
-from monolith.views.message import _not_valid_string
 import monolith.user_query
-import datetime
 
 users = Blueprint("users", __name__)
 
@@ -48,11 +45,16 @@ def _user():  # pragma: no cover
 
 @users.route("/create_user", methods=["POST", "GET"])
 def create_user():
+    """Create a user
+
+    :return: the rendered template of the page
+    :rtype: text
+    """
     form = UserForm()
 
     if request.method == "POST":
         if form.validate_on_submit():
-            # Check if date of birth is valid (in the past)
+            # check if date of birth is valid (in the past)
             inputdate = form.dateofbirth.data
             if inputdate is None or inputdate > datetime.date.today():
                 return render_template(
@@ -61,7 +63,7 @@ def create_user():
                     error="Date of birth cannot be empty or in the future",
                 )
 
-            # Check if a user with the same email already exists
+            # check if a user with the same email already exists
             email = form.email.data
             if monolith.user_query.get_user_by_email(email):
                 return render_template(
@@ -70,7 +72,7 @@ def create_user():
                     error="A user with that email already exists",
                 )
 
-            # Create the user
+            # create the user
             new_user = User()
             form.populate_obj(new_user)
             """
@@ -88,6 +90,11 @@ def create_user():
 
 @users.route("/user/get_recipients", methods=["GET"])
 def get_recipients():
+    """Get all the possible message recipients for the current user
+
+    :return: the json of all the possible recipients
+    :rtype: json
+    """
     result = monolith.user_query.get_recipients(getattr(current_user, "id"))
     l = [{"id": i.id, "email": i.email} for i in result]
     return jsonify(l)
@@ -95,6 +102,11 @@ def get_recipients():
 
 @users.route("/unregister")
 def unregister():
+    """Unregister the current user from the service
+
+    :return: redirect to landing page
+    :rtype: response
+    """
     check_authenticated()
     userid = getattr(current_user, "id")
     logout_user()
@@ -106,10 +118,16 @@ def unregister():
 
 @users.route("/update_data", methods=["POST", "GET"])
 def change_data_user():
+    """Update the data of the current user
+
+    :return: the rendered template of the page
+    :rtype: text
+    """
     check_authenticated()
     form = UserForm()
 
     if request.method == "POST":
+        # check if inputs are valid
         if (
             request.form["textfirstname"] == ""
             or request.form["textlastname"] == ""
@@ -123,6 +141,7 @@ def change_data_user():
                 error="All fields must be completed!",
             )
 
+        # update the user data
         userid = getattr(current_user, "id")
         user = User.query.filter(User.id == userid).first()
         user.firstname = request.form["textfirstname"]
@@ -140,6 +159,11 @@ def change_data_user():
 
 @users.route("/reset_password", methods=["POST", "GET"])
 def change_pass_user():
+    """Change the password of the current user
+
+    :return: the rendered template of the page
+    :rtype: text
+    """
     check_authenticated()
     form = ChangePassForm()
     stringError = ""
@@ -151,6 +175,7 @@ def change_pass_user():
         new_pass = form.newpassword.data
         confirmpass = form.confirmpassword.data
 
+        # check that current and confirmation password are correct
         if user.authenticate(current_password):
             if new_pass == confirmpass:
                 user.set_password(new_pass)
@@ -173,10 +198,16 @@ def change_pass_user():
 
 @users.route("/report_user", methods=["GET", "POST"])
 def report():
+    """Report a user
+
+    :return: the rendered template of the page
+    :rtype: text
+    """
     check_authenticated()
     if request.method == "GET":  # pragma: no cover
         return render_template("report_user.html")
     else:
+        # get the mail of the user to be reported and report it
         mail = str(request.form["useremail"])
         if mail is not None and not mail.isspace():
             user = User.query.filter(User.email == mail).first()
@@ -188,7 +219,7 @@ def report():
                 )
             user.reports += 1
             banned = ""
-            # If the user has 3 or more reports ban the account deactivating it
+            # if the user has 3 or more reports ban the account deactivating it
             if user.reports >= 3:
                 user.is_active = False
                 banned = " and banned"
@@ -206,15 +237,20 @@ def report():
             )
 
 
-@users.route("/user/black_list", methods=["POST", "GET"])
+@users.route("/user/black_list", methods=["GET", "POST"])
 def display_black_list():
+    """Get all the users blacklisted by the current user
+
+    :return: the response from the server or the rendered template
+    :rtype: text
+    """
     check_authenticated()
     owner_id = getattr(current_user, "id")
     if request.method == "POST":
+        # remove or add users to the blacklist
         result = False
         json_data = json.loads(request.data)
         members_id = json_data["users"]
-        # print(json_data)
         if json_data["op"] == "delete":
             result = monolith.user_query.remove_from_blacklist(owner_id, members_id)
         elif json_data["op"] == "add":
@@ -222,8 +258,8 @@ def display_black_list():
 
         return _prepare_json_response(owner_id, 200 if result else 500)
     elif request.method == "GET":  # pragma: no cover
+        # get all the blacklisted users
         f = BlackListForm()
-
         result = monolith.user_query.get_blacklist(owner_id)
         black_list = [usr[1] for usr in result]
         f.users.choices = monolith.user_query.get_blacklist_candidates(owner_id)
@@ -234,6 +270,15 @@ def display_black_list():
 
 
 def _prepare_json_response(owner_id, status):
+    """Create and make the json response from server
+
+    :param owner_id: the id of the user to retrieve the data of
+    :type owner_id: int
+    :param status: the status code to be returned
+    :type status: int
+    :return: the response from the server
+    :rtype: Response
+    """
     body = dict()
     choices = monolith.user_query.get_blacklist_candidates(owner_id)
     body.update({"users": [{"id": i[0], "email": i[1]} for i in choices]})
@@ -244,7 +289,7 @@ def _prepare_json_response(owner_id, status):
 
 @users.route("/api/user/<user_id>", methods=["GET"])
 def get_user_details(user_id):
-    """Retrieves public profile details for a specific user
+    """Retrieve public profile details for a specific user
 
     :param user_id: the id of the user to retrieve the information of
     :type user_id: int
@@ -270,6 +315,11 @@ def get_user_details(user_id):
 
 @users.route("/api/users/list")
 def get_users_list_json():
+    """Get all the users registered to the service
+
+    :return: the json of the users
+    :rtype: json
+    """
     users = monolith.user_query.get_all_users()
     userlist = [
         {"email": u.email, "firstname": u.firstname, "lastname": u.lastname}
@@ -280,6 +330,13 @@ def get_users_list_json():
 
 @users.route("/api/content_filter/<value>")
 def set_content_filter(value):
+    """Set the content filter or the current user to <value> (1 True, 0 False)
+
+    :param value: 1 to set the filter to True, 0 otherwise
+    :type value: int/string
+    :return: True if filter is now set to True, False otherwise
+    :rtype: bool
+    """
     check_authenticated()
     value = True if int(value) == 1 else False
     try:
