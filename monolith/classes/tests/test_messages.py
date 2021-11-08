@@ -7,7 +7,7 @@ from datetime import datetime, timedelta
 
 from werkzeug.test import Client
 
-from monolith.database import Message, db
+from monolith.database import Message, User, db
 from monolith.app import create_test_app
 from monolith.messaging import (
     get_day_message,
@@ -345,12 +345,20 @@ class TestApp(unittest.TestCase):
     def test_daily_message(self):
         # inserting a test message in the db that must be deleted to test
         # the functionality of delete message
+        recipient = User()
+        recipient.firstname = "test"
+        recipient.lastname = "test"
+        recipient.password = "prova"
+        recipient.email = "test_unregister@test.com"
+        db.session.add(recipient)
+        db.session.commit()
+        recipient_id = recipient.id
         year = 2021
         month = 11
         day = 11
         test_msg = Message()
         test_msg.sender = 1
-        test_msg.recipient = 2
+        test_msg.recipient = recipient_id
         test_msg.text = "test"
         test_msg.is_draft = False
         test_msg.delivery_date = datetime(year, month, day)
@@ -360,19 +368,11 @@ class TestApp(unittest.TestCase):
         db.session.add(test_msg)
         db.session.commit()
         message_id = test_msg.message_id
+        
+
 
         with self.client:
-            reply = self.client.post(
-            "/create_user",
-            data=dict(
-                email="test_unregister@test.com",
-                firstname="test",
-                lastname="test",
-                password="test",
-                dateofbirth="1111-1-1",
-            ),
-            follow_redirects=True,
-        )
+
             reply = self.client.post(
                 "/login",
                 data=dict(email="example@example.com", password="admin"),
@@ -390,28 +390,9 @@ class TestApp(unittest.TestCase):
             assert obj["firstname"] == "test"
             assert obj["email"] == "test_unregister@test.com"
 
-            # reply = self.client.delete("/api/message/delete/-1")
-            # data = reply.get_json()
-            # assert reply.status_code == 404
-        with self.client:
-
-            reply = self.client.get(
-            "/logout",
-            follow_redirects=True,
-            )
-            assert reply.status_code == 200
-
-            reply = self.client.post(
-                "/login",
-                data=dict(email="test_unregister@test.com", password="test"),
-                follow_redirects=True,
-            )
-            assert reply.status_code == 200
-
-            reply = self.client.get("/unregister", follow_redirects=True)
-            assert reply.status_code == 200
-
         db.session.query(Message).filter(Message.message_id == message_id).delete()
+        db.session.commit()
+        db.session.query(User).filter(User.id == recipient_id).delete()
         db.session.commit()
 
     def test_daily_error(self):
@@ -421,7 +402,7 @@ class TestApp(unittest.TestCase):
                 data=dict(email="example@example.com", password="admin"),
                 follow_redirects=True,
             )
-            
+
             end_point = "/api/calendar/33/10/2021"
             reply = reply = self.client.get(end_point)
             assert reply.status_code == 404
