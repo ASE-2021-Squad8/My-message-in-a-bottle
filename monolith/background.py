@@ -25,26 +25,36 @@ celery.conf.task_route = {
     },  # key notification
 }
 
-# set up period task for checking messages
+# set up period task
 celery.conf.beat_schedule = {
+    # for coping with faults during message delivery
     "check_message": {
         "task": "monolith.background.check_messages",
         "schedule": timedelta(minutes=15),  # every 15 minutes
         "args": [False],  # test mode
     },
+    # lottery game
     "lottery": {
         "task": "monolith.background.lottery",
-        "schedule": crontab(0, 0, day_of_month="1"),  # every 1st timedelta(seconds=20),
+        "schedule": crontab(0, 0, day_of_month="1"),  # every 1st
         "args": [False],  # test mode
     },
 }
+# set timezone
 celery.conf.timezone = "UTC"
 _APP = None
 
-# change state message to delivered
+
 @celery.task
 def send_message(json_message):
-    logger.info("Message: " + json_message)
+    """Deliver a message updating is_delivered to 1
+    :param json_message: data to execute the task
+    :type json_message: json format string
+    :raises Exception: if an error occurs
+    :returns: True in case update succeed otherwise False
+    :rtype: bool
+    """
+    logger.info("Start send_message json_message: " + json_message)
     global _APP
     tmp = json.loads(json_message)
     # lazy init
@@ -67,15 +77,21 @@ def send_message(json_message):
                     queue="notification",
                 )
     except Exception as e:
-        logger.exception("save_message raised %r", e)
+        logger.exception("save_message raised ", e)
         raise e
-    logger.info("end")
+    logger.info("End send_message result: " + str(result))
     return result
 
 
-# periodic task to manage possible fault
 @celery.task
 def check_messages(test_mode):
+    """Check that messages have been sent correctly
+    :param test_mode: determine the operating mode
+    :type test_mode: bool
+    :raises Exception: if an error occurs
+    :returns: state of execution and number of messages sent
+    :rtype: couple (bool,int)
+    """
     global _APP
     # lazy init
     if _APP is None:
@@ -85,7 +101,7 @@ def check_messages(test_mode):
         db.init_app(app)
     else:
         app = _APP
-    logger.info("check_message start")
+    logger.info("Start check_message test_mode: " + str(test_mode))
     result = False
     with app.app_context():
         try:
@@ -108,15 +124,24 @@ def check_messages(test_mode):
                 )
             result = True
         except Exception as e:
-            logger.exception("check_messages raises %r", e)
+            logger.exception("check_messages raises ", e)
             raise e
-    return (result, len(ids))  # state and number of sent message
+    # state and number of sent messages
+    couple = (result, len(ids))
+    logger.info("End check_message couple: " + str(couple))
+    return couple
 
 
-# send email via celery on notification queue
 @celery.task
 def send_notification_task(json_message):
-    logger.info("Message task: " + json_message)
+    """send email via celery on notification queue
+    :param json_message: data to execute the task
+    :type json_message: json string
+    :raises Exception: if an error occurs
+    :returns : True if email is sent correctly otherwise False
+    :rtype: bool
+    """
+    logger.info("Start send_notification_task json_message: " + json_message)
     global _APP
     result = False
     tmp = json.loads(json_message)
@@ -134,11 +159,19 @@ def send_notification_task(json_message):
     except Exception as e:
         logger.exception("send_notification_task raises ", e)
         raise e
+    logger.info("End send_notification_task result " + str(result))
     return result
 
 
 @celery.task
 def lottery(test_mode):
+    """implement lottery game
+    :param test_mode : determine the operating mode
+    :type test_mode: bool
+    :returns: False in case errors occur otherwise True
+    :rtype: bool
+    """
+    logger.info("Lottery game start")
     global _APP
     result = False
     id_winner = -1
@@ -152,7 +185,9 @@ def lottery(test_mode):
         app = _APP
 
     with app.app_context():
+        # get all participants
         participants = get_lottery_participants()
+        # extract the winner randomly
         winner = random.randint(0, len(participants) - 1)
         email_r = participants[winner].email
         sender = "Message in a bottle"
@@ -160,6 +195,7 @@ def lottery(test_mode):
             sender, email_r, "You have just won 20 points!", app.config["TESTING"]
         )
         if add_points(20, participants[winner].id):
+            # send mail to winner
             send_notification_task.apply_async(
                 args=[json_message],
                 routing_key="notification",
@@ -167,13 +203,26 @@ def lottery(test_mode):
             )
             id_winner = participants[winner].id
             result = True
+    logger.info("Lottery game end winner id: " + str(id_winner))
     return (result, id_winner)
 
 
-def build_json(email_s, email_r, body, testing):
+def build_json(sender, email_r, body, testing):
+    """build up json message to pass parameter via celery
+    :param sender : sender of the message
+    :type sender: string
+    :param email_r: receiver's email address
+    :type email_r: string
+    :param body: content of the message
+    :type body: string
+    :param testing: test mode
+    :type testing: bool
+    :returns: False in case errors occur otherwise True
+    :rtype: bool
+    """
     return json.dumps(
         {
-            "sender": email_s,
+            "sender": sender,
             "recipient": email_r,
             "body": body,
             "TESTING": testing,

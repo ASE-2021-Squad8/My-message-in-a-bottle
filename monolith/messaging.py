@@ -17,7 +17,7 @@ def save_message(message):
 
     :param message: the message to add to the db
     :type message: Message
-    :return: the id of the new message
+    :returns: the id of the new message
     :rtype: int
     """
     db.session.add(message)
@@ -30,7 +30,7 @@ def get_user_drafts(user_id):
 
     :param user_id: the id of the user to get its drafts
     :type user_id: Message
-    :return: the list of all the drafts
+    :returns: the list of all the drafts
     :rtype: List[Message]
     """
     q = db.session.query(Message).filter(Message.sender == user_id, Message.is_draft)
@@ -45,7 +45,7 @@ def get_user_draft(user_id, draft_id):
     :param draft_id: draft id
     :type draft_id: id
     :raises KeyError: if the draft cannot be found
-    :return: the draft message object
+    :returns: the draft message object
     :rtype: Message
     """
 
@@ -68,7 +68,7 @@ def unmark_draft(user_id, draft_id):
     :param draft_id: id of the draft
     :type draft_id: int
     :raises KeyError: if the draft was not found
-    :return: the message object, no longer a draft
+    :returns: the message object, no longer a draft
     :rtype: Message
     """
 
@@ -96,7 +96,7 @@ def delete_draft_attachment(user_id, message_id):
     :param message_id: id of the drafted message
     :type message_id: int
     :raises KeyError: if the draft is not found
-    :return: True the attachment was removed, False otherwise
+    :returns: True the attachment was removed, False otherwise
     :rtype: bool
     """
 
@@ -122,7 +122,7 @@ def delete_user_message(user_id, message_id):
     :type user_id: int
     :param message_id: the id of the message to be deleted
     :type message_id: int
-    :return: None of raise KeyError if message_id does not exist
+    :returns: None of raise KeyError if message_id does not exist
     """
     q = db.session.query(Message).filter(
         Message.sender == user_id, Message.message_id == message_id
@@ -140,7 +140,7 @@ def get_received_messages_metadata(user_id):
 
     :param user_id: id of the user
     :type user_id: int
-    :return: a list of message metadata
+    :returns: a list of message metadata
     :rtype: list[json]
     """
 
@@ -181,7 +181,7 @@ def get_received_message(user_id, message_id):
     :param message_id: id of the received message
     :type message_id: int
     :raises KeyError: if no such message was received
-    :return: the received message
+    :returns: the received message
     :rtype: Message
     """
 
@@ -215,7 +215,7 @@ def get_sent_message(user_id, message_id):
     :param message_id: id of the sent message
     :type message_id: int
     :raises KeyError: if no such message was received
-    :return: the sent message
+    :returns: the sent message
     :rtype: Message
     """
 
@@ -237,7 +237,7 @@ def get_sent_messages_metadata(user_id):
 
     :param user_id: id of the user
     :type user_id: int
-    :return: a list of sent message metadata
+    :returns: a list of sent message metadata
     :rtype: list[dict]
     """
 
@@ -272,7 +272,7 @@ def set_message_is_deleted(message_id):
 
     :param message_id: the id of the message to delete
     :type message_id: int
-    :return: True if the message has been deleted, False otherwise
+    :returns: True if the message has been deleted, False otherwise
     :rtype: bool
     """
 
@@ -300,7 +300,7 @@ def set_message_is_deleted_lottery(message_id):
 
     :param message_id: the id of the message to delete
     :type message_id: int
-    :return: True if the message has been deleted, False otherwise
+    :returns: True if the message has been deleted, False otherwise
     :rtype: bool
     """
 
@@ -322,7 +322,7 @@ def get_message(message_id):
 
     :param message_id: the id of the message to return
     :type message_id: int
-    :return: the message
+    :returns: the message
     :rtype: Message
     """
     msg = db.session.query(Message).filter(Message.message_id == message_id).first()
@@ -339,7 +339,7 @@ def update_message_state(message_id, attr, state):
     :type attr: int
     :param value: the updated value
     :type value: Any
-    :return: True if the message has been updated, False otherwise
+    :returns: True if the message has been updated, False otherwise
     :rtype: bool
     """
     result = False
@@ -358,7 +358,7 @@ def update_message_state(message_id, attr, state):
 
 
 def check_message_to_send():
-    """Check if all the messages have been correctly sent. 
+    """Check if all the messages have been correctly sent.
     If an error is occurred (with Celery), set the messages in the past to delivered.
     """
     ids = []
@@ -387,7 +387,7 @@ def get_day_message(userid, baseDate, upperDate):
     :type baseDate: datetime
     :param upperDate: end date
     :type upperDate: datetime
-    :return: a list of messages
+    :returns: a list of messages
     :rtype: list[dict]
     """
 

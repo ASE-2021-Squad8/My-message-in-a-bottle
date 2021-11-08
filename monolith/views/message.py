@@ -56,7 +56,7 @@ def _extension_allowed(filename):
 
     :param filename: name of the file
     :type filename: str
-    :return: True if allowed, false otherwise
+    :returns: True if allowed, false otherwise
     :rtype: bool
     """
 
@@ -74,7 +74,7 @@ def _generate_filename(file):
 
     :param file: file handle
     :type file: file
-    :return: a filename suited for storage
+    :returns: a filename suited for storage
     :rtype: str
     """
 
@@ -100,7 +100,7 @@ def _generate_filename(file):
 def save_draft_message():
     """Saves a message as draft
 
-    :return: id of the saved message
+    :returns: id of the saved message
     :rtype: json
     """
 
@@ -172,7 +172,7 @@ def get_user_draft(id):
 
     :param id: the draft id to search
     :type id: int
-    :return: message id
+    :returns: message id
     :rtype: json
     """
     check_authenticated()
@@ -194,7 +194,7 @@ def get_user_draft_attachment(id):
 
     :param id: the draft id to search
     :type id: int
-    :return: message id
+    :returns: message id
     :rtype: json
     """
     check_authenticated()
@@ -209,7 +209,7 @@ def get_user_draft_attachment(id):
 def get_user_drafts():
     """Get all the draft from the current user
 
-    :return: all the drafts
+    :returns: all the drafts
     :rtype: json
     """
     check_authenticated()
@@ -222,7 +222,7 @@ def get_user_drafts():
 def send_message():
     """Send a message from the current user
 
-    :return: json of the message in test mode, otherwise the page
+    :returns: json of the message in test mode, otherwise the page
     :rtype: json
     """
     check_authenticated()
@@ -290,8 +290,7 @@ def send_message():
                     None, ERROR_PAGE, True, 400, "File extension not allowed"
                 )
 
-        # when it will be delivered
-        # delay = (delivery_date - now).total_seconds()
+        # send message via celery
         try:
             id = monolith.messaging.save_message(msg)
             email_r = get_user_mail(msg.recipient)
@@ -307,8 +306,8 @@ def send_message():
                             "sender": email_s,
                         }
                     )
-                ],
-                eta=delivery_date.astimezone(pytz.utc),  # cover to utc
+                ],  #  convert to utc
+                eta=delivery_date.astimezone(pytz.utc),  # task execution time
                 routing_key="message",  # to specify the queue
                 queue="message",
             )
@@ -318,7 +317,6 @@ def send_message():
     return _get_result(jsonify({"message sent": True}), "/send_message")
 
 
-# json object in test mode otherwise a rendered template
 def _get_result(json_object, page, error=False, status=200, error_message=""):
     """Return the result of a function (a json in test mode or a rendered template)
 
@@ -332,7 +330,7 @@ def _get_result(json_object, page, error=False, status=200, error_message=""):
     :type status: int
     :param error_message: the error message to be displayed (default="")
     :type error_message: text
-    :return: json in test mode or rendered template
+    :returns: json in test mode or rendered template
     :rtype: json
     """
     testing = app.config["TESTING"]
@@ -354,7 +352,7 @@ def _not_valid_string(text):
 def _get_received_messages_metadata():
     """Get all the messages received by the current user
 
-    :return: json of all the messages, 404 page if an exception happened
+    :returns: json of all the messages, 404 page if an exception happened
     :rtype: json
     """
     check_authenticated()
@@ -377,7 +375,7 @@ def _get_received_message(message_id):
 
     :param message_id: the id of the message to be returned
     :type message_id: int
-    :return: json of the message, 404 page if an exception happened
+    :returns: json of the message, 404 page if an exception happened
     :rtype: json
     """
     check_authenticated()
@@ -398,7 +396,7 @@ def _get_received_message(message_id):
 def _get_sent_messages():
     """Get all the messages sent by the current user
 
-    :return: json of all the messages, 404 page if an exception happened
+    :returns: json of all the messages, 404 page if an exception happened
     :rtype: json
     """
     check_authenticated()
@@ -421,7 +419,7 @@ def _get_sent_message(message_id):
 
     :param message_id: the id of the message to be returned
     :type message_id: int
-    :return: json of the message, 404 page if an exception happened
+    :returns: json of the message, 404 page if an exception happened
     :rtype: json
     """
     check_authenticated()
@@ -444,7 +442,7 @@ def delete_msg(message_id):
 
     :param message_id: the id of the message to be deleted
     :type message_id: int
-    :return: json of the deleted message id, 404 page if an exception happened
+    :returns: json of the deleted message id, 404 page if an exception happened
     :rtype: json
     """
     check_authenticated()
@@ -460,7 +458,7 @@ def lottery_delete_msg(message_id):
 
     :param message_id: the id of the message to be deleted
     :type message_id: int
-    :return: json of the deleted message id, otherwise -1
+    :returns: json of the deleted message id, otherwise -1
     :rtype: json
     """
     check_authenticated()
@@ -477,7 +475,7 @@ def read_msg(id):
 
     :param message_id: the id of the message to be returned
     :type message_id: int
-    :return: True if the message has been correctly read, 404 page if the message has been deleted or does not exist
+    :returns: True if the message has been correctly read, 404 page if the message has been deleted or does not exist
     :rtype: json
     """
     check_authenticated()
@@ -521,7 +519,7 @@ def sent_messages_by_day(day, month, year):
     :type month: int
     :param year: year
     :type year: int
-    :return: json of all the found messages id, 404 page if the date is invalid
+    :returns: json of all the found messages id, 404 page if the date is invalid
     :rtype: json
     """
     check_authenticated()

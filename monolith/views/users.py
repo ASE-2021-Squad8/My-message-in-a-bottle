@@ -47,7 +47,7 @@ def _user():  # pragma: no cover
 def create_user():
     """Create a user
 
-    :return: the rendered template of the page
+    :returns: the rendered template of the page
     :rtype: text
     """
     form = UserForm()
@@ -92,7 +92,7 @@ def create_user():
 def get_recipients():
     """Get all the possible message recipients for the current user
 
-    :return: the json of all the possible recipients
+    :returns: the json of all the possible recipients
     :rtype: json
     """
     result = monolith.user_query.get_recipients(getattr(current_user, "id"))
@@ -104,7 +104,7 @@ def get_recipients():
 def unregister():
     """Unregister the current user from the service
 
-    :return: redirect to landing page
+    :returns: redirect to landing page
     :rtype: response
     """
     check_authenticated()
@@ -120,7 +120,7 @@ def unregister():
 def change_data_user():
     """Update the data of the current user
 
-    :return: the rendered template of the page
+    :returns: the rendered template of the page
     :rtype: text
     """
     check_authenticated()
@@ -161,7 +161,7 @@ def change_data_user():
 def change_pass_user():
     """Change the password of the current user
 
-    :return: the rendered template of the page
+    :returns: the rendered template of the page
     :rtype: text
     """
     check_authenticated()
@@ -200,7 +200,7 @@ def change_pass_user():
 def report():
     """Report a user
 
-    :return: the rendered template of the page
+    :returns: the rendered template of the page
     :rtype: text
     """
     check_authenticated()
@@ -241,7 +241,7 @@ def report():
 def display_black_list():
     """Get all the users blacklisted by the current user
 
-    :return: the response from the server or the rendered template
+    :returns: the response from the server or the rendered template
     :rtype: text
     """
     check_authenticated()
@@ -276,7 +276,7 @@ def _prepare_json_response(owner_id, status):
     :type owner_id: int
     :param status: the status code to be returned
     :type status: int
-    :return: the response from the server
+    :returns: the response from the server
     :rtype: Response
     """
     body = dict()
@@ -293,7 +293,7 @@ def get_user_details(user_id):
 
     :param user_id: the id of the user to retrieve the information of
     :type user_id: int
-    :return: an object containing email, first and last name
+    :returns: an object containing email, first and last name
     :rtype: Markup
     """
     check_authenticated()
@@ -317,7 +317,7 @@ def get_user_details(user_id):
 def get_users_list_json():
     """Get all the users registered to the service
 
-    :return: the json of the users
+    :returns: the json of the users
     :rtype: json
     """
     users = monolith.user_query.get_all_users()
@@ -334,7 +334,7 @@ def set_content_filter(value):
 
     :param value: 1 to set the filter to True, 0 otherwise
     :type value: int/string
-    :return: True if filter is now set to True, False otherwise
+    :returns: True if filter is now set to True, False otherwise
     :rtype: bool
     """
     check_authenticated()
