@@ -114,8 +114,8 @@ def save_draft_message():
 
         message = None
 
-        try:
-            id = request.form["draft_id"]
+        id = request.form["draft_id"]
+        if id is not None and id != "":
             try:
                 message = monolith.messaging.get_user_draft(
                     getattr(current_user, "id"), id
@@ -124,7 +124,7 @@ def save_draft_message():
                 return _get_result(
                     None, ERROR_PAGE, True, 404, "Draft to edit cannot be found"
                 )
-        except KeyError:
+        else:
             message = Message()
 
         message.text = text
@@ -134,11 +134,13 @@ def save_draft_message():
         if "recipient" in request.form and request.form["recipient"] != "":
             message.recipient = request.form["recipient"]
 
+        print("A")
         # check the attachment
-        if "attachment" in request.files:
+        if "attachment" in request.files and request.files["attachment"].filename != "":
             file = request.files["attachment"]
 
-            if file.filename != "" and _extension_allowed(file.filename):
+            if _extension_allowed(file.filename):
+                print("---------------we got here????")
                 filename = _generate_filename(file)
 
                 # if the draft already has a file, delete it
