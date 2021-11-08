@@ -9,7 +9,7 @@ from monolith.database import Message, User, db
 from monolith.notifications import EmailConfig, send_notification
 
 
-class TestPeriodicTask(unittest.TestCase):
+class TestTasks(unittest.TestCase):
     def setUp(self):
         self.app = create_test_app()
         self.client = self.app.test_client()

@@ -9,7 +9,7 @@ from celery.utils.log import get_logger
 from monolith.database import db
 from monolith.messaging import check_message_to_send, update_message_state
 from monolith.notifications import send_notification
-from monolith.user_query import add_points, get_user_mail, get_lottery_participants
+from monolith.user_query import add_points, get_user_mail, get_lottery_participants, get_user_by_email
 
 
 logger = get_logger(__name__)
@@ -155,8 +155,11 @@ def send_notification_task(json_message):
     else:
         app = _APP
     try:
-        send_notification(tmp["sender"], tmp["recipient"], tmp["body"])
-        result = True
+        recipient = get_user_by_email(tmp["receiver"])
+        # Banned/deleted users shouldn't receive any notifications 
+        if recipient.is_active:
+            send_notification(tmp["sender"], tmp["recipient"], tmp["body"])
+            result = True
     except Exception as e:
         logger.exception("send_notification_task raises ", e)
         raise e

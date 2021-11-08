@@ -193,9 +193,9 @@ class TestApp(unittest.TestCase):
         reply = self.client.get("/user/get_recipients")
         body = reply.get_json()
         # expect all other users except test
-        assert body[0] == {"email": "example@example.com", "id": 1}
-        assert body[1] == {"email": "test_1@test.com", "id": 4}
-
+        for user in body:
+            assert user["email"] in {"example@example.com", "test_1@test.com"}
+            
         """
         BLACK LIST TEST
         """
@@ -428,13 +428,13 @@ class TestApp(unittest.TestCase):
         assert reply.status_code == 200
 
         # test filter activation api
-        reply = self.client.get("/api/content_filter/1")
+        reply = self.client.post("/api/content_filter/1")
         assert reply.status_code == 200
         user = db.session.query(User).filter(User.id == 1).first()
         assert user.content_filter
 
         # test filter deactivation api
-        reply = self.client.get("/api/content_filter/0")
+        reply = self.client.post("/api/content_filter/0")
         assert reply.status_code == 200
         user = db.session.query(User).filter(User.id == 1).first()
         assert not user.content_filter

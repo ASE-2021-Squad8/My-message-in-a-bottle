@@ -87,6 +87,10 @@ class TestApp(unittest.TestCase):
         assert reply.status_code == 200
         assert str(data["message_id"]) == str(old_id)
 
+        reply = self.client.delete("/api/message/draft/" + str(old_id) + "/attachment")
+        data = reply.get_json()
+        assert reply.status_code == 404
+
         reply = self.client.get("/api/message/draft/all")
         data = reply.get_json()
         assert reply.status_code == 200

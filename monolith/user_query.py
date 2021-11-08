@@ -149,10 +149,7 @@ def get_user_by_email(user_email):
     """
 
     user = db.session.query(User).filter(User.email == user_email).first()
-    if user is None:
-        return False
-    else:
-        return True
+    return user
 
 
 def get_lottery_participants():

@@ -109,7 +109,8 @@ def delete_draft_attachment(user_id, message_id):
         os.unlink(os.path.join(current_app.config["UPLOAD_FOLDER"], draft.media))
         draft.media = ""
         db.session.commit()
-    except FileNotFoundError:
+    except FileNotFoundError: # pragma: no cover
+        # This will only happen in case of a FS issue
         return False
 
     return True

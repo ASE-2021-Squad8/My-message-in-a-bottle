@@ -9,8 +9,10 @@
 
 Press enable to activate a content filter that automatically censors bad words!<br><br>
 
-<a class="btn btn-primary" href="/api/content_filter/1">Enable</a>
-<a class="btn btn-primary" href="/api/content_filter/0">Disable</a><br><br>
+<form method="POST">
+<button type="submit" formaction="/api/content_filter/1" class="btn btn-primary">Enable</button>
+<button type="button" formaction="/api/content_filter/0" class="btn btn-primary">Disable</button><br><br>
+</form>
 
 {{feedback}}
 {% endblock %}

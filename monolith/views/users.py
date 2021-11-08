@@ -65,7 +65,7 @@ def create_user():
 
             # check if a user with the same email already exists
             email = form.email.data
-            if monolith.user_query.get_user_by_email(email):
+            if monolith.user_query.get_user_by_email(email) is not None:
                 return render_template(
                     "create_user.html",
                     form=form,
@@ -328,7 +328,7 @@ def get_users_list_json():
     return jsonify(userlist)
 
 
-@users.route("/api/content_filter/<value>")
+@users.route("/api/content_filter/<value>", methods=["POST"])
 def set_content_filter(value):
     """Set the content filter or the current user to <value> (1 True, 0 False)
 
@@ -338,15 +338,11 @@ def set_content_filter(value):
     :rtype: bool
     """
     check_authenticated()
-    value = True if int(value) == 1 else False
-    try:
-        set = monolith.user_query.change_user_content_filter(current_user.id, value)
-    except Exception as e:  # pragma: no cover
-        print(str(e))
-        return render_template("content_filter.html", feedback="This should not happen")
-
-    if set == True:
-        feedback = "You content filter is enabled"
+    value = int(value) == 1
+    set = monolith.user_query.change_user_content_filter(current_user.id, value)
+    
+    if set:
+        feedback = "Your content filter is enabled"
     else:
-        feedback = "You content filter is disabled"
+        feedback = "Your content filter is disabled"
     return render_template("content_filter.html", feedback=feedback)

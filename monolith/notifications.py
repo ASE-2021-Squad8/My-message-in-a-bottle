@@ -4,6 +4,8 @@ from email.message import EmailMessage
 import socket
 from collections import namedtuple
 
+from monolith.user_query import get_user_by_email
+
 EmailConfig = namedtuple("EmailConfig", ["server", "port", "email", "password"])
 DefaultEmailConfig = EmailConfig(
     os.environ.get("MAIL_SERVER", "localhost"),
