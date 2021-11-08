@@ -46,7 +46,8 @@ _APP = None
 
 
 @celery.task
-def send_message(json_message):
+# Don't include towards coverage as this needs to be tested via its endpoint
+def send_message(json_message): # pragma: no cover
     """Deliver a message updating is_delivered to 1
     :param json_message: data to execute the task
     :type json_message: json format string
