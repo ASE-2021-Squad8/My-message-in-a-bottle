@@ -49,7 +49,7 @@ function write_message(data, day, month, year) {
 
 function delete_and_reload(msg_id, day, month, year) {
   $.ajax({
-    url: '/api/lottery/message/delete/' + msg_id,
+    url: '/api/lottery/message/' + msg_id,
     type: 'DELETE',
     dataType: "json",
     success: function (data) {

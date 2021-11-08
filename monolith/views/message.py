@@ -218,7 +218,7 @@ def get_user_drafts():
     return jsonify(drafts)
 
 
-@msg.route("/api/message/send_message", methods=["POST"])
+@msg.route("/api/message/", methods=["POST"])
 def send_message():
     """Send a message from the current user
 
@@ -436,7 +436,7 @@ def _get_sent_message(message_id):
         abort(404, "Message not found")
 
 
-@msg.route("/api/message/delete/<message_id>", methods=["DELETE"])
+@msg.route("/api/message/<message_id>", methods=["DELETE"])
 def delete_msg(message_id):
     """Delete a message of id = <id>
 
@@ -452,7 +452,7 @@ def delete_msg(message_id):
         return _get_result(None, ERROR_PAGE, True, 404, "Message not found")
 
 
-@msg.route("/api/lottery/message/delete/<message_id>", methods=["DELETE"])
+@msg.route("/api/lottery/message/<message_id>", methods=["DELETE"])
 def lottery_delete_msg(message_id):
     """Delete a scheduled message of id = <id>
 

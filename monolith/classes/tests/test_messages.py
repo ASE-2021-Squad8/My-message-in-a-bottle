@@ -154,7 +154,7 @@ class TestApp(unittest.TestCase):
 
         delivery_date = now + timedelta(seconds=5)
         reply = self.client.post(
-            "/api/message/send_message",
+            "/api/message/",
             data=dict(
                 {
                     "recipient": data[0]["id"],
@@ -263,12 +263,12 @@ class TestApp(unittest.TestCase):
             )
             assert reply.status_code == 200
 
-            end_point = "/api/message/delete/" + str(message_id)
+            end_point = "/api/message/" + str(message_id)
             reply = self.client.delete(end_point)
             data = reply.get_json()
             assert reply.status_code == 200
             assert int(data["message_id"]) == message_id
-            reply = self.client.delete("/api/message/delete/-1")
+            reply = self.client.delete("/api/message/-1")
             data = reply.get_json()
             assert reply.status_code == 404
 
@@ -285,7 +285,7 @@ class TestApp(unittest.TestCase):
 
         # msg with recipients=[]
         reply = self.client.post(
-            "/api/message/send_message",
+            "/api/message/",
             data=dict(
                 {
                     "recipient": [],
@@ -300,7 +300,7 @@ class TestApp(unittest.TestCase):
 
         # msg with text=""
         reply = self.client.post(
-            "/api/message/send_message",
+            "/api/message/",
             data=dict(
                 {
                     "recipient": [1],
@@ -315,7 +315,7 @@ class TestApp(unittest.TestCase):
 
         # msg with delivery_date in the past
         reply = self.client.post(
-            "/api/message/send_message",
+            "/api/message/",
             data=dict(
                 {
                     "recipient": [1],
