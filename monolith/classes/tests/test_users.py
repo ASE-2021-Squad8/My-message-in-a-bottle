@@ -428,13 +428,13 @@ class TestApp(unittest.TestCase):
         assert reply.status_code == 200
 
         # test filter activation api
-        reply = self.client.post("/api/content_filter", dict=dict(filter="1"))
+        reply = self.client.post("/api/content_filter", data=dict(filter="1"))
         assert reply.status_code == 200
         user = db.session.query(User).filter(User.id == 1).first()
         assert user.content_filter
 
         # test filter deactivation api
-        reply = self.client.post("/api/content_filter", dict=dict(filter="0"))
+        reply = self.client.post("/api/content_filter", data=dict(filter="0"))
         assert reply.status_code == 200
         user = db.session.query(User).filter(User.id == 1).first()
         assert not user.content_filter
