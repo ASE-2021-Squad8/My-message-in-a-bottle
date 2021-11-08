@@ -4,14 +4,17 @@
 {% block content %}
 <h1>Content filter</h1>
 
-<a href="/" type="button" class="btn btn-outline-primary">Homepage</a>
-<a href="/settings" type="button" class="btn btn-outline-primary">Back to settings</a><br><br>
+<a href="/" class="btn btn-outline-primary">Homepage</a>
+<a href="{{url_for('home.settings')}}" class="btn btn-outline-primary">Back to settings</a><br><br>
 
 Press enable to activate a content filter that automatically censors bad words!<br><br>
 
 <form method="POST">
-<button type="submit" formaction="/api/content_filter/1" class="btn btn-primary">Enable</button>
-<button type="button" formaction="/api/content_filter/0" class="btn btn-primary">Disable</button><br><br>
+	<input type="radio" id="enable_choice" name="filter" value="1">
+	<label for="enable_choice">Enable</label>
+	<input type="radio" id="disable_choice" name="filter" value="0">
+	<label for="disable_choice">Disable</label><br>
+	<button type="submit" formaction="{{url_for('users.set_content_filter')}}" class="btn btn-primary">Save</button><br><br>
 </form>
 
 {{feedback}}

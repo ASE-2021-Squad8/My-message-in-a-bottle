@@ -25,7 +25,7 @@ from monolith.background import (
 
 
 msg = Blueprint("message", __name__)
-ERROR_PAGE = "error"
+ERROR_PAGE = "error_page"
 logger = get_logger(__name__)
 
 
@@ -393,7 +393,7 @@ def _get_received_message(message_id):
 
 
 @msg.route("/api/message/sent/metadata", methods=["GET"])
-def _get_sent_messages():
+def _get_sent_messages_metadata():
     """Get all the messages sent by the current user
 
     :returns: json of all the messages, 404 page if an exception happened

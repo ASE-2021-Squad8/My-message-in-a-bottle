@@ -3,11 +3,11 @@
 
 {% block content %}
 <h1>Settings</h1>
-<a href="/" type="button" class="btn btn-outline-primary">Homepage</a><br><br>
+<a href="/" class="btn btn-outline-primary">Homepage</a><br><br>
 
-<a href="/account_data">My account</a><br>
-<a href="/unregister">Unregister</a><br>
-<a href="/report_user">Report a user</a><br>
-<a href="/user/black_list">Black list</a><br>
-<a href="/content_filter">Content filter</a>
+<a href="{{url_for('users._user')}}">My account</a><br>
+<a href="{{url_for('users.unregister')}}">Unregister</a><br>
+<a href="{{url_for('users.report')}}">Report a user</a><br>
+<a href="{{url_for('users.handle_black_list')}}">Black list</a><br>
+<a href="{{url_for('users.content_filter')}}">Content filter</a>
 {% endblock %}

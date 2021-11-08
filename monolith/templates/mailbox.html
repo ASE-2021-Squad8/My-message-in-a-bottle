@@ -59,7 +59,7 @@
 {{ ckeditor.load() }}
 
 <h1>Mailbox</h1><br>
-<a href="/" type="button" class="btn btn-outline-primary">Homepage</a><br><br>
+<a href="/" class="btn btn-outline-primary">Homepage</a><br><br>
 
 <h3>Received messages</h3>
 <br>
@@ -132,8 +132,8 @@
 <script src="{{ url_for('static', filename='mailbox.js') }}"></script>
 <script>
 	function refreshTables() {
-		$.get('/api/message/received/metadata', function (data) { buildTableReceived(data); });
-		$.get('/api/message/sent/metadata', function (data) { buildTableSent(data) });
+		$.get("{{url_for('message._get_received_messages_metadata')}}", function (data) { buildTableReceived(data); });
+		$.get("{{url_for('message._get_sent_messages_metadata')}}", function (data) { buildTableSent(data) });
 	}
 
 	refreshTables();

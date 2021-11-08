@@ -3,7 +3,7 @@
 
 {% block content %}
 <h1>Send a message</h1>
-<a href="/" type="button" class="btn btn-outline-primary">Homepage</a><br><br>
+<a href="/" class="btn btn-outline-primary">Homepage</a><br><br>
 <h3>Drafted messages</h3>
 
 <!-- This gets filled by JS -->
@@ -32,8 +32,8 @@
 	{{ ckeditor.config(name='text') }}
 	<label for="delivery_date"><b>Choose a time for delivering message </b></label><br>
 	<input type="datetime-local" id="delivery_date" name="delivery_date" /><br><br><br>
-	<button type="submit" formaction="/api/message/draft" class="btn btn-primary">Save draft</button>
-	<button type="submit" formaction="{{ url_for('message.send_message')}}" class="btn btn-primary">Send message</button>
+	<button type="submit" formaction="{{url_for('message.save_draft_message')}}" class="btn btn-primary">Save draft</button>
+	<button type="submit" formaction="{{url_for('message.send_message')}}" class="btn btn-primary">Send message</button>
 </form>
 {% endblock %}
 

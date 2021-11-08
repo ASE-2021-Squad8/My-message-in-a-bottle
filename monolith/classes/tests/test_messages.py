@@ -125,7 +125,7 @@ class TestApp(unittest.TestCase):
             follow_redirects=True,
         )
         assert reply.status_code == 200
-        reply = self.client.get("/user/get_recipients")
+        reply = self.client.get("/user/recipients")
         assert reply.status_code == 200
         data = reply.get_json()
 
@@ -213,19 +213,19 @@ class TestApp(unittest.TestCase):
 
         # delete existing not read message
         reply = self.client.delete(
-            "api/message/delete/" + str(id_message), follow_redirects=True
+            "/api/message/delete/" + str(id_message), follow_redirects=True
         )
         assert reply.status_code == 404
 
         # read received message
         reply = self.client.get(
-            "api/message/read_message/" + str(id_message), follow_redirects=True
+            "/api/message/read_message/" + str(id_message), follow_redirects=True
         )
         assert reply.status_code == 200
 
         # delete existing message
         reply = self.client.delete(
-            "api/message/delete/" + str(id_message), follow_redirects=True
+            "/api/message/delete/" + str(id_message), follow_redirects=True
         )
         assert reply.status_code == 200
 
@@ -234,11 +234,11 @@ class TestApp(unittest.TestCase):
 
         # read not-existing message
         reply = self.client.get(
-            "api/message/read_message/" + str(id_message), follow_redirects=True
+            "/api/message/read_message/" + str(id_message), follow_redirects=True
         )
         assert reply.status_code == 404
 
-        reply = self.client.get("/unregister", follow_redirects=True)
+        reply = self.client.get("/user/unregister", follow_redirects=True)
         assert reply.status_code == 200
 
     def test_delete_message(self):
