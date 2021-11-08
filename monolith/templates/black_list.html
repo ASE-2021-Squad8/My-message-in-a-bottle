@@ -3,49 +3,49 @@
 
 {% block scripts %}
 <script type="application/javascript">
-            function get_users_id(form,operation){ 
-                let name = operation === "add" ? "users" : "black_users";
-                let arr = $(form).serializeArray(); 
-                console.log(arr);
-                let ids = []; 
-                arr.forEach(item => {if(item["name"] === name ) ids.push(item["value"]);}) 
-                return ids;
-            }
-            function update_black_list(form,operation){
-                let body = JSON.stringify({op : operation, users : get_users_id(form,operation)});
-                $.ajax({
-                    type : "POST",
-                    contentType : "application/json",
-                    dataType : "json",
-                    data : body,
-                    url : "/user/black_list",
-                    success : function(data,status){
-                        console.log("Response: ");
-                        console.log(data);
-                        $('#black_users').empty();
-                        data["black_users"].forEach(item =>{
-                            $('#black_users').append($('<option>', {
-                            value: item.id,
-                            text: item.email
-					        }));
-                        });
-                        $("#users").empty();
-                        data["users"].forEach(item =>{
-                            $('#users').append($('<option>', {
-                            value: item.id,
-                            text: item.email
-					        }));
-                        });
-                        alert("Black list updated successfully !")
-                    },
-                    error : function(a,b,c){
-                        console.log(a + " " + b + " " + c);
-                        alert("Ooops something went wrong !")
-                    },
-                    cache : false
-                });
-            }
-        </script>
+	function get_users_id(form, operation) {
+		let name = operation === "add" ? "users" : "black_users";
+		let arr = $(form).serializeArray();
+		console.log(arr);
+		let ids = [];
+		arr.forEach(item => { if (item["name"] === name) ids.push(item["value"]); })
+		return ids;
+	}
+	function update_black_list(form, operation) {
+		let body = JSON.stringify({ op: operation, users: get_users_id(form, operation) });
+		$.ajax({
+			type: "POST",
+			contentType: "application/json",
+			dataType: "json",
+			data: body,
+			url: "/user/black_list",
+			success: function (data, status) {
+				console.log("Response: ");
+				console.log(data);
+				$('#black_users').empty();
+				data["black_users"].forEach(item => {
+					$('#black_users').append($('<option>', {
+						value: item.id,
+						text: item.email
+					}));
+				});
+				$("#users").empty();
+				data["users"].forEach(item => {
+					$('#users').append($('<option>', {
+						value: item.id,
+						text: item.email
+					}));
+				});
+				alert("Black list updated successfully !")
+			},
+			error: function (a, b, c) {
+				console.log(a + " " + b + " " + c);
+				alert("Ooops something went wrong !")
+			},
+			cache: false
+		});
+	}
+</script>
 {% endblock %}
 
 {% block content %}
@@ -53,33 +53,32 @@
 <a href="/" type="button" class="btn btn-outline-primary">Homepage</a>
 <a href="/settings" type="button" class="btn btn-outline-primary">Back to settings</a><br><br>
 <form>
-    {{ form.hidden_tag() }}
-    <label for="users">Users non-present in your black list</label>
-    <br>
-    <select multiple name="users" required id="users">
-        {% for i in form.users %}
-        {{i}}
-        {%endfor%}
-    </select>
-    <br>
-    <br>
-    <button type="button" class="btn btn-primary"
-        onclick="javascript:update_black_list(document.forms[0],'add')"> Add
-        users</button>
+	{{ form.hidden_tag() }}
+	<label for="users">Users non-present in your black list</label>
+	<br>
+	<select multiple name="users" required id="users">
+		{% for i in form.users %}
+		{{i}}
+		{%endfor%}
+	</select>
+	<br>
+	<br>
+	<button type="button" class="btn btn-primary" onclick="javascript:update_black_list(document.forms[0],'add')"> Add
+		users</button>
 </form>
 <!--TODO delete in ajax-->
 <form>
-    {{ form.hidden_tag() }}
-    <label for="users">Users present in your black list</label>
-    <br>
-    <select multiple name="black_users" required id="black_users">
-        {% for i in form.black_users %}
-        {{i}}
-        {%endfor%}
-    </select>
-    <br>
-    <br>
-    <button type="button" class="btn btn-danger" onclick="javascript :
+	{{ form.hidden_tag() }}
+	<label for="users">Users present in your black list</label>
+	<br>
+	<select multiple name="black_users" required id="black_users">
+		{% for i in form.black_users %}
+		{{i}}
+		{%endfor%}
+	</select>
+	<br>
+	<br>
+	<button type="button" class="btn btn-danger" onclick="javascript :
         update_black_list(document.forms[1],'delete')">Delete users</button>
 </form>
 <br>

@@ -3,38 +3,38 @@
 
 {% block content %}
 <h1>Send a message</h1>
-	<a href="/" type="button" class="btn btn-outline-primary">Homepage</a><br><br>
-	<h3>Drafted messages</h3>
+<a href="/" type="button" class="btn btn-outline-primary">Homepage</a><br><br>
+<h3>Drafted messages</h3>
 
-	<!-- This gets filled by JS -->
-	<table class="table table-light" id="draftsTable">
-	</table>
+<!-- This gets filled by JS -->
+<table class="table table-light" id="draftsTable">
+</table>
 
-	<h2>Compose message</h2>
-	<p style="color:red">{{message}}</p>
-	<form method="POST" enctype="multipart/form-data">
-		{{ form.hidden_tag() }}
-		<dl>
-			<dt><label>Choose recipients </label></dt>
-			<p>(<i>Hint: use Ctrl or Cmd to select multiple users</i>)</p>
-			<dt><select multiple name="recipient" id="recipient"></dt></select><br><br>
-			{% for field in form.display %}
-			<dt>{{ form[field].label }}</dt>
-			<dd>{{ form[field]() }}</dd><br>
-			{% if form[field].errors %}
-			{% for e in form[field].errors %}
-			<p class="help-block">{{ e }}</p>
-			{% endfor %}
-			{% endif %}
-			{% endfor %}
-		</dl>
-		{{ ckeditor.load() }}
-		{{ ckeditor.config(name='text') }}
-		<label for="delivery_date"><b>Choose a time for delivering message </b></label><br>
-		<input type="datetime-local" id="delivery_date" name="delivery_date" /><br><br><br>
-		<button type="submit" formaction="/api/message/draft" class="btn btn-primary">Save draft</button>
-		<button type="submit" formaction="/api/message/send_message" class="btn btn-primary">Send message</button>
-	</form>
+<h2>Compose message</h2>
+<p style="color:red">{{message}}</p>
+<form method="POST" enctype="multipart/form-data">
+	{{ form.hidden_tag() }}
+	<dl>
+		<dt><label>Choose recipients </label></dt>
+		<p>(<i>Hint: use Ctrl or Cmd to select multiple users</i>)</p>
+		<dt><select multiple name="recipient" id="recipient"></dt></select><br><br>
+		{% for field in form.display %}
+		<dt>{{ form[field].label }}</dt>
+		<dd>{{ form[field]() }}</dd><br>
+		{% if form[field].errors %}
+		{% for e in form[field].errors %}
+		<p class="help-block">{{ e }}</p>
+		{% endfor %}
+		{% endif %}
+		{% endfor %}
+	</dl>
+	{{ ckeditor.load() }}
+	{{ ckeditor.config(name='text') }}
+	<label for="delivery_date"><b>Choose a time for delivering message </b></label><br>
+	<input type="datetime-local" id="delivery_date" name="delivery_date" /><br><br><br>
+	<button type="submit" formaction="/api/message/draft" class="btn btn-primary">Save draft</button>
+	<button type="submit" formaction="/api/message/send_message" class="btn btn-primary">Send message</button>
+</form>
 {% endblock %}
 
 {% block scripts %}

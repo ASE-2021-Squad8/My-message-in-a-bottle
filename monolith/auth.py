@@ -1,5 +1,3 @@
-import functools
-
 from flask import abort
 from flask_login import LoginManager, current_user
 

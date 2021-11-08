@@ -1,28 +1,38 @@
 import json
 import os
-from datetime import datetime
-from datetime import date, datetime
-
-from flask.helpers import get_template_attribute
-from monolith.auth import check_authenticated
-from monolith.database import Message, db, User
 import json
 from datetime import datetime
-from monolith.notifications import send_notification
-from monolith.user_query import add_points, get_user_mail
-from monolith.auth import current_user
+
 from better_profanity import profanity
 from flask.globals import current_app
+
+from monolith.database import Message, db, User
+from monolith.user_query import add_points
+from monolith.auth import current_user
 from monolith.database import Message, User, db
 
 
 def save_message(message):
+    """Insert a new message in the db
+
+    :param message: the message to add to the db
+    :type message: Message
+    :return: the id of the new message
+    :rtype: int
+    """
     db.session.add(message)
     db.session.commit()
     return message.message_id
 
 
 def get_user_drafts(user_id):
+    """Get all the drafts for a user
+
+    :param user_id: the id of the user to get its drafts
+    :type user_id: Message
+    :return: the list of all the drafts
+    :rtype: List[Message]
+    """
     q = db.session.query(Message).filter(Message.sender == user_id, Message.is_draft)
     return q.all()
 
@@ -46,7 +56,7 @@ def get_user_draft(user_id, draft_id):
     draft = q.first()
     if draft is None:
         raise KeyError()
-    
+
     return draft
 
 
@@ -92,7 +102,7 @@ def delete_draft_attachment(user_id, message_id):
 
     draft = get_user_draft(user_id, message_id)
     if draft.media == "":
-        # No attachment to remove
+        # no attachment to remove
         return False
 
     try:
@@ -105,7 +115,15 @@ def delete_draft_attachment(user_id, message_id):
     return True
 
 
-def delete_user_message(user_id, message_id, is_draft=False):
+def delete_user_message(user_id, message_id):
+    """Delete the message_id of the user_id
+
+    :param user_id: the id of the user that wrote the message
+    :type user_id: int
+    :param message_id: the id of the message to be deleted
+    :type message_id: int
+    :return: None of raise KeyError if message_id does not exist
+    """
     q = db.session.query(Message).filter(
         Message.sender == user_id, Message.message_id == message_id
     )
@@ -126,7 +144,7 @@ def get_received_messages_metadata(user_id):
     :rtype: list[json]
     """
 
-    # Retrieve of all message for user_id
+    # retrieve all messages for user_id
     q = db.session.query(Message).filter(
         Message.recipient == user_id,
         Message.is_draft == False,
@@ -135,7 +153,7 @@ def get_received_messages_metadata(user_id):
     )
     list = []
     for msg in q:
-        # retrieve the name of sender
+        # retrieve the name of the sender
         sender = db.session.query(User).filter(User.id == msg.sender).first()
 
         json_msg = json.dumps(
@@ -179,6 +197,7 @@ def get_received_message(user_id, message_id):
     if message is None:
         raise KeyError
 
+    # censor a message if the content filter is activated
     user = db.session.query(User).filter(User.id == user_id).first()
     if user.content_filter:
         message_copy = message
@@ -222,7 +241,7 @@ def get_sent_messages_metadata(user_id):
     :rtype: list[dict]
     """
 
-    # Retrieve of all message for user_id
+    # retrieve of all messages for user_id
     q = db.session.query(Message).filter(
         Message.sender == user_id,
         Message.is_draft == False,
@@ -230,7 +249,7 @@ def get_sent_messages_metadata(user_id):
     )
     list = []
     for msg in q:
-        # retrieve the name of sender
+        # retrieve the name of the sender
         recipient = (
             db.session.query(User).filter(User.id == msg.get_recipient()).first()
         )
@@ -249,7 +268,14 @@ def get_sent_messages_metadata(user_id):
 
 
 def set_message_is_deleted(message_id):
- 
+    """Delete a message (set is_deleted=True)
+
+    :param message_id: the id of the message to delete
+    :type message_id: int
+    :return: True if the message has been deleted, False otherwise
+    :rtype: bool
+    """
+
     msg = (
         db.session.query(Message)
         .filter(
@@ -260,7 +286,7 @@ def set_message_is_deleted(message_id):
     )
     if msg is None:
         return False
-        
+
     # only delete read messages
     if msg.is_read:
         setattr(msg, "is_deleted", True)
@@ -270,6 +296,13 @@ def set_message_is_deleted(message_id):
 
 
 def set_message_is_deleted_lottery(message_id):
+    """Delete a scheduled message if the user has at least 20 60 points
+
+    :param message_id: the id of the message to delete
+    :type message_id: int
+    :return: True if the message has been deleted, False otherwise
+    :rtype: bool
+    """
 
     try:
         msg = db.session.query(Message).filter(Message.message_id == message_id).first()
@@ -285,14 +318,30 @@ def set_message_is_deleted_lottery(message_id):
 
 
 def get_message(message_id):
-    # retrieve the message
+    """Get the message #message_id
+
+    :param message_id: the id of the message to return
+    :type message_id: int
+    :return: the message
+    :rtype: Message
+    """
     msg = db.session.query(Message).filter(Message.message_id == message_id).first()
 
     return msg
 
 
-# update message state setting attr to state
 def update_message_state(message_id, attr, state):
+    """Update a message state setting attr to state (message.attr = state)
+
+    :param message_id: the id of the message to update
+    :type message_id: int
+    :param attr: the attribute of the message to update
+    :type attr: int
+    :param value: the updated value
+    :type value: Any
+    :return: True if the message has been updated, False otherwise
+    :rtype: bool
+    """
     result = False
     try:
         message = (
@@ -309,6 +358,9 @@ def update_message_state(message_id, attr, state):
 
 
 def check_message_to_send():
+    """Check if all the messages have been correctly sent. 
+    If an error is occurred (with Celery), set the messages in the past to delivered.
+    """
     ids = []
     # looking for messages that have not been sent but they should have been
     messages = (
@@ -339,7 +391,6 @@ def get_day_message(userid, baseDate, upperDate):
     :rtype: list[dict]
     """
 
-    check_authenticated()
     q = db.session.query(Message).filter(
         Message.sender == userid,
         Message.delivery_date >= baseDate,
@@ -358,13 +409,13 @@ def get_day_message(userid, baseDate, upperDate):
         canDelete = delivery_date > now and sender.points >= 60
         future = delivery_date > now
         msg = {
-                "message_id": msg.message_id,
-                "firstname": recipient.firstname,
-                "email": recipient.email,
-                "text": msg.text,
-                "delivered": delivery_date,
-                "candelete": canDelete,
-                "future": future,
+            "message_id": msg.message_id,
+            "firstname": recipient.firstname,
+            "email": recipient.email,
+            "text": msg.text,
+            "delivered": delivery_date,
+            "candelete": canDelete,
+            "future": future,
         }
 
         list.append(msg)

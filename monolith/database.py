@@ -1,8 +1,8 @@
+from datetime import datetime
 from dataclasses import dataclass
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.sql.schema import ForeignKey
 from werkzeug.security import check_password_hash, generate_password_hash
-from datetime import datetime
 
 db = SQLAlchemy()
 
@@ -116,6 +116,6 @@ class BlackList(db.Model):
     owner: int
     member: int
 
-    # One blacklist per user
+    # one blacklist per user
     owner = db.Column(db.Integer, ForeignKey(User.id), primary_key=True)
     member = db.Column(db.Integer, ForeignKey(User.id), primary_key=True)

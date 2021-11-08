@@ -1,14 +1,15 @@
-from os import name
-from celery import Celery
-from monolith.messaging import check_message_to_send, update_message_state
-from monolith.database import User, db, Message
 import json
-from celery.utils.log import get_logger
+import random
+from datetime import timedelta
+
+from celery import Celery
 from celery.schedules import crontab  # cronetab for lottery
+from celery.utils.log import get_logger
+
+from monolith.database import db
+from monolith.messaging import check_message_to_send, update_message_state
 from monolith.notifications import send_notification
 from monolith.user_query import add_points, get_user_mail, get_lottery_participants
-from datetime import timedelta
-import random as r
 
 
 logger = get_logger(__name__)
@@ -89,8 +90,7 @@ def check_messages(test_mode):
     with app.app_context():
         try:
             ids = check_message_to_send()
-            # for each message has been found as undelivered
-            # send notification
+            # for each message has been found as undelivered send notification
             for id in ids:
                 email_s = get_user_mail(id[0])
                 email_r = get_user_mail(id[1])
@@ -153,7 +153,7 @@ def lottery(test_mode):
 
     with app.app_context():
         participants = get_lottery_participants()
-        winner = r.randint(0, len(participants) - 1)
+        winner = random.randint(0, len(participants) - 1)
         email_r = participants[winner].email
         sender = "Message in a bottle"
         json_message = build_json(

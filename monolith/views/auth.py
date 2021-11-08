@@ -9,8 +9,14 @@ auth = Blueprint("auth", __name__)
 
 @auth.route("/login", methods=["GET", "POST"])
 def login():
+    """Login with a user
+
+    :return: the rendered template of the page
+    :rtype: text
+    """
     form = LoginForm()
     if form.validate_on_submit():
+        # check the fields and login if successful
         email, password = form.data["email"], form.data["password"]
         q = db.session.query(User).filter(User.email == email)
         user = q.first()
@@ -20,7 +26,7 @@ def login():
                     login_user(user)
                     return redirect("/")
                 else:
-                    # If the user is not active, check if it has been banned or the account is deleted
+                    # if the user is not active, check if it has been banned or the account is deleted
                     errorstring = ""
                     if user.reports >= 3:
                         errorstring = (
