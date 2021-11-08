@@ -134,13 +134,11 @@ def save_draft_message():
         if "recipient" in request.form and request.form["recipient"] != "":
             message.recipient = request.form["recipient"]
 
-        print("A")
         # check the attachment
         if "attachment" in request.files and request.files["attachment"].filename != "":
             file = request.files["attachment"]
 
             if _extension_allowed(file.filename):
-                print("---------------we got here????")
                 filename = _generate_filename(file)
 
                 # if the draft already has a file, delete it

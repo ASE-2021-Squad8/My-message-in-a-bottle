@@ -66,12 +66,14 @@ class TestApp(unittest.TestCase):
             io.BytesIO(b"This is a JPG file, I swear!"),
             "test.jpg",
         )
+        print("DATA", data)
         reply = self.client.post(
             "/api/message/draft",
             data=data,
             content_type="multipart/form-data",
         )
         data = reply.get_json()
+        print("REPLY", data)
         assert reply.status_code == 200
         assert data["message_id"] == 1
 
@@ -147,6 +149,7 @@ class TestApp(unittest.TestCase):
             follow_redirects=True,
         )
 
+        print(reply.get_json())
         message_id = reply.get_json()["message_id"]
         reply = self.client.get("/api/message/draft/" + str(message_id)).get_json()
         assert reply["text"] == "Let's do it !"

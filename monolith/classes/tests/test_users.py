@@ -193,8 +193,14 @@ class TestApp(unittest.TestCase):
         reply = self.client.get("/user/recipients")
         body = reply.get_json()
         # expect all other users except test
+        users = (
+            db.session.query(User).filter(User.email != "test_receiver@test.com").all()
+        )
+        userlist = []
+        for user in users:
+            userlist.append(user.email)
         for user in body:
-            assert user["email"] in {"example@example.com", "test_1@test.com"}
+            assert user["email"] in userlist
 
         """
         BLACK LIST TEST
@@ -227,8 +233,14 @@ class TestApp(unittest.TestCase):
         reply = self.client.get("/user/recipients")
         body = reply.get_json()
         # now expect it among possible receiver
-        assert body[0] == {"email": "example@example.com", "id": 1}
-        assert body[1] == {"email": "test_1@test.com", "id": 4}
+        users = (
+            db.session.query(User).filter(User.email != "test_receiver@test.com").all()
+        )
+        userlist = []
+        for user in users:
+            userlist.append(user.email)
+        for user in body:
+            assert user["email"] in userlist
 
     def test_not_authenticated_update_data(self):
         reply = self.client.get("/user/data")
@@ -428,13 +440,17 @@ class TestApp(unittest.TestCase):
         assert reply.status_code == 200
 
         # test filter activation api
-        reply = self.client.post("/api/content_filter", data=dict(filter="1"))
+        reply = self.client.post(
+            "/api/content_filter", data=dict(filter="1"), follow_redirects=True
+        )
         assert reply.status_code == 200
         user = db.session.query(User).filter(User.id == 1).first()
         assert user.content_filter
 
         # test filter deactivation api
-        reply = self.client.post("/api/content_filter", data=dict(filter="0"))
+        reply = self.client.post(
+            "/api/content_filter", data=dict(filter="0"), follow_redirects=True
+        )
         assert reply.status_code == 200
         user = db.session.query(User).filter(User.id == 1).first()
         assert not user.content_filter
