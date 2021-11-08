@@ -5,7 +5,9 @@ import time
 import json
 from datetime import datetime, timedelta
 
-from monolith.database import Message, db
+from werkzeug.test import Client
+
+from monolith.database import Message, User, db
 from monolith.app import create_test_app
 from monolith.messaging import (
     get_day_message,
@@ -339,3 +341,68 @@ class TestApp(unittest.TestCase):
         self.assertRaises(KeyError, get_sent_message, 1, 1000)
         self.assertRaises(KeyError, get_received_message, 1, 1000)
         self.assertRaises(KeyError, unmark_draft, 1, 1000)
+
+    def test_daily_message(self):
+        # inserting a test message in the db that must be deleted to test
+        # the functionality of delete message
+        recipient = User()
+        recipient.firstname = "test"
+        recipient.lastname = "test"
+        recipient.password = "prova"
+        recipient.email = "test_unregister@test.com"
+        db.session.add(recipient)
+        db.session.commit()
+        recipient_id = recipient.id
+        year = 2021
+        month = 11
+        day = 11
+        test_msg = Message()
+        test_msg.sender = 1
+        test_msg.recipient = recipient_id
+        test_msg.text = "test"
+        test_msg.is_draft = False
+        test_msg.delivery_date = datetime(year, month, day)
+        test_msg.is_delivered = True
+        test_msg.is_read = True
+        test_msg.is_deleted = False
+        db.session.add(test_msg)
+        db.session.commit()
+        message_id = test_msg.message_id
+        
+
+
+        with self.client:
+
+            reply = self.client.post(
+                "/login",
+                data=dict(email="example@example.com", password="admin"),
+                follow_redirects=True,
+            )
+            assert reply.status_code == 200
+
+            end_point = "/api/calendar/" + str(day) + "/" + str(month - 1) + "/" + str(year)
+            reply = self.client.get(end_point)
+            data = reply.get_json()
+            assert reply.status_code == 200
+            print(data)
+
+            obj = data[0]
+            assert obj["firstname"] == "test"
+            assert obj["email"] == "test_unregister@test.com"
+
+        db.session.query(Message).filter(Message.message_id == message_id).delete()
+        db.session.commit()
+        db.session.query(User).filter(User.id == recipient_id).delete()
+        db.session.commit()
+
+    def test_daily_error(self):
+        with self.client:
+            reply = self.client.post(
+                "/login",
+                data=dict(email="example@example.com", password="admin"),
+                follow_redirects=True,
+            )
+
+            end_point = "/api/calendar/33/10/2021"
+            reply = reply = self.client.get(end_point)
+            assert reply.status_code == 404
