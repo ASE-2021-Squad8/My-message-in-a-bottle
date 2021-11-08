@@ -34,9 +34,8 @@ class TestPeriodicTask(unittest.TestCase):
             assert check_messages(True) == expected_result
 
     def test_send_notification_task(self):
-        recipient_mail = (
-            "pioppoj@gmail.com"  # insert here your mail to get the notification
-        )
+        # will send the email to local smtp server
+        recipient_mail = "pioppoj@gmail.com"
         json_message = json.dumps(
             {
                 "sender": "squad 8",
@@ -63,5 +62,6 @@ class TestPeriodicTask(unittest.TestCase):
     def test_lottery(self):
         result = lottery(True)
         assert result[0]
+        # check if the winner record has been updated
         winner = db.session.query(User).filter(User.id == result[1]).first()
         assert winner.points == 20

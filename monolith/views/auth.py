@@ -11,7 +11,7 @@ auth = Blueprint("auth", __name__)
 def login():
     """Login with a user
 
-    :return: the rendered template of the page
+    :returns: the rendered template of the page
     :rtype: text
     """
     form = LoginForm()

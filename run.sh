@@ -19,7 +19,7 @@ then
 fi
 
 source venv/bin/activate
-#TO DO start redis server 
+redis-server &
 celery -A monolith.background worker -l INFO -Q message --detach # for sending messages 
 celery -A monolith.background worker -l INFO -Q notification --detach # for sending email
 celery -A monolith.background worker -l INFO --detach # for periodic tasks

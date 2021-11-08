@@ -7,7 +7,7 @@ def get_recipients(sender_id):
 
     :param sender_id: user id of the sender
     :type sender_id: int
-    :return: resulting database query
+    :returns: resulting database query
     :rtype: Query
     """
 
@@ -29,7 +29,7 @@ def get_blacklist(owner_id):
 
     :param owner_id: user id for the blacklist owner
     :type owner_id: int
-    :return: a list of blocked users
+    :returns: a list of blocked users
     :rtype: list[User]
     """
 
@@ -50,7 +50,7 @@ def add_to_blacklist(owner_id, members_id):
     :type owner_id: int
     :param members_id: the user id to add to the blacklist
     :type members_id: int
-    :return: True if the user was added to the blacklist, False otherwise
+    :returns: True if the user was added to the blacklist, False otherwise
     :rtype: bool
     """
 
@@ -74,7 +74,7 @@ def get_blacklist_candidates(owner_id):
 
     :param owner_id: the id for the user that owns the blacklist
     :type owner_id: int
-    :return: list of blacklist-able users
+    :returns: list of blacklist-able users
     :rtype: list[User]
     """
 
@@ -100,7 +100,7 @@ def remove_from_blacklist(owner_id, members_id):
     :type owner_id: int
     :param members_id: the user id to remove from the blacklist
     :type members_id: int
-    :return: True if the user was removed from the blacklist, False otherwise
+    :returns: True if the user was removed from the blacklist, False otherwise
     :rtype: bool
     """
 
@@ -125,7 +125,7 @@ def get_user_mail(user_id):
 
     :param user_id: the id of the user
     :type user_id: int
-    :return: the user's email address
+    :returns: the user's email address
     :rtype: str
     """
 
@@ -144,7 +144,7 @@ def get_user_by_email(user_email):
 
     :param user_email: the email of the user
     :type user_email: string
-    :return: True if the user exists, False otherwise
+    :returns: True if the user exists, False otherwise
     :rtype: bool
     """
 
@@ -159,7 +159,7 @@ def get_lottery_participants():
     """Returns all participants to monthly lottery
 
     :param: no pramars
-    :return: empty list in case an exception occurs otherwise users list
+    :returns: empty list in case an exception occurs otherwise users list
     :rtype: Users []
     """
 
@@ -173,7 +173,7 @@ def add_points(points, usr_id):
 
     :param points: how many points to add
     :param usr_id: id of the user
-    :return: True on success, False otherwise
+    :returns: True on success, False otherwise
     :rtype: bool
     """
     result = False
@@ -191,7 +191,7 @@ def add_points(points, usr_id):
 def get_all_users():
     """Returns all the users registered to the service
 
-    :return: the list of all the users registered
+    :returns: the list of all the users registered
     :rtype: list
     """
 
@@ -205,7 +205,7 @@ def change_user_content_filter(user_id, activate):
     :type user_id: int
     :param activate: the status of the new filter
     :type activate: bool
-    :return: True if the filter is now activated, False otherwise
+    :returns: True if the filter is now activated, False otherwise
     :rtype: bool
     """
     user = db.session.query(User).filter(User.id == user_id).first()

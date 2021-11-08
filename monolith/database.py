@@ -39,7 +39,7 @@ class User(db.Model):
     def is_authenticated(self):
         """Checks if the user is logged in
 
-        :return: True when logged in, False otherwise
+        :returns: True when logged in, False otherwise
         :rtype: bool
         """
 
@@ -50,7 +50,7 @@ class User(db.Model):
 
         :param password: the user's password
         :type password: str
-        :return: True on success, False otherwise (wrong password)
+        :returns: True on success, False otherwise (wrong password)
         :rtype: bool
         """
 
