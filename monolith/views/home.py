@@ -19,7 +19,7 @@ def index():
 @home.route("/error_page")
 def to_error_page(msg):  # pragma: no cover
     return render_template(
-        "error_page.html", message="Ooops something went wrong! {0}".format(msg)
+        "error_page.html", message="Ooops, something went wrong! ({0})".format(msg)
     )
 
 

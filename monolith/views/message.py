@@ -13,7 +13,7 @@ from flask import current_app as app
 from flask import jsonify, render_template, request
 from werkzeug.utils import redirect
 
-import monolith.messaging
+import monolith.message_query
 from monolith.auth import check_authenticated, current_user
 from monolith.user_query import get_user_mail
 from monolith.forms import MessageForm
@@ -25,12 +25,13 @@ from monolith.background import (
 
 
 msg = Blueprint("message", __name__)
-ERROR_PAGE = "error"
+ERROR_PAGE = "error_page"
 logger = get_logger(__name__)
 
 
 @msg.route("/send_message")
 def _send_message():  # pragma: no cover
+    check_authenticated()
     return render_template("send_message.html", form=MessageForm())
 
 
@@ -43,6 +44,7 @@ def _manage_drafts():  # pragma: no cover
 
 @msg.route("/mailbox")
 def mailbox():  # pragma: no cover
+    check_authenticated()
     return render_template("mailbox.html")
 
 
@@ -114,17 +116,17 @@ def save_draft_message():
 
         message = None
 
-        try:
-            id = request.form["draft_id"]
+        id = request.form["draft_id"]
+        if id is not None and id != "":
             try:
-                message = monolith.messaging.get_user_draft(
+                message = monolith.message_query.get_user_draft(
                     getattr(current_user, "id"), id
                 )
             except:
                 return _get_result(
                     None, ERROR_PAGE, True, 404, "Draft to edit cannot be found"
                 )
-        except KeyError:
+        else:
             message = Message()
 
         message.text = text
@@ -135,10 +137,10 @@ def save_draft_message():
             message.recipient = request.form["recipient"]
 
         # check the attachment
-        if "attachment" in request.files:
+        if "attachment" in request.files and request.files["attachment"].filename != "":
             file = request.files["attachment"]
 
-            if file.filename != "" and _extension_allowed(file.filename):
+            if _extension_allowed(file.filename):
                 filename = _generate_filename(file)
 
                 # if the draft already has a file, delete it
@@ -148,7 +150,7 @@ def save_draft_message():
                         os.unlink(
                             os.path.join(app.config["UPLOAD_FOLDER"], message.media)
                         )
-                    except:
+                    except: # pragma: no cover
                         # if we failed to delete the file from the disk then something is wrong
                         return _get_result(
                             None, ERROR_PAGE, True, 500, "Internal server error"
@@ -161,7 +163,7 @@ def save_draft_message():
                     None, ERROR_PAGE, True, 400, "File extension not allowed"
                 )
 
-        monolith.messaging.save_message(message)
+        monolith.message_query.save_message(message)
 
         return _get_result(jsonify({"message_id": message.message_id}), "/send_message")
 
@@ -179,10 +181,12 @@ def get_user_draft(id):
 
     try:
         if request.method == "GET":
-            draft = monolith.messaging.get_user_draft(getattr(current_user, "id"), id)
+            draft = monolith.message_query.get_user_draft(
+                getattr(current_user, "id"), id
+            )
             return jsonify(draft)
         elif request.method == "DELETE":
-            monolith.messaging.delete_user_message(getattr(current_user, "id"), id)
+            monolith.message_query.delete_user_message(getattr(current_user, "id"), id)
             return jsonify({"message_id": id})
     except KeyError:
         return _get_result(None, ERROR_PAGE, True, 404, "Draft not found")
@@ -199,7 +203,7 @@ def get_user_draft_attachment(id):
     """
     check_authenticated()
 
-    if monolith.messaging.delete_draft_attachment(getattr(current_user, "id"), id):
+    if monolith.message_query.delete_draft_attachment(getattr(current_user, "id"), id):
         return jsonify({"message_id": id})
     else:
         _get_result(None, ERROR_PAGE, True, 404, "No attachment present")
@@ -214,11 +218,11 @@ def get_user_drafts():
     """
     check_authenticated()
 
-    drafts = monolith.messaging.get_user_drafts(getattr(current_user, "id"))
+    drafts = monolith.message_query.get_user_drafts(getattr(current_user, "id"))
     return jsonify(drafts)
 
 
-@msg.route("/api/message/send_message", methods=["POST"])
+@msg.route("/api/message/", methods=["POST"])
 def send_message():
     """Send a message from the current user
 
@@ -251,8 +255,13 @@ def send_message():
     for recipient in recipients:
         try:
             # attempt to retrieve the draft, if present
-            msg = monolith.messaging.unmark_draft(
-                getattr(current_user, "id"), int(request.form["draft_id"])
+            msg = monolith.message_query.unmark_draft(
+                getattr(current_user, "id"),
+                int(
+                    -1
+                    if _not_valid_string(request.form["draft_id"])
+                    else request.form["draft_id"]
+                ),
             )
         except KeyError:
             # otherwise build the message from scratch
@@ -266,10 +275,12 @@ def send_message():
         msg.sender = int(getattr(current_user, "id"))
         msg.recipient = int(recipient)
 
-        if "attachment" in request.files:
+        if "attachment" in request.files and not _not_valid_string(
+            request.files["attachment"].filename
+        ):
             file = request.files["attachment"]
 
-            if file.filename != "" and _extension_allowed(file.filename):
+            if _extension_allowed(file.filename):
                 filename = _generate_filename(file)
 
                 # if the draft already has a file, delete it
@@ -292,7 +303,7 @@ def send_message():
 
         # send message via celery
         try:
-            id = monolith.messaging.save_message(msg)
+            id = monolith.message_query.save_message(msg)
             email_r = get_user_mail(msg.recipient)
             email_s = get_user_mail(msg.sender)
             put_message_in_queue.apply_async(
@@ -357,16 +368,10 @@ def _get_received_messages_metadata():
     """
     check_authenticated()
 
-    try:
-        messages = monolith.messaging.get_received_messages_metadata(
-            getattr(current_user, "id")
-        )
-        return jsonify(messages)
-
-    except Exception as e:
-        print(str(e))
-        traceback.print_exc()
-        abort(404, "Message not found")
+    messages = monolith.message_query.get_received_messages_metadata(
+        getattr(current_user, "id")
+    )
+    return jsonify(messages)
 
 
 @msg.route("/api/message/received/<message_id>", methods=["GET"])
@@ -381,19 +386,17 @@ def _get_received_message(message_id):
     check_authenticated()
 
     try:
-        message = monolith.messaging.get_received_message(
+        message = monolith.message_query.get_received_message(
             getattr(current_user, "id"), message_id
         )
         return jsonify(message)
 
-    except Exception as e:
-        print(str(e))
-        traceback.print_exc()
+    except Exception:
         abort(404, "Message not found")
 
 
 @msg.route("/api/message/sent/metadata", methods=["GET"])
-def _get_sent_messages():
+def _get_sent_messages_metadata():
     """Get all the messages sent by the current user
 
     :returns: json of all the messages, 404 page if an exception happened
@@ -401,16 +404,10 @@ def _get_sent_messages():
     """
     check_authenticated()
 
-    try:
-        messages = monolith.messaging.get_sent_messages_metadata(
-            getattr(current_user, "id")
-        )
-        return jsonify(messages)
-
-    except Exception as e:
-        print(str(e))
-        traceback.print_exc()
-        abort(404, "Message not found")
+    messages = monolith.message_query.get_sent_messages_metadata(
+        getattr(current_user, "id")
+    )
+    return jsonify(messages)
 
 
 @msg.route("/api/message/sent/<message_id>", methods=["GET"])
@@ -425,18 +422,16 @@ def _get_sent_message(message_id):
     check_authenticated()
 
     try:
-        message = monolith.messaging.get_sent_message(
+        message = monolith.message_query.get_sent_message(
             getattr(current_user, "id"), message_id
         )
         return jsonify(message)
 
-    except Exception as e:
-        print(str(e))
-        traceback.print_exc()
+    except Exception:
         abort(404, "Message not found")
 
 
-@msg.route("/api/message/delete/<message_id>", methods=["DELETE"])
+@msg.route("/api/message/<message_id>", methods=["DELETE"])
 def delete_msg(message_id):
     """Delete a message of id = <id>
 
@@ -446,13 +441,13 @@ def delete_msg(message_id):
     :rtype: json
     """
     check_authenticated()
-    if monolith.messaging.set_message_is_deleted(message_id):
+    if monolith.message_query.set_message_is_deleted(message_id):
         return jsonify({"message_id": message_id})
     else:
         return _get_result(None, ERROR_PAGE, True, 404, "Message not found")
 
 
-@msg.route("/api/lottery/message/delete/<message_id>", methods=["DELETE"])
+@msg.route("/api/lottery/message/<message_id>", methods=["DELETE"])
 def lottery_delete_msg(message_id):
     """Delete a scheduled message of id = <id>
 
@@ -462,7 +457,7 @@ def lottery_delete_msg(message_id):
     :rtype: json
     """
     check_authenticated()
-    result = monolith.messaging.set_message_is_deleted_lottery(message_id)
+    result = monolith.message_query.set_message_is_deleted_lottery(message_id)
 
     return (
         jsonify({"message_id": message_id}) if result else jsonify({"message_id": -1})
@@ -471,15 +466,15 @@ def lottery_delete_msg(message_id):
 
 @msg.route("/api/message/read_message/<id>")
 def read_msg(id):
-    """Get a message of id = <id>
+    """Set is_read=true of the message of id = <id>
 
-    :param message_id: the id of the message to be returned
+    :param message_id: the id of the message to which is_read needs to be set True
     :type message_id: int
-    :returns: True if the message has been correctly read, 404 page if the message has been deleted or does not exist
+    :returns: True if is_read is change, 404 page else
     :rtype: json
     """
     check_authenticated()
-    msg = monolith.messaging.get_message(id)
+    msg = monolith.message_query.get_message(id)
 
     if msg is None or msg.is_deleted:
         return abort(404, json.dumps({"msg_read": False, "error": "message not found"}))
@@ -487,7 +482,7 @@ def read_msg(id):
     if not msg.is_read:
 
         # updata msg.is_read
-        monolith.messaging.update_message_state(msg.message_id, "is_read", True)
+        monolith.message_query.update_message_state(msg.message_id, "is_read", True)
 
         # retrieve email of receiver and sender
         email_r = get_user_mail(msg.sender)
@@ -536,5 +531,5 @@ def sent_messages_by_day(day, month, year):
                 upperdate = date(year, month + 2, 1)
         userid = getattr(current_user, "id")
 
-        messages = monolith.messaging.get_day_message(userid, basedate, upperdate)
+        messages = monolith.message_query.get_day_message(userid, basedate, upperdate)
         return jsonify(messages)

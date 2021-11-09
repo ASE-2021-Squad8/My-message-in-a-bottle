@@ -9,7 +9,7 @@ from werkzeug.test import Client
 
 from monolith.database import Message, User, db
 from monolith.app import create_test_app
-from monolith.messaging import (
+from monolith.message_query import (
     get_day_message,
     get_received_message,
     get_sent_message,
@@ -68,6 +68,7 @@ class TestApp(unittest.TestCase):
             io.BytesIO(b"This is a JPG file, I swear!"),
             "test.jpg",
         )
+        data["draft_id"] = ""
         reply = self.client.post(
             "/api/message/draft",
             data=data,
@@ -88,6 +89,10 @@ class TestApp(unittest.TestCase):
         data = reply.get_json()
         assert reply.status_code == 200
         assert str(data["message_id"]) == str(old_id)
+
+        reply = self.client.delete("/api/message/draft/" + str(old_id) + "/attachment")
+        data = reply.get_json()
+        assert reply.status_code == 404
 
         reply = self.client.get("/api/message/draft/all")
         data = reply.get_json()
@@ -123,7 +128,7 @@ class TestApp(unittest.TestCase):
             follow_redirects=True,
         )
         assert reply.status_code == 200
-        reply = self.client.get("/user/get_recipients")
+        reply = self.client.get("/api/user/recipients")
         assert reply.status_code == 200
         data = reply.get_json()
 
@@ -140,11 +145,11 @@ class TestApp(unittest.TestCase):
                         io.BytesIO(b"This is a JPG file, I swear!"),
                         "test.jpg",
                     ),
+                    "draft_id": "",
                 }
             ),
             follow_redirects=True,
         )
-
         message_id = reply.get_json()["message_id"]
         reply = self.client.get("/api/message/draft/" + str(message_id)).get_json()
         assert reply["text"] == "Let's do it !"
@@ -152,7 +157,7 @@ class TestApp(unittest.TestCase):
 
         delivery_date = now + timedelta(seconds=5)
         reply = self.client.post(
-            "/api/message/send_message",
+            "/api/message/",
             data=dict(
                 {
                     "recipient": data[0]["id"],
@@ -168,7 +173,7 @@ class TestApp(unittest.TestCase):
         assert len(reply.get_json()) == 0
 
         print("Waiting for the message delivery", end=" ", flush=True)
-        time.sleep(15)
+        time.sleep(10)
 
         # get sent message
         reply = self.client.get("/api/message/sent/metadata", follow_redirects=True)
@@ -211,19 +216,19 @@ class TestApp(unittest.TestCase):
 
         # delete existing not read message
         reply = self.client.delete(
-            "api/message/delete/" + str(id_message), follow_redirects=True
+            "/api/message/" + str(id_message), follow_redirects=True
         )
         assert reply.status_code == 404
 
         # read received message
         reply = self.client.get(
-            "api/message/read_message/" + str(id_message), follow_redirects=True
+            "/api/message/read_message/" + str(id_message), follow_redirects=True
         )
         assert reply.status_code == 200
 
         # delete existing message
         reply = self.client.delete(
-            "api/message/delete/" + str(id_message), follow_redirects=True
+            "/api/message/" + str(id_message), follow_redirects=True
         )
         assert reply.status_code == 200
 
@@ -232,11 +237,11 @@ class TestApp(unittest.TestCase):
 
         # read not-existing message
         reply = self.client.get(
-            "api/message/read_message/" + str(id_message), follow_redirects=True
+            "/api/message/read_message/" + str(id_message), follow_redirects=True
         )
         assert reply.status_code == 404
 
-        reply = self.client.get("/unregister", follow_redirects=True)
+        reply = self.client.get("/user/unregister", follow_redirects=True)
         assert reply.status_code == 200
 
     def test_delete_message(self):
@@ -253,27 +258,26 @@ class TestApp(unittest.TestCase):
         db.session.add(test_msg)
         db.session.commit()
         message_id = test_msg.message_id
-        with self.client:
-            reply = self.client.post(
-                "/login",
-                data=dict(email="example@example.com", password="admin"),
-                follow_redirects=True,
-            )
-            assert reply.status_code == 200
+        reply = self.client.post(
+            "/login",
+            data=dict(email="example@example.com", password="admin"),
+            follow_redirects=True,
+        )
+        assert reply.status_code == 200
 
-            end_point = "/api/message/delete/" + str(message_id)
-            reply = self.client.delete(end_point)
-            data = reply.get_json()
-            assert reply.status_code == 200
-            assert int(data["message_id"]) == message_id
-            reply = self.client.delete("/api/message/delete/-1")
-            data = reply.get_json()
-            assert reply.status_code == 404
+        end_point = "/api/message/" + str(message_id)
+        reply = self.client.delete(end_point)
+        data = reply.get_json()
+        assert reply.status_code == 200
+        assert int(data["message_id"]) == message_id
+        reply = self.client.delete("/api/message/-1")
+        data = reply.get_json()
+        assert reply.status_code == 404
 
         db.session.query(Message).filter(Message.message_id == message_id).delete()
         db.session.commit()
 
-    def test_fault_send_message(self):
+    def test_fail_send_message(self):
         reply = self.client.post(
             "/login",
             data=dict(email="example@example.com", password="admin"),
@@ -283,7 +287,7 @@ class TestApp(unittest.TestCase):
 
         # msg with recipients=[]
         reply = self.client.post(
-            "/api/message/send_message",
+            "/api/message/",
             data=dict(
                 {
                     "recipient": [],
@@ -298,7 +302,7 @@ class TestApp(unittest.TestCase):
 
         # msg with text=""
         reply = self.client.post(
-            "/api/message/send_message",
+            "/api/message/",
             data=dict(
                 {
                     "recipient": [1],
@@ -313,7 +317,7 @@ class TestApp(unittest.TestCase):
 
         # msg with delivery_date in the past
         reply = self.client.post(
-            "/api/message/send_message",
+            "/api/message/",
             data=dict(
                 {
                     "recipient": [1],
@@ -326,7 +330,7 @@ class TestApp(unittest.TestCase):
         )
         assert reply.status_code == 400
 
-    def test_messaging(self):
+    def test_fail_message_query(self):
         # assert errors and exceptions in some messaging.py functions
         assert (
             get_day_message(
@@ -341,6 +345,23 @@ class TestApp(unittest.TestCase):
         self.assertRaises(KeyError, get_sent_message, 1, 1000)
         self.assertRaises(KeyError, get_received_message, 1, 1000)
         self.assertRaises(KeyError, unmark_draft, 1, 1000)
+
+    def test_fail_message(self):
+        reply = self.client.post(
+            "/login",
+            data=dict(
+                email="example@example.com",
+                password="admin",
+            ),
+            follow_redirects=True,
+        )
+        assert reply.status_code == 200
+        
+        reply = self.client.get("/api/message/received/99999")
+        assert reply.status_code == 404
+
+        reply = self.client.get("/api/message/sent/99999")
+        assert reply.status_code == 404
 
     def test_daily_message(self):
         # inserting a test message in the db that must be deleted to test
@@ -369,26 +390,22 @@ class TestApp(unittest.TestCase):
         db.session.commit()
         message_id = test_msg.message_id
         
+        reply = self.client.post(
+            "/login",
+            data=dict(email="example@example.com", password="admin"),
+            follow_redirects=True,
+        )
+        assert reply.status_code == 200
 
+        end_point = "/api/calendar/" + str(day) + "/" + str(month - 1) + "/" + str(year)
+        reply = self.client.get(end_point)
+        data = reply.get_json()
+        assert reply.status_code == 200
+        print(data)
 
-        with self.client:
-
-            reply = self.client.post(
-                "/login",
-                data=dict(email="example@example.com", password="admin"),
-                follow_redirects=True,
-            )
-            assert reply.status_code == 200
-
-            end_point = "/api/calendar/" + str(day) + "/" + str(month - 1) + "/" + str(year)
-            reply = self.client.get(end_point)
-            data = reply.get_json()
-            assert reply.status_code == 200
-            print(data)
-
-            obj = data[0]
-            assert obj["firstname"] == "test"
-            assert obj["email"] == "test_unregister@test.com"
+        obj = data[0]
+        assert obj["firstname"] == "test"
+        assert obj["email"] == "test_unregister@test.com"
 
         db.session.query(Message).filter(Message.message_id == message_id).delete()
         db.session.commit()
@@ -396,13 +413,14 @@ class TestApp(unittest.TestCase):
         db.session.commit()
 
     def test_daily_error(self):
-        with self.client:
-            reply = self.client.post(
-                "/login",
-                data=dict(email="example@example.com", password="admin"),
-                follow_redirects=True,
-            )
+        reply = self.client.post(
+            "/login",
+            data=dict(email="example@example.com", password="admin"),
+            follow_redirects=True,
+        )
 
-            end_point = "/api/calendar/33/10/2021"
-            reply = reply = self.client.get(end_point)
-            assert reply.status_code == 404
+        reply = self.client.get("/api/calendar/33/10/2021")
+        assert reply.status_code == 404
+        
+        reply = self.client.get("/api/calendar/1/1/2222")
+        assert reply.get_json() == []

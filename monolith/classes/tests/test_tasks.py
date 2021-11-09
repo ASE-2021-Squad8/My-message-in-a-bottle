@@ -9,7 +9,7 @@ from monolith.database import Message, User, db
 from monolith.notifications import EmailConfig, send_notification
 
 
-class TestPeriodicTask(unittest.TestCase):
+class TestTasks(unittest.TestCase):
     def setUp(self):
         self.app = create_test_app()
         self.client = self.app.test_client()
@@ -34,13 +34,25 @@ class TestPeriodicTask(unittest.TestCase):
             assert check_messages(True) == expected_result
 
     def test_send_notification_task(self):
+        print()
         # will send the email to local smtp server
         recipient_mail = "pioppoj@gmail.com"
         json_message = json.dumps(
             {
                 "sender": "squad 8",
                 "recipient": recipient_mail,
-                "body": "test was executed successfully",
+                "body": "email will be not sent",
+                "TESTING": True,
+            }
+        )
+        # because recipient is not present
+        assert not send_notification_task(json_message)
+        recipient_mail = "example@example.com"
+        json_message = json.dumps(
+            {
+                "sender": "squad 8",
+                "recipient": recipient_mail,
+                "body": "email will be sent",
                 "TESTING": True,
             }
         )

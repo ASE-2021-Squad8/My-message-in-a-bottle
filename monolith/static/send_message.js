@@ -1,6 +1,6 @@
 function get_recipient() {
     $.ajax({
-        url: "/user/get_recipients",
+        url: "/api/user/recipients",
         contentType: "application/json",
         dataType: "json",
         success: function (data, status) {

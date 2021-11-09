@@ -41,7 +41,7 @@ class TestApp(unittest.TestCase):
         assert not current_user.is_authenticated
 
     def test_unregister_not_authenticated(self):
-        reply = self.client.get("/unregister")
+        reply = self.client.get("/user/unregister")
         assert reply.status_code == 401
 
     def test_unregister(self):
@@ -69,7 +69,7 @@ class TestApp(unittest.TestCase):
         )
         assert reply.status_code == 200
 
-        reply = self.client.get("/unregister", follow_redirects=True)
+        reply = self.client.get("/user/unregister", follow_redirects=True)
         assert reply.status_code == 200
 
         # Check the user in the db has is_active=False
@@ -115,7 +115,7 @@ class TestApp(unittest.TestCase):
 
         # test reporting a user that does not exist
         reply = self.client.post(
-            "/report_user",
+            "/user/report",
             data=dict(
                 useremail="test_user_not_exists@test.com",
             ),
@@ -127,7 +127,7 @@ class TestApp(unittest.TestCase):
         # report the dummy user 3 times to ban it
         for i in range(1, 4):
             reply = self.client.post(
-                "/report_user",
+                "/user/report",
                 data=dict(
                     useremail="test_ban@test.com",
                 ),
@@ -190,11 +190,17 @@ class TestApp(unittest.TestCase):
         )
         assert reply.status_code == 200
 
-        reply = self.client.get("/user/get_recipients")
+        reply = self.client.get("/api/user/recipients")
         body = reply.get_json()
         # expect all other users except test
-        assert body[0] == {"email": "example@example.com", "id": 1}
-        assert body[1] == {"email": "test_1@test.com", "id": 4}
+        users = (
+            db.session.query(User).filter(User.email != "test_receiver@test.com").all()
+        )
+        userlist = []
+        for user in users:
+            userlist.append(user.email)
+        for user in body:
+            assert user["email"] in userlist
 
         """
         BLACK LIST TEST
@@ -209,7 +215,7 @@ class TestApp(unittest.TestCase):
 
         assert reply.status_code == 200
 
-        reply = self.client.get("/user/get_recipients")
+        reply = self.client.get("/api/user/recipients")
         body = reply.get_json()
         assert reply.status_code == 200
         # now expect only user 1
@@ -224,14 +230,20 @@ class TestApp(unittest.TestCase):
 
         assert reply.status_code == 200
 
-        reply = self.client.get("/user/get_recipients")
+        reply = self.client.get("/api/user/recipients")
         body = reply.get_json()
         # now expect it among possible receiver
-        assert body[0] == {"email": "example@example.com", "id": 1}
-        assert body[1] == {"email": "test_1@test.com", "id": 4}
+        users = (
+            db.session.query(User).filter(User.email != "test_receiver@test.com").all()
+        )
+        userlist = []
+        for user in users:
+            userlist.append(user.email)
+        for user in body:
+            assert user["email"] in userlist
 
     def test_not_authenticated_update_data(self):
-        reply = self.client.get("/update_data")
+        reply = self.client.get("/user/data")
         assert reply.status_code == 401
 
     def test_update_data(self):
@@ -261,7 +273,7 @@ class TestApp(unittest.TestCase):
 
         # try updating the user's data with invalid fields
         reply = self.client.post(
-            "/update_data",
+            "/user/data",
             data=dict(
                 textfirstname="",
                 textlastname="test_new",
@@ -276,7 +288,7 @@ class TestApp(unittest.TestCase):
 
         # update the user's data
         reply = self.client.post(
-            "/update_data",
+            "/user/data",
             data=dict(
                 textfirstname="test_new",
                 textlastname="test_new",
@@ -294,7 +306,7 @@ class TestApp(unittest.TestCase):
         assert user.dateofbirth == datetime.datetime(2222, 2, 2)
 
     def test_not_authenticated_update_password(self):
-        reply = self.client.get("/reset_password")
+        reply = self.client.get("/user/password")
         assert reply.status_code == 401
 
     def test_update_password(self):
@@ -324,7 +336,7 @@ class TestApp(unittest.TestCase):
 
         # try updating the user's password writing incorrect current password
         reply = self.client.post(
-            "/reset_password",
+            "/user/password",
             data=dict(
                 currentpassword="WRONGPW",
                 newpassword="test_new",
@@ -338,7 +350,7 @@ class TestApp(unittest.TestCase):
 
         # try updating the user's password writing incorrect new password confirmation
         reply = self.client.post(
-            "/reset_password",
+            "/user/password",
             data=dict(
                 currentpassword="test",
                 newpassword="test_new",
@@ -352,7 +364,7 @@ class TestApp(unittest.TestCase):
 
         # update the user's password correctly
         reply = self.client.post(
-            "/reset_password",
+            "/user/password",
             data=dict(
                 currentpassword="test",
                 newpassword="test_new",
@@ -428,13 +440,17 @@ class TestApp(unittest.TestCase):
         assert reply.status_code == 200
 
         # test filter activation api
-        reply = self.client.get("/api/content_filter/1")
+        reply = self.client.post(
+            "/api/content_filter", data=dict(filter="1"), follow_redirects=True
+        )
         assert reply.status_code == 200
         user = db.session.query(User).filter(User.id == 1).first()
         assert user.content_filter
 
         # test filter deactivation api
-        reply = self.client.get("/api/content_filter/0")
+        reply = self.client.post(
+            "/api/content_filter", data=dict(filter="0"), follow_redirects=True
+        )
         assert reply.status_code == 200
         user = db.session.query(User).filter(User.id == 1).first()
         assert not user.content_filter
@@ -466,7 +482,7 @@ class TestApp(unittest.TestCase):
         # try getting all the users registered to the service
         reply = self.client.get("/api/users/list")
         data = reply.get_json()
-        users = db.session.query(User)
+        users = db.session.query(User).filter(User.is_active)
         userlist = [
             {"email": u.email, "firstname": u.firstname, "lastname": u.lastname}
             for u in users
@@ -474,6 +490,7 @@ class TestApp(unittest.TestCase):
         assert userlist == data
 
     def test_exception_user_query(self):
+        print()
         # assert errors in some user_query functions
         assert not monolith.user_query.add_to_blacklist(None, None)
         assert not monolith.user_query.remove_from_blacklist(None, None)

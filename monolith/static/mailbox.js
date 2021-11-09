@@ -215,7 +215,7 @@ function forward_message(msg_email, msg_id, forwarding_sent = false) {
 
 function delete_message(msg_id) {
     $.ajax({
-        url: '/api/message/delete/' + msg_id,
+        url: '/api/message/' + msg_id,
         type: 'DELETE',
         success: function () {
             alert("Message deleted");
@@ -226,7 +226,7 @@ function delete_message(msg_id) {
 
 function get_recipient() {
     $.ajax({
-        url: "/user/get_recipients",
+        url: "/api/user/recipients",
         contentType: "application/json",
         dataType: "json",
         success: function (data, status) {
@@ -267,7 +267,7 @@ function send_msg_reply_forward(form_id, forwarding = false) {
     }
 
     $.ajax({
-        url: "/api/message/send_message",
+        url: "/api/message/",
         data: request_data,
         contentType: false,
         processData: false,

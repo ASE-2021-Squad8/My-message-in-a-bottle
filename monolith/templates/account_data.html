@@ -3,8 +3,8 @@
 
 {% block content %}
 <h1>Account data</h1>
-<a href="/" type="button" class="btn btn-outline-primary">Homepage</a>
-<a href="/settings" type="button" class="btn btn-outline-primary">Back to settings</a><br>
+<a href="/" class="btn btn-outline-primary">Homepage</a>
+<a href="{{url_for('home.settings')}}" class="btn btn-outline-primary">Back to settings</a><br>
 
 <div>
 	<br>
@@ -13,9 +13,10 @@
 		<dd>User mail: <b>{{ user.email }}</b></dd>
 		<dd>Date of birth: <b>{{ date }}</b></dd>
 	</dl>
-	<a href="/update_data" class="btn btn-success" tabindex="-1" role="button" aria-disabled="true">Edit profile</a>
-
-	<a href="/reset_password" class="btn btn-warning" tabindex="-1" role="button" aria-disabled="true">Change
+	<a href="{{url_for('users.change_data_user')}}" class="btn btn-success" tabindex="-1" role="button"
+		aria-disabled="true">Edit profile</a>
+	<a href="{{url_for('users.change_pass_user')}}" class="btn btn-warning" tabindex="-1" role="button"
+		aria-disabled="true">Change
 		password</a>
-</div>
+</div><br>
 {% endblock %}

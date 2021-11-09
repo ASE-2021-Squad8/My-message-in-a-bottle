@@ -35,7 +35,7 @@ def _search_user():  # pragma: no cover
     return render_template("search_user.html")
 
 
-@users.route("/account_data", methods=["GET"])
+@users.route("/user/account", methods=["GET"])
 def _user():  # pragma: no cover
     check_authenticated()
     data = current_user.dateofbirth
@@ -65,7 +65,7 @@ def create_user():
 
             # check if a user with the same email already exists
             email = form.email.data
-            if monolith.user_query.get_user_by_email(email):
+            if monolith.user_query.get_user_by_email(email) is not None:
                 return render_template(
                     "create_user.html",
                     form=form,
@@ -88,7 +88,7 @@ def create_user():
         return render_template("create_user.html", form=form, error="")
 
 
-@users.route("/user/get_recipients", methods=["GET"])
+@users.route("/api/user/recipients", methods=["GET"])
 def get_recipients():
     """Get all the possible message recipients for the current user
 
@@ -100,7 +100,7 @@ def get_recipients():
     return jsonify(l)
 
 
-@users.route("/unregister")
+@users.route("/user/unregister")
 def unregister():
     """Unregister the current user from the service
 
@@ -116,7 +116,7 @@ def unregister():
     return redirect("/")
 
 
-@users.route("/update_data", methods=["POST", "GET"])
+@users.route("/user/data", methods=["POST", "GET"])
 def change_data_user():
     """Update the data of the current user
 
@@ -128,17 +128,26 @@ def change_data_user():
 
     if request.method == "POST":
         # check if inputs are valid
+        check_mail_db = (
+            db.session.query(User)
+            .filter(User.email == request.form["textemail"])
+            .first()
+        )
         if (
             request.form["textfirstname"] == ""
             or request.form["textlastname"] == ""
             or request.form["textemail"] == ""
             or request.form["textbirth"] == ""
+            or (
+                check_mail_db is not None
+                and check_mail_db.id != getattr(current_user, "id")
+            )
         ):
             return render_template(
                 "edit_profile.html",
                 form=form,
                 user=current_user,
-                error="All fields must be completed!",
+                error="All fields must be completed or the email is already associated to an account",
             )
 
         # update the user data
@@ -152,12 +161,12 @@ def change_data_user():
         user.dateofbirth = date_as_datetime
 
         db.session.commit()
-        return redirect("/account_data")
+        return redirect("/user/account")
     elif request.method == "GET":  # pragma: no cover
         return render_template("edit_profile.html", form=form, user=current_user)
 
 
-@users.route("/reset_password", methods=["POST", "GET"])
+@users.route("/user/password", methods=["POST", "GET"])
 def change_pass_user():
     """Change the password of the current user
 
@@ -196,7 +205,7 @@ def change_pass_user():
         return render_template("reset_password.html", form=form)
 
 
-@users.route("/report_user", methods=["GET", "POST"])
+@users.route("/user/report", methods=["GET", "POST"])
 def report():
     """Report a user
 
@@ -238,8 +247,8 @@ def report():
 
 
 @users.route("/user/black_list", methods=["GET", "POST"])
-def display_black_list():
-    """Get all the users blacklisted by the current user
+def handle_black_list():
+    """Get all the users blacklisted by the current user or add/remove users to the blacklist
 
     :returns: the response from the server or the rendered template
     :rtype: text
@@ -294,7 +303,7 @@ def get_user_details(user_id):
     :param user_id: the id of the user to retrieve the information of
     :type user_id: int
     :returns: an object containing email, first and last name
-    :rtype: Markup
+    :rtype: json
     """
     check_authenticated()
 
@@ -328,25 +337,20 @@ def get_users_list_json():
     return jsonify(userlist)
 
 
-@users.route("/api/content_filter/<value>")
-def set_content_filter(value):
-    """Set the content filter or the current user to <value> (1 True, 0 False)
+@users.route("/api/content_filter/", methods=["POST"])
+def set_content_filter():
+    """Set the content filter or the current user to the value read from the form (1 True, 0 False)
 
-    :param value: 1 to set the filter to True, 0 otherwise
-    :type value: int/string
     :returns: True if filter is now set to True, False otherwise
     :rtype: bool
     """
     check_authenticated()
-    value = True if int(value) == 1 else False
-    try:
-        set = monolith.user_query.change_user_content_filter(current_user.id, value)
-    except Exception as e:  # pragma: no cover
-        print(str(e))
-        return render_template("content_filter.html", feedback="This should not happen")
+    value = request.form["filter"]
+    value = int(value) == 1
+    set = monolith.user_query.change_user_content_filter(current_user.id, value)
 
-    if set == True:
-        feedback = "You content filter is enabled"
+    if set:
+        feedback = "Your content filter is enabled"
     else:
-        feedback = "You content filter is disabled"
+        feedback = "Your content filter is disabled"
     return render_template("content_filter.html", feedback=feedback)

@@ -4,15 +4,15 @@
 {% block content %}
 <h1>Report a user</h1>
 
-<a href="/" type="button" class="btn btn-outline-primary">Homepage</a>
-<a href="/settings" type="button" class="btn btn-outline-primary">Back to settings</a><br><br>
+<a href="/" class="btn btn-outline-primary">Homepage</a>
+<a href="{{url_for('home.settings')}}" class="btn btn-outline-primary">Back to settings</a><br><br>
 
 <h4>Insert the email of the user you want to report</h4>
 
 <form method="POST">
 	<input type="text" id="useremail" name="useremail"><br><br>
-	<button type="submit" class="btn btn-danger" formaction="/report_user">Report</button>
-</form>
+	<button type="submit" class="btn btn-danger" formaction="{{url_for('users.report')}}">Report</button>
+</form><br>
 
 {% if error != "" %}
 <p style="color:red;">{{error}}</p>

@@ -6,7 +6,7 @@ from datetime import datetime
 from better_profanity import profanity
 from flask.globals import current_app
 
-from monolith.database import Message, db, User
+from monolith.database import Message, db, User, BlackList
 from monolith.user_query import add_points
 from monolith.auth import current_user
 from monolith.database import Message, User, db
@@ -109,7 +109,8 @@ def delete_draft_attachment(user_id, message_id):
         os.unlink(os.path.join(current_app.config["UPLOAD_FOLDER"], draft.media))
         draft.media = ""
         db.session.commit()
-    except FileNotFoundError:
+    except FileNotFoundError:  # pragma: no cover
+        # This will only happen in case of a FS issue
         return False
 
     return True
@@ -144,30 +145,37 @@ def get_received_messages_metadata(user_id):
     :rtype: list[json]
     """
 
-    # retrieve all messages for user_id
+    # retrieve all received messages for user_id
     q = db.session.query(Message).filter(
         Message.recipient == user_id,
         Message.is_draft == False,
         Message.is_delivered == True,
         Message.is_deleted == False,
+        Message.sender.not_in(
+            db.session.query(BlackList.member).filter(BlackList.owner == user_id)
+        ),
     )
     list = []
     for msg in q:
         # retrieve the name of the sender
-        sender = db.session.query(User).filter(User.id == msg.sender).first()
-
-        json_msg = json.dumps(
-            {
-                "sender_id": sender.id,
-                "firstname": sender.firstname,
-                "lastname": sender.lastname,
-                "id_message": msg.message_id,
-                "email": sender.email,
-                "media": msg.media,
-            }
+        sender = (
+            db.session.query(User)  # do not show message if sender is banned
+            .filter(User.id == msg.sender, User.reports < 3)
+            .first()
         )
+        if sender is not None:
+            json_msg = json.dumps(
+                {
+                    "sender_id": sender.id,
+                    "firstname": sender.firstname,
+                    "lastname": sender.lastname,
+                    "id_message": msg.message_id,
+                    "email": sender.email,
+                    "media": msg.media,
+                }
+            )
 
-        list.append(json_msg)
+            list.append(json_msg)
 
     return list
 
@@ -191,6 +199,9 @@ def get_received_message(user_id, message_id):
         Message.is_draft == False,
         Message.is_delivered == True,
         Message.is_deleted == False,
+        Message.sender.not_in(
+            db.session.query(BlackList.member).filter(BlackList.owner == user_id)
+        ),
     )
 
     message = q.first()
