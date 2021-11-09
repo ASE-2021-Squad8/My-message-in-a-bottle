@@ -252,7 +252,12 @@ def send_message():
         try:
             # attempt to retrieve the draft, if present
             msg = monolith.messaging.unmark_draft(
-                getattr(current_user, "id"), int(request.form["draft_id"])
+                getattr(current_user, "id"),
+                int(
+                    -1
+                    if _not_valid_string(request.form["draft_id"])
+                    else request.form["draft_id"]
+                ),
             )
         except KeyError:
             # otherwise build the message from scratch
@@ -266,10 +271,12 @@ def send_message():
         msg.sender = int(getattr(current_user, "id"))
         msg.recipient = int(recipient)
 
-        if "attachment" in request.files:
+        if "attachment" in request.files and not _not_valid_string(
+            request.files["attachment"].filename
+        ):
             file = request.files["attachment"]
 
-            if file.filename != "" and _extension_allowed(file.filename):
+            if _extension_allowed(file.filename):
                 filename = _generate_filename(file)
 
                 # if the draft already has a file, delete it

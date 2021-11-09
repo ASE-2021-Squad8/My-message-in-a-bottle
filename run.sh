@@ -18,7 +18,9 @@ then
     export MAIL_SERVER_PASSWORD=$5
 fi
 
+python3 -m venv venv
 source venv/bin/activate
+pip install -r requirements.txt
 redis-server &
 celery -A monolith.background worker -l INFO -Q message --detach # for sending messages 
 celery -A monolith.background worker -l INFO -Q notification --detach # for sending email
