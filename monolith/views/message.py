@@ -478,11 +478,11 @@ def lottery_delete_msg(message_id):
 
 @msg.route("/api/message/read_message/<id>")
 def read_msg(id):
-    """Get a message of id = <id>
+    """Set is_read=true of the message of id = <id>
 
-    :param message_id: the id of the message to be returned
+    :param message_id: the id of the message to which is_read needs to be set True
     :type message_id: int
-    :returns: True if the message has been correctly read, 404 page if the message has been deleted or does not exist
+    :returns: True if is_read is change, 404 page else
     :rtype: json
     """
     check_authenticated()
