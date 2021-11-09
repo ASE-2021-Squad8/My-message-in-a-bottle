@@ -160,11 +160,12 @@ def send_notification_task(json_message):
     else:
         app = _APP
     try:
-        recipient = get_user_by_email(tmp["recipient"])
-        # Banned/deleted users shouldn't receive any notifications
-        if recipient is not None and recipient.is_active:
-            send_notification(tmp["sender"], tmp["recipient"], tmp["body"])
-            result = True
+        with app.app_context():
+            recipient = get_user_by_email(tmp["recipient"])
+            # Banned/deleted users shouldn't receive any notifications
+            if recipient is not None and recipient.is_active:
+                send_notification(tmp["sender"], tmp["recipient"], tmp["body"])
+                result = True
     except Exception as e:
         logger.exception("send_notification_task raises ", e)
         raise e
