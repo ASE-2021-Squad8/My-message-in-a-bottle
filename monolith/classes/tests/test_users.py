@@ -482,7 +482,7 @@ class TestApp(unittest.TestCase):
         # try getting all the users registered to the service
         reply = self.client.get("/api/users/list")
         data = reply.get_json()
-        users = db.session.query(User)
+        users = db.session.query(User).filter(User.is_active)
         userlist = [
             {"email": u.email, "firstname": u.firstname, "lastname": u.lastname}
             for u in users
