@@ -190,7 +190,7 @@ class TestApp(unittest.TestCase):
         )
         assert reply.status_code == 200
 
-        reply = self.client.get("/user/recipients")
+        reply = self.client.get("/api/user/recipients")
         body = reply.get_json()
         # expect all other users except test
         users = (
@@ -215,7 +215,7 @@ class TestApp(unittest.TestCase):
 
         assert reply.status_code == 200
 
-        reply = self.client.get("/user/recipients")
+        reply = self.client.get("/api/user/recipients")
         body = reply.get_json()
         assert reply.status_code == 200
         # now expect only user 1
@@ -230,7 +230,7 @@ class TestApp(unittest.TestCase):
 
         assert reply.status_code == 200
 
-        reply = self.client.get("/user/recipients")
+        reply = self.client.get("/api/user/recipients")
         body = reply.get_json()
         # now expect it among possible receiver
         users = (

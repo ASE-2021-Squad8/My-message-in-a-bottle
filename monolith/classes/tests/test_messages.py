@@ -126,7 +126,7 @@ class TestApp(unittest.TestCase):
             follow_redirects=True,
         )
         assert reply.status_code == 200
-        reply = self.client.get("/user/recipients")
+        reply = self.client.get("/api/user/recipients")
         assert reply.status_code == 200
         data = reply.get_json()
 

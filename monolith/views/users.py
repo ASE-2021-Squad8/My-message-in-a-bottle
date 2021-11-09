@@ -88,7 +88,7 @@ def create_user():
         return render_template("create_user.html", form=form, error="")
 
 
-@users.route("/user/recipients", methods=["GET"])
+@users.route("/api/user/recipients", methods=["GET"])
 def get_recipients():
     """Get all the possible message recipients for the current user
 
@@ -128,13 +128,20 @@ def change_data_user():
 
     if request.method == "POST":
         # check if inputs are valid
-        check_mail_db = db.session.query(User).filter(User.email == request.form["textemail"]).first()
+        check_mail_db = (
+            db.session.query(User)
+            .filter(User.email == request.form["textemail"])
+            .first()
+        )
         if (
             request.form["textfirstname"] == ""
             or request.form["textlastname"] == ""
             or request.form["textemail"] == ""
             or request.form["textbirth"] == ""
-            or (check_mail_db is not None and check_mail_db.id != getattr(current_user, "id"))
+            or (
+                check_mail_db is not None
+                and check_mail_db.id != getattr(current_user, "id")
+            )
         ):
             return render_template(
                 "edit_profile.html",
