@@ -3,7 +3,7 @@ python: 3.9
 env:
   - TOX_ENV=py39
 install:
-  - pip install tox python-coveralls
+  - pip install tox
 before_script:
     - sudo redis-server /etc/redis/redis.conf --port 6379
 script:
