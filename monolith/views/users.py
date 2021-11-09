@@ -128,17 +128,20 @@ def change_data_user():
 
     if request.method == "POST":
         # check if inputs are valid
+        check_mail_db = db.session.query(User).filter(User.email == request.form["textemail"]).first()
+        print(check_mail_db)
         if (
             request.form["textfirstname"] == ""
             or request.form["textlastname"] == ""
             or request.form["textemail"] == ""
             or request.form["textbirth"] == ""
+            or (check_mail_db is not None and check_mail_db.id != getattr(current_user, "id"))
         ):
             return render_template(
                 "edit_profile.html",
                 form=form,
                 user=current_user,
-                error="All fields must be completed!",
+                error="All fields must be completed or the email is already associated to an account",
             )
 
         # update the user data
