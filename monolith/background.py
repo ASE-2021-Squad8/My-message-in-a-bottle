@@ -9,7 +9,12 @@ from celery.utils.log import get_logger
 from monolith.database import db
 from monolith.messaging import check_message_to_send, update_message_state
 from monolith.notifications import send_notification
-from monolith.user_query import add_points, get_user_mail, get_lottery_participants, get_user_by_email
+from monolith.user_query import (
+    add_points,
+    get_user_mail,
+    get_lottery_participants,
+    get_user_by_email,
+)
 
 
 logger = get_logger(__name__)
@@ -47,7 +52,7 @@ _APP = None
 
 @celery.task
 # Don't include towards coverage as this needs to be tested via its endpoint
-def send_message(json_message): # pragma: no cover
+def send_message(json_message):  # pragma: no cover
     """Deliver a message updating is_delivered to 1
     :param json_message: data to execute the task
     :type json_message: json format string
@@ -155,9 +160,9 @@ def send_notification_task(json_message):
     else:
         app = _APP
     try:
-        recipient = get_user_by_email(tmp["receiver"])
-        # Banned/deleted users shouldn't receive any notifications 
-        if recipient.is_active:
+        recipient = get_user_by_email(tmp["recipient"])
+        # Banned/deleted users shouldn't receive any notifications
+        if recipient is not None and recipient.is_active:
             send_notification(tmp["sender"], tmp["recipient"], tmp["body"])
             result = True
     except Exception as e:

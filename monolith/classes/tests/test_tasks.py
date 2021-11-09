@@ -40,7 +40,18 @@ class TestTasks(unittest.TestCase):
             {
                 "sender": "squad 8",
                 "recipient": recipient_mail,
-                "body": "test was executed successfully",
+                "body": "email will be not sent",
+                "TESTING": True,
+            }
+        )
+        # because recipient is not present
+        assert not send_notification_task(json_message)
+        recipient_mail = "example@example.com"
+        json_message = json.dumps(
+            {
+                "sender": "squad 8",
+                "recipient": recipient_mail,
+                "body": "email will be sent",
                 "TESTING": True,
             }
         )
