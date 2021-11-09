@@ -401,7 +401,6 @@ class TestApp(unittest.TestCase):
         reply = self.client.get(end_point)
         data = reply.get_json()
         assert reply.status_code == 200
-        print(data)
 
         obj = data[0]
         assert obj["firstname"] == "test"

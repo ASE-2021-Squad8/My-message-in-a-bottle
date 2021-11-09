@@ -5,7 +5,7 @@ env:
 install:
   - pip install tox
 before_script:
-    - sudo redis-server /etc/redis/redis.conf --port 6379
+  - sudo redis-server /etc/redis/redis.conf --port 6379
 script:
   - tox -e $TOX_ENV
 after_success:
