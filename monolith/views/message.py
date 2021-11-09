@@ -518,7 +518,7 @@ def sent_messages_by_day(day, month, year):
     :rtype: json
     """
     check_authenticated()
-    if day > 31 and month + 1 > 12:
+    if day > 31 or month + 1 > 12:
         return _get_result(None, ERROR_PAGE, True, 404, "Invalid date")
     else:
         basedate = datetime(year, month + 1, day)
