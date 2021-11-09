@@ -490,6 +490,7 @@ class TestApp(unittest.TestCase):
         assert userlist == data
 
     def test_exception_user_query(self):
+        print()
         # assert errors in some user_query functions
         assert not monolith.user_query.add_to_blacklist(None, None)
         assert not monolith.user_query.remove_from_blacklist(None, None)

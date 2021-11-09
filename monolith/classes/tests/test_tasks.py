@@ -34,6 +34,7 @@ class TestTasks(unittest.TestCase):
             assert check_messages(True) == expected_result
 
     def test_send_notification_task(self):
+        print()
         # will send the email to local smtp server
         recipient_mail = "pioppoj@gmail.com"
         json_message = json.dumps(
