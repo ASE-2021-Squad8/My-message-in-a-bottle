@@ -129,7 +129,6 @@ def change_data_user():
     if request.method == "POST":
         # check if inputs are valid
         check_mail_db = db.session.query(User).filter(User.email == request.form["textemail"]).first()
-        print(check_mail_db)
         if (
             request.form["textfirstname"] == ""
             or request.form["textlastname"] == ""

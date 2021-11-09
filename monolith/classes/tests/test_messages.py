@@ -66,14 +66,13 @@ class TestApp(unittest.TestCase):
             io.BytesIO(b"This is a JPG file, I swear!"),
             "test.jpg",
         )
-        print("DATA", data)
+        data["draft_id"] = ""
         reply = self.client.post(
             "/api/message/draft",
             data=data,
             content_type="multipart/form-data",
         )
         data = reply.get_json()
-        print("REPLY", data)
         assert reply.status_code == 200
         assert data["message_id"] == 1
 
@@ -144,12 +143,11 @@ class TestApp(unittest.TestCase):
                         io.BytesIO(b"This is a JPG file, I swear!"),
                         "test.jpg",
                     ),
+                    "draft_id": "",
                 }
             ),
             follow_redirects=True,
         )
-
-        print(reply.get_json())
         message_id = reply.get_json()["message_id"]
         reply = self.client.get("/api/message/draft/" + str(message_id)).get_json()
         assert reply["text"] == "Let's do it !"
@@ -216,7 +214,7 @@ class TestApp(unittest.TestCase):
 
         # delete existing not read message
         reply = self.client.delete(
-            "/api/message/delete/" + str(id_message), follow_redirects=True
+            "/api/message/" + str(id_message), follow_redirects=True
         )
         assert reply.status_code == 404
 
@@ -228,7 +226,7 @@ class TestApp(unittest.TestCase):
 
         # delete existing message
         reply = self.client.delete(
-            "/api/message/delete/" + str(id_message), follow_redirects=True
+            "/api/message/" + str(id_message), follow_redirects=True
         )
         assert reply.status_code == 200
 
