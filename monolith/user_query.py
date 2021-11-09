@@ -80,7 +80,7 @@ def get_blacklist_candidates(owner_id):
 
     result = (
         db.session.query(User.id, User.email)
-        .filter(User.id != owner_id)
+        .filter(User.id != owner_id, User.reports < 3, User.is_active)
         .filter(
             User.id.not_in(
                 db.session.query(BlackList.member).filter(BlackList.owner == owner_id)
@@ -192,7 +192,7 @@ def get_all_users():
     :rtype: list
     """
 
-    return db.session.query(User)
+    return db.session.query(User).filter(User.is_active)
 
 
 def change_user_content_filter(user_id, activate):

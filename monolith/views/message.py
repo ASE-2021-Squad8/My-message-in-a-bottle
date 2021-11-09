@@ -31,6 +31,7 @@ logger = get_logger(__name__)
 
 @msg.route("/send_message")
 def _send_message():  # pragma: no cover
+    check_authenticated()
     return render_template("send_message.html", form=MessageForm())
 
 
@@ -43,6 +44,7 @@ def _manage_drafts():  # pragma: no cover
 
 @msg.route("/mailbox")
 def mailbox():  # pragma: no cover
+    check_authenticated()
     return render_template("mailbox.html")
 
 

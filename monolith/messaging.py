@@ -163,19 +163,19 @@ def get_received_messages_metadata(user_id):
             .filter(User.id == msg.sender, User.reports < 3)
             .first()
         )
+        if sender is not None:
+            json_msg = json.dumps(
+                {
+                    "sender_id": sender.id,
+                    "firstname": sender.firstname,
+                    "lastname": sender.lastname,
+                    "id_message": msg.message_id,
+                    "email": sender.email,
+                    "media": msg.media,
+                }
+            )
 
-        json_msg = json.dumps(
-            {
-                "sender_id": sender.id,
-                "firstname": sender.firstname,
-                "lastname": sender.lastname,
-                "id_message": msg.message_id,
-                "email": sender.email,
-                "media": msg.media,
-            }
-        )
-
-        list.append(json_msg)
+            list.append(json_msg)
 
     return list
 
