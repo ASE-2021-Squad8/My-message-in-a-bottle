@@ -150,7 +150,7 @@ def save_draft_message():
                         os.unlink(
                             os.path.join(app.config["UPLOAD_FOLDER"], message.media)
                         )
-                    except:
+                    except: # pragma: no cover
                         # if we failed to delete the file from the disk then something is wrong
                         return _get_result(
                             None, ERROR_PAGE, True, 500, "Internal server error"
@@ -368,16 +368,10 @@ def _get_received_messages_metadata():
     """
     check_authenticated()
 
-    try:
-        messages = monolith.message_query.get_received_messages_metadata(
-            getattr(current_user, "id")
-        )
-        return jsonify(messages)
-
-    except Exception as e:
-        print(str(e))
-        traceback.print_exc()
-        abort(404, "Message not found")
+    messages = monolith.message_query.get_received_messages_metadata(
+        getattr(current_user, "id")
+    )
+    return jsonify(messages)
 
 
 @msg.route("/api/message/received/<message_id>", methods=["GET"])
@@ -397,9 +391,7 @@ def _get_received_message(message_id):
         )
         return jsonify(message)
 
-    except Exception as e:
-        print(str(e))
-        traceback.print_exc()
+    except Exception:
         abort(404, "Message not found")
 
 
@@ -412,16 +404,10 @@ def _get_sent_messages_metadata():
     """
     check_authenticated()
 
-    try:
-        messages = monolith.message_query.get_sent_messages_metadata(
-            getattr(current_user, "id")
-        )
-        return jsonify(messages)
-
-    except Exception as e:
-        print(str(e))
-        traceback.print_exc()
-        abort(404, "Message not found")
+    messages = monolith.message_query.get_sent_messages_metadata(
+        getattr(current_user, "id")
+    )
+    return jsonify(messages)
 
 
 @msg.route("/api/message/sent/<message_id>", methods=["GET"])
@@ -441,9 +427,7 @@ def _get_sent_message(message_id):
         )
         return jsonify(message)
 
-    except Exception as e:
-        print(str(e))
-        traceback.print_exc()
+    except Exception:
         abort(404, "Message not found")
 
 

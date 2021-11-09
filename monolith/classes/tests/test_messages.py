@@ -256,27 +256,26 @@ class TestApp(unittest.TestCase):
         db.session.add(test_msg)
         db.session.commit()
         message_id = test_msg.message_id
-        with self.client:
-            reply = self.client.post(
-                "/login",
-                data=dict(email="example@example.com", password="admin"),
-                follow_redirects=True,
-            )
-            assert reply.status_code == 200
+        reply = self.client.post(
+            "/login",
+            data=dict(email="example@example.com", password="admin"),
+            follow_redirects=True,
+        )
+        assert reply.status_code == 200
 
-            end_point = "/api/message/" + str(message_id)
-            reply = self.client.delete(end_point)
-            data = reply.get_json()
-            assert reply.status_code == 200
-            assert int(data["message_id"]) == message_id
-            reply = self.client.delete("/api/message/-1")
-            data = reply.get_json()
-            assert reply.status_code == 404
+        end_point = "/api/message/" + str(message_id)
+        reply = self.client.delete(end_point)
+        data = reply.get_json()
+        assert reply.status_code == 200
+        assert int(data["message_id"]) == message_id
+        reply = self.client.delete("/api/message/-1")
+        data = reply.get_json()
+        assert reply.status_code == 404
 
         db.session.query(Message).filter(Message.message_id == message_id).delete()
         db.session.commit()
 
-    def test_fault_send_message(self):
+    def test_fail_send_message(self):
         reply = self.client.post(
             "/login",
             data=dict(email="example@example.com", password="admin"),
@@ -344,3 +343,37 @@ class TestApp(unittest.TestCase):
         self.assertRaises(KeyError, get_sent_message, 1, 1000)
         self.assertRaises(KeyError, get_received_message, 1, 1000)
         self.assertRaises(KeyError, unmark_draft, 1, 1000)
+
+    def test_fail_message(self):
+        reply = self.client.post(
+            "/login",
+            data=dict(
+                email="example@example.com",
+                password="admin",
+            ),
+            follow_redirects=True,
+        )
+        assert reply.status_code == 200
+        
+        reply = self.client.get("/api/message/received/99999")
+        assert reply.status_code == 404
+
+        reply = self.client.get("/api/message/sent/99999")
+        assert reply.status_code == 404
+
+    def test_delete_lottery_message(self):
+        reply = self.client.post(
+            "/login",
+            data=dict(
+                email="example@example.com",
+                password="admin",
+            ),
+            follow_redirects=True,
+        )
+        assert reply.status_code == 200
+
+        reply = self.client.get("/api/calendar/32/13/2222")
+        assert reply.status_code == 404
+
+        reply = self.client.get("/api/calendar/1/1/2222")
+        assert reply.get_json() == []
