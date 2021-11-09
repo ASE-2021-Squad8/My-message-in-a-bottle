@@ -158,7 +158,11 @@ def get_received_messages_metadata(user_id):
     list = []
     for msg in q:
         # retrieve the name of the sender
-        sender = db.session.query(User).filter(User.id == msg.sender).first()
+        sender = (
+            db.session.query(User)  # do not show message if sender is banned
+            .filter(User.id == msg.sender, User.reports < 3)
+            .first()
+        )
 
         json_msg = json.dumps(
             {
