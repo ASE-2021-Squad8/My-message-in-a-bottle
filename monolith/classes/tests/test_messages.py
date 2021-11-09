@@ -7,7 +7,7 @@ from datetime import datetime, timedelta
 
 from monolith.database import Message, db
 from monolith.app import create_test_app
-from monolith.messaging import (
+from monolith.message_query import (
     get_day_message,
     get_received_message,
     get_sent_message,
@@ -171,7 +171,7 @@ class TestApp(unittest.TestCase):
         assert len(reply.get_json()) == 0
 
         print("Waiting for the message delivery", end=" ", flush=True)
-        time.sleep(15)
+        time.sleep(30)
 
         # get sent message
         reply = self.client.get("/api/message/sent/metadata", follow_redirects=True)
@@ -329,7 +329,7 @@ class TestApp(unittest.TestCase):
         )
         assert reply.status_code == 400
 
-    def test_messaging(self):
+    def test_fail_message_query(self):
         # assert errors and exceptions in some messaging.py functions
         assert (
             get_day_message(

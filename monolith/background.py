@@ -7,7 +7,7 @@ from celery.schedules import crontab  # cronetab for lottery
 from celery.utils.log import get_logger
 
 from monolith.database import db
-from monolith.messaging import check_message_to_send, update_message_state
+from monolith.message_query import check_message_to_send, update_message_state
 from monolith.notifications import send_notification
 from monolith.user_query import (
     add_points,
