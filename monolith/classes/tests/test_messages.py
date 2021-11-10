@@ -141,7 +141,7 @@ class TestApp(unittest.TestCase):
             data=dict(
                 {
                     "recipient": data[0]["id"],
-                    "text": "Let's do it !",
+                    "text": "Let's do it!",
                     "delivery_date": delivery_date,
                     "attachment": (
                         io.BytesIO(b"This is a JPG file, I swear!"),
@@ -154,7 +154,7 @@ class TestApp(unittest.TestCase):
         )
         message_id = reply.get_json()["message_id"]
         reply = self.client.get("/api/message/draft/" + str(message_id)).get_json()
-        assert reply["text"] == "Let's do it !"
+        assert reply["text"] == "Let's do it!"
         assert reply["recipient"] == data[0]["id"]
 
         delivery_date = now + timedelta(seconds=5)

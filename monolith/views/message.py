@@ -7,7 +7,7 @@ import time
 import pytz
 
 from celery.utils.log import get_logger
-from flask import Blueprint, abort, url_for
+from flask import Blueprint, abort, url_for, session
 from flask import current_app as app
 from flask import jsonify, render_template, request
 from werkzeug.utils import redirect
@@ -21,7 +21,6 @@ from monolith.background import (
     send_message as put_message_in_queue,
     send_notification_task as put_email_in_queue,
 )
-import pdb
 
 msg = Blueprint("message", __name__)
 ERROR_PAGE = "error_page"
@@ -31,13 +30,16 @@ logger = get_logger(__name__)
 @msg.route("/send_message")
 def _send_message():  # pragma: no cover
     check_authenticated()
-    return render_template("send_message.html", form=MessageForm())
+    message = ""
+    if "message" in session:
+        message = session["message"]
+        session.pop("message")
+    return render_template("send_message.html", message=message, form=MessageForm())
 
 
 @msg.route("/manage_drafts")
 def _manage_drafts():  # pragma: no cover
     check_authenticated()
-
     return render_template("manage_drafts.html", user=getattr(current_user, "id"))
 
 
@@ -359,11 +361,11 @@ def _get_result(json_object, page, error=False, status=200, message=""):
     elif error:  # pragma: no cover
         return render_template(page + ".html", message=message, form=MessageForm())
 
-    return (
-        json_object
-        if testing
-        else redirect(url_for(page, message=message, form=MessageForm()))
-    )
+    if testing:
+        return json_object
+    else:
+        session["message"] = message
+        return redirect(url_for(page, message=message, form=MessageForm()))
 
 
 def _not_valid_string(text):
