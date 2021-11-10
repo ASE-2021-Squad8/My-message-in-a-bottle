@@ -22,11 +22,11 @@ class UserForm(FlaskForm):
 
 
 class MessageForm(FlaskForm):
-    text = CKEditorField("Message text", validators=[DataRequired()], id="text", default="")
+    text = CKEditorField("Message text", validators=[DataRequired()], id="text")
     delivery_date = f.DateTimeField("delivery_date")
     recipient = f.SelectMultipleField("Recipient", id="recipient", validators=[DataRequired()])
     attachment = FileField("Attachment", id="attachment", validators=[FileAllowed(["jpg", "png", "jpeg", "gif"], "Only images can be uploaded")])
-    draft_id = HiddenField("Draft ID", id="draft_id", default=None)
+    draft_id = HiddenField("Draft ID", id="draft_id")
     display = ["text", "attachment"]
 
 

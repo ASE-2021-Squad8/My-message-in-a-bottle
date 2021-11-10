@@ -21,7 +21,7 @@ from monolith.background import (
     send_message as put_message_in_queue,
     send_notification_task as put_email_in_queue,
 )
-
+import pdb
 
 msg = Blueprint("message", __name__)
 ERROR_PAGE = "error_page"
@@ -168,7 +168,9 @@ def save_draft_message():
 
         monolith.message_query.save_message(message)
 
-        return _get_result(jsonify({"message_id": message.message_id}), "message._send_message")
+        return _get_result(
+            jsonify({"message_id": message.message_id}), "message._send_message"
+        )
 
 
 @msg.route("/api/message/draft/<id>", methods=["GET", "DELETE"])

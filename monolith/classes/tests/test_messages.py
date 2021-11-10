@@ -56,6 +56,7 @@ class TestApp(unittest.TestCase):
             "test.jpg",
         )
         data["draft_id"] = -1
+        data["delivery_date"] = datetime(2222, 1, 1)
         reply = self.client.post(
             "/api/message/draft",
             data=data,
@@ -69,6 +70,7 @@ class TestApp(unittest.TestCase):
             "test.jpg",
         )
         data["draft_id"] = ""
+        data["delivery_date"] = datetime(2222, 1, 1)
         reply = self.client.post(
             "/api/message/draft",
             data=data,
@@ -172,7 +174,7 @@ class TestApp(unittest.TestCase):
         reply = self.client.get("/api/message/sent/metadata", follow_redirects=True)
         assert len(reply.get_json()) == 0
 
-        print("Waiting for the message delivery", end=" ", flush=True)
+        print("Waiting for the message delivery...", end=" ", flush=True)
         time.sleep(10)
 
         # get sent message

@@ -92,6 +92,7 @@ def send_message(json_message):  # pragma: no cover
 @celery.task
 def check_messages(test_mode):
     """Check that messages have been sent correctly
+    
     :param test_mode: determine the operating mode
     :type test_mode: bool
     :raises Exception: if an error occurs

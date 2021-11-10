@@ -24,12 +24,13 @@ class TestTasks(unittest.TestCase):
                 msg = Message()
                 msg.sender = 1
                 msg.recipient = 2
+                msg.is_draft = False
                 msg.text = "Hello how are you? " + str(i)
                 msg.delivery_date = now - timedelta(days=random.randint(1, 30))
                 db.session.add(msg)
-                db.session.commit()
-
-            # expect success state and number of message sent equal to 5
+                
+            db.session.commit()
+            # expect success state and number of messages sent equal to 5
             expected_result = (True, 5)
             assert check_messages(True) == expected_result
 
@@ -59,7 +60,7 @@ class TestTasks(unittest.TestCase):
         assert send_notification_task(json_message)
 
     def test_email_login_fail(self):
-        print("Waiting for socket timeout, go grab a coffee", end=" ", flush=True)
+        print("Waiting for socket timeout, go grab a coffee...", end=" ", flush=True)
         self.assertRaises(
             Exception,
             send_notification,
