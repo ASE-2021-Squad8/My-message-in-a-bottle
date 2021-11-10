@@ -59,7 +59,7 @@ function buildTable(data) {
 
         var row = `<tr>`
         
-        if(msg.email) {
+        if(msg.recipient) {
             row += 
             `<td>${user.firstname + " " + user.lastname}</td>
                         <td>${user.email}</td>`

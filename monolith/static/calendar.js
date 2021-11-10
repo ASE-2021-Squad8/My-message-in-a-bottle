@@ -64,6 +64,7 @@ function delete_and_reload(msg_id, day, month, year) {
 
 const date = new Date();
 
+//Inspired by https://github.com/lashaNoz/Calendar.git
 const renderCalendar = () => {
   date.setDate(1);
 

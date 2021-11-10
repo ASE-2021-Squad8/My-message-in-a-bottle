@@ -1,14 +1,13 @@
 import json
 import os
 from datetime import date, datetime
-import traceback
 import hashlib
 import pathlib
 import time
 import pytz
 
 from celery.utils.log import get_logger
-from flask import Blueprint, abort
+from flask import Blueprint, abort, url_for
 from flask import current_app as app
 from flask import jsonify, render_template, request
 from werkzeug.utils import redirect
@@ -129,6 +128,10 @@ def save_draft_message():
         else:
             message = Message()
 
+        date = request.form["delivery_date"]
+        message.delivery_date = (
+            datetime.fromisoformat(date) if not _not_valid_string(date) else None
+        )
         message.text = text
         message.is_draft = True
 
@@ -150,7 +153,7 @@ def save_draft_message():
                         os.unlink(
                             os.path.join(app.config["UPLOAD_FOLDER"], message.media)
                         )
-                    except: # pragma: no cover
+                    except:  # pragma: no cover
                         # if we failed to delete the file from the disk then something is wrong
                         return _get_result(
                             None, ERROR_PAGE, True, 500, "Internal server error"
@@ -165,7 +168,7 @@ def save_draft_message():
 
         monolith.message_query.save_message(message)
 
-        return _get_result(jsonify({"message_id": message.message_id}), "/send_message")
+        return _get_result(jsonify({"message_id": message.message_id}), "message._send_message")
 
 
 @msg.route("/api/message/draft/<id>", methods=["GET", "DELETE"])
@@ -269,8 +272,8 @@ def send_message():
             msg.is_draft = False
             msg.is_delivered = False
             msg.is_read = False
-            msg.delivery_date = delivery_date
 
+        msg.delivery_date = delivery_date
         msg.text = request.form["text"]
         msg.sender = int(getattr(current_user, "id"))
         msg.recipient = int(recipient)
@@ -325,10 +328,14 @@ def send_message():
         except put_message_in_queue.OperationalError as e:
             logger.exception("Send message task raised: %r", e)
 
-    return _get_result(jsonify({"message sent": True}), "/send_message")
+    return _get_result(
+        jsonify({"message sent": True}),
+        "message._send_message",
+        message="Message sent successfully!",
+    )
 
 
-def _get_result(json_object, page, error=False, status=200, error_message=""):
+def _get_result(json_object, page, error=False, status=200, message=""):
     """Return the result of a function (a json in test mode or a rendered template)
 
     :param json_object: the json to be returned in test mode
@@ -339,20 +346,22 @@ def _get_result(json_object, page, error=False, status=200, error_message=""):
     :type error: bool
     :param status: the status code to be returned (default=200)
     :type status: int
-    :param error_message: the error message to be displayed (default="")
-    :type error_message: text
+    :param message: the message to be displayed (default="")
+    :type message: text
     :returns: json in test mode or rendered template
     :rtype: json
     """
     testing = app.config["TESTING"]
     if error and testing:
-        abort(status, error_message)
+        abort(status, message)
     elif error:  # pragma: no cover
-        return render_template(
-            page + ".html", message=error_message, form=MessageForm()
-        )
+        return render_template(page + ".html", message=message, form=MessageForm())
 
-    return json_object if testing else redirect(page)
+    return (
+        json_object
+        if testing
+        else redirect(url_for(page, message=message, form=MessageForm()))
+    )
 
 
 def _not_valid_string(text):

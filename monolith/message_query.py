@@ -378,6 +378,7 @@ def check_message_to_send():
         db.session.query(Message)
         .filter(Message.is_delivered == 0)
         .filter(Message.delivery_date < datetime.now())
+        .filter(Message.is_draft == 0)
         .all()
     )
     # updating state
