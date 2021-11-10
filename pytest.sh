@@ -8,14 +8,11 @@ pip install pytest pytest-cov
 python3 -m smtpd -c DebuggingServer -n localhost:1025 &
 PYTHON_PID=$!
 redis-server &
+REDIS_PID=$!
 celery -A monolith.background worker -l INFO -Q message --detach
+CELERY_PID=$!
 rm -rf mmiab-test.db
-pytest -s -v --cov monolith monolith/classes/tests --cov-report term-missing
+pytest -s -v --cov monolith monolith/classes/tests
 kill -9 $PYTHON_PID
-if [[ "$OSTYPE" == "linux"* ]]; then
-	killall celery
-	redis-server stop
-elif [[ "$OSTYPE" == "darwin"* ]]; then
-	pkill -f celery
-	redis-cli shutdown
-fi
+kill -9 $REDIS_PID
+kill -9 $CELERY_PID
