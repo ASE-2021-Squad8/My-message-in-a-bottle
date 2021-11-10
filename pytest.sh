@@ -1,11 +1,11 @@
 #!/usr/bin/bash
 
-python3 -m venv venv
+python3.9 -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
 pip install pytest pytest-cov
 
-python3 -m smtpd -c DebuggingServer -n localhost:1025 &
+python3.9 -m smtpd -c DebuggingServer -n localhost:1025 &
 PYTHON_PID=$!
 redis-server &
 REDIS_PID=$!
